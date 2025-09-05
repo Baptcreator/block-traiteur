@@ -1,0 +1,95 @@
+# Block Traiteur - Système de Devis
+# Copyright (C) 2024 Block Street Food & Events
+msgid ""
+msgstr ""
+"Project-Id-Version: Block Traiteur 1.0.0\n"
+"Report-Msgid-Bugs-To: support@block-strasbourg.fr\n"
+"POT-Creation-Date: 2024-09-04 12:00+0000\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language-Team: Block Street Food\n"
+
+#: admin/class-admin.php:25
+msgid "Block Traiteur"
+msgstr ""
+
+#: admin/class-admin.php:26
+msgid "Tableau de bord"
+msgstr ""
+
+#: admin/class-admin.php:35
+msgid "Devis"
+msgstr ""
+
+#: admin/class-admin.php:36
+msgid "Tous les devis"
+msgstr ""
+
+#: admin/class-admin.php:45
+msgid "Produits"
+msgstr ""
+
+#: admin/class-admin.php:46
+msgid "Tous les produits"
+msgstr ""
+
+#: admin/class-admin.php:55
+msgid "Boissons"
+msgstr ""
+
+#: admin/class-admin.php:56
+msgid "Toutes les boissons"
+msgstr ""
+
+#: admin/class-admin.php:65
+msgid "Paramètres"
+msgstr ""
+
+#: includes/class-mailer.php:45
+msgid "Votre demande de devis Block Traiteur"
+msgstr ""
+
+#: includes/class-mailer.php:78
+msgid "Nouvelle demande de devis Block Traiteur"
+msgstr ""
+
+#: public/class-shortcode.php:25
+msgid "Demande de devis Block Traiteur"
+msgstr ""
+
+#: public/class-shortcode.php:67
+msgid "Service"
+msgstr ""
+
+#: public/class-shortcode.php:68
+msgid "Date événement"
+msgstr ""
+
+#: public/class-shortcode.php:69
+msgid "Nombre d'invités"
+msgstr ""
+
+#: templates/form-steps/step-base-package.php:8
+msgid "Forfait de base"
+msgstr ""
+
+#: templates/form-steps/step-base-package.php:9
+msgid "Informations essentielles pour votre événement"
+msgstr ""
+
+#: templates/form-steps/step-meal-formulas.php:8
+msgid "Choix des formules repas"
+msgstr ""
+
+#: templates/form-steps/step-meal-formulas.php:9
+msgid "Composez votre menu selon vos envies"
+msgstr ""
+
+#: templates/form-steps/step-contact.php:8
+msgid "Vos coordonnées"
+msgstr ""
+
+#: templates/form-steps/step-contact.php:9
+msgid "Pour finaliser votre demande de devis"
+msgstr ""

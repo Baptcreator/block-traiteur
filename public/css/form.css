@@ -1,0 +1,358 @@
+/**
+ * Styles pour le formulaire Block Traiteur
+ */
+
+/* Variables CSS */
+:root {
+    --block-primary: #243127;
+    --block-secondary: #FFB404;
+    --block-accent: #EF3D1D;
+    --block-white: #FFFFFF;
+    --block-light: #F6F2E7;
+    --block-gray: #646970;
+    --border-radius: 20px;
+    --spacing-sm: 16px;
+    --spacing-md: 24px;
+    --spacing-lg: 32px;
+    --spacing-xl: 48px;
+    --transition: 0.25s ease-out;
+    --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Container principal */
+.block-quote-form {
+    max-width: 1000px;
+    margin: 20px auto;
+    padding: var(--spacing-lg);
+    font-family: 'Arial', sans-serif;
+    background: var(--block-white);
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow);
+}
+
+/* Header */
+.form-header {
+    text-align: center;
+    margin-bottom: var(--spacing-xl);
+    padding-bottom: var(--spacing-lg);
+    border-bottom: 2px solid var(--block-light);
+}
+
+.form-header h2 {
+    color: var(--block-primary);
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin: 0 0 var(--spacing-sm) 0;
+}
+
+.form-subtitle {
+    color: var(--block-gray);
+    font-size: 1.1rem;
+    margin: 0;
+}
+
+/* Barre de progression */
+.progress-bar {
+    margin: var(--spacing-lg) 0;
+    background: var(--block-light);
+    height: 6px;
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--block-secondary), var(--block-accent));
+    transition: width var(--transition);
+    width: 0%;
+}
+
+.progress-steps {
+    display: flex;
+    justify-content: space-between;
+    margin-top: var(--spacing-sm);
+    flex-wrap: wrap;
+    gap: var(--spacing-sm);
+}
+
+.progress-steps .step {
+    padding: 6px 12px;
+    background: var(--block-light);
+    border-radius: 15px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--block-gray);
+    transition: all var(--transition);
+}
+
+.progress-steps .step.active {
+    background: var(--block-secondary);
+    color: var(--block-primary);
+}
+
+.progress-steps .step.completed {
+    background: var(--block-primary);
+    color: var(--block-white);
+}
+
+/* Étapes du formulaire */
+.form-steps-container {
+    min-height: 500px;
+    position: relative;
+}
+
+.form-step {
+    display: none;
+    padding: var(--spacing-lg) 0;
+}
+
+.form-step.active {
+    display: block;
+    animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Headers d'étapes */
+.step-header {
+    text-align: center;
+    margin-bottom: var(--spacing-xl);
+}
+
+.step-header h3 {
+    color: var(--block-primary);
+    font-size: 2rem;
+    font-weight: 600;
+    margin: 0 0 var(--spacing-sm) 0;
+}
+
+.step-header p {
+    color: var(--block-gray);
+    font-size: 1.1rem;
+    margin: 0;
+}
+
+/* Cartes de service */
+.service-options {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: var(--spacing-lg);
+    margin: var(--spacing-xl) 0;
+}
+
+.service-card {
+    background: var(--block-white);
+    border: 3px solid var(--block-light);
+    border-radius: var(--border-radius);
+    padding: var(--spacing-xl);
+    text-align: center;
+    transition: all var(--transition);
+    cursor: pointer;
+}
+
+.service-card:hover {
+    border-color: var(--block-secondary);
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+
+.service-card.selected {
+    border-color: var(--block-secondary);
+    background: rgba(255, 180, 4, 0.05);
+}
+
+.service-icon img {
+    width: 80px;
+    height: 80px;
+    margin-bottom: var(--spacing-lg);
+}
+
+.service-content h4 {
+    color: var(--block-primary);
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin: 0 0 var(--spacing-sm) 0;
+}
+
+.service-features {
+    list-style: none;
+    padding: 0;
+    margin: var(--spacing-lg) 0;
+    text-align: left;
+}
+
+.service-features li {
+    padding: 4px 0;
+    color: var(--block-gray);
+    position: relative;
+    padding-left: 20px;
+}
+
+.service-features li::before {
+    content: '✓';
+    position: absolute;
+    left: 0;
+    color: var(--block-secondary);
+    font-weight: bold;
+}
+
+.service-price {
+    margin: var(--spacing-lg) 0;
+    color: var(--block-gray);
+}
+
+.price-highlight {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--block-accent);
+    display: block;
+}
+
+/* Formulaires */
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: var(--spacing-lg);
+    margin: var(--spacing-lg) 0;
+}
+
+.form-group {
+    margin-bottom: var(--spacing-lg);
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+    color: var(--block-primary);
+}
+
+.required {
+    color: var(--block-accent);
+}
+
+.form-control {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid var(--block-light);
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: all var(--transition);
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: var(--block-secondary);
+    box-shadow: 0 0 0 3px rgba(255, 180, 4, 0.1);
+}
+
+/* Boutons */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 24px;
+    border-radius: 8px;
+    border: none;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all var(--transition);
+    text-decoration: none;
+}
+
+.btn-primary {
+    background: var(--block-secondary);
+    color: var(--block-primary);
+}
+
+.btn-primary:hover {
+    background: #E6A003;
+    transform: translateY(-2px);
+}
+
+.btn-secondary {
+    background: var(--block-light);
+    color: var(--block-primary);
+}
+
+.btn-outline {
+    background: transparent;
+    color: var(--block-primary);
+    border: 2px solid var(--block-primary);
+}
+
+/* Navigation */
+.form-navigation {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: var(--spacing-xl);
+    padding-top: var(--spacing-lg);
+    border-top: 1px solid var(--block-light);
+}
+
+/* Messages */
+.form-messages {
+    margin: var(--spacing-lg) 0;
+    text-align: center;
+}
+
+.success-message {
+    background: #d4edda;
+    color: #155724;
+    padding: var(--spacing-lg);
+    border-radius: 8px;
+    border: 1px solid #c3e6cb;
+}
+
+.error-message {
+    background: #f8d7da;
+    color: #721c24;
+    padding: var(--spacing-lg);
+    border-radius: 8px;
+    border: 1px solid #f5c6cb;
+}
+
+.loading-message {
+    background: #d1ecf1;
+    color: #0c5460;
+    padding: var(--spacing-lg);
+    border-radius: 8px;
+    border: 1px solid #bee5eb;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .block-quote-form {
+        margin: 10px;
+        padding: var(--spacing-md);
+    }
+    
+    .service-options {
+        grid-template-columns: 1fr;
+    }
+    
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .form-navigation {
+        flex-direction: column;
+        gap: var(--spacing-md);
+    }
+    
+    .btn {
+        width: 100%;
+        justify-content: center;
+    }
+}
