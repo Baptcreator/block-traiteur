@@ -1,6 +1,6 @@
 === Block Traiteur ===
 Contributors: Baptcreator  
-Version: 1.0.6image.png
+Version: 1.0.7
 Tested up to: 6.4
 
 Plugin de devis pour Block Street Food & Events - Test déploiement depuis Cursor local !
