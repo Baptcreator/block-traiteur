@@ -1,268 +1,367 @@
 <?php
 /**
- * Classe de calcul des prix
+ * Classe de calcul des prix pour Block Traiteur
+ * Calculs selon les spécifications exactes du cahier des charges (ligne 473-513)
+ *
+ * @package Block_Traiteur
+ * @subpackage Includes
+ * @since 1.0.0
  */
 
 if (!defined('ABSPATH')) {
     exit;
 }
 
+/**
+ * Classe Block_Traiteur_Calculator
+ * 
+ * Gère tous les calculs de prix selon les règles métier définies dans le cahier des charges
+ */
 class Block_Traiteur_Calculator {
     
-    private $form_data = array();
-    private $settings = array();
-    private $price_breakdown = array(
-        'base' => 0,
-        'duration' => 0,
-        'guests' => 0,
-        'distance' => 0,
-        'products' => 0,
-        'beverages' => 0,
-        'options' => 0
-    );
+    /**
+     * @var Block_Traiteur_Settings Instance des settings
+     */
+    private $settings;
     
     /**
      * Constructeur
      */
     public function __construct() {
-        $this->settings = Block_Traiteur_Cache::get_settings();
+        $this->settings = Block_Traiteur_Settings::get_instance();
     }
     
     /**
-     * Définir les données du formulaire
+     * Calculer le prix total d'un devis selon les spécifications (ligne 473-513)
+     * 
+     * @param string $service_type 'restaurant' ou 'remorque'
+     * @param int $guest_count Nombre de convives
+     * @param int $duration Durée en heures
+     * @param string $postal_code Code postal pour calcul livraison (remorque)
+     * @param array $products Produits sélectionnés avec quantités
+     * @return array Détail complet du calcul
      */
-    public function set_form_data($form_data) {
-        $this->form_data = $form_data;
-        $this->calculate_all();
-    }
-    
-    /**
-     * Calculer tous les prix
-     */
-    private function calculate_all() {
-        $this->calculate_base_price();
-        $this->calculate_duration_supplement();
-        $this->calculate_guest_supplement();
-        $this->calculate_distance_supplement();
-        $this->calculate_products_price();
-        $this->calculate_beverages_price();
-        $this->calculate_options_price();
-    }
-    
-    /**
-     * Calculer le prix de base selon les spécifications
-     */
-    private function calculate_base_price() {
-        $service_type = $this->form_data['serviceType'] ?? 'restaurant';
+    public function calculate_total_price($service_type, $guest_count, $duration, $postal_code = '', $products = array()) {
+        $calculation = array(
+            'service_type' => $service_type,
+            'guest_count' => $guest_count,
+            'duration' => $duration,
+            'postal_code' => $postal_code
+        );
         
+        // 1. Prix de base (ligne 478-481)
+        $base_price = $this->calculate_base_price($service_type);
+        $calculation['base_price'] = $base_price;
+        
+        // 2. Supplément durée (ligne 483-487)
+        $duration_supplement = $this->calculate_duration_supplement($service_type, $duration);
+        $calculation['duration_supplement'] = $duration_supplement;
+        
+        // 3. Supplément convives - remorque uniquement (ligne 489-495)
+        $guests_supplement = $this->calculate_guests_supplement($service_type, $guest_count);
+        $calculation['guests_supplement'] = $guests_supplement;
+        
+        // 4. Frais de livraison - remorque uniquement (ligne 497-501)
+        $delivery_cost = $this->calculate_delivery_cost($service_type, $postal_code);
+        $calculation['delivery_cost'] = $delivery_cost;
+        $calculation['distance_km'] = $this->get_distance_km($postal_code);
+        
+        // 5. Total produits (ligne 503-507)
+        $products_calculation = $this->calculate_products_total($products);
+        $calculation['products_total'] = $products_calculation['total'];
+        $calculation['products_detail'] = $products_calculation['detail'];
+        $calculation['supplements_total'] = $products_calculation['supplements'];
+        
+        // 6. Prix final (ligne 510-512)
+        $calculation['subtotal'] = $base_price + $duration_supplement + $guests_supplement + $delivery_cost;
+        $calculation['total_price'] = $calculation['subtotal'] + $calculation['products_total'] + $calculation['supplements_total'];
+        
+        // Formatage pour affichage
+        $calculation['formatted'] = array(
+            'base_price' => number_format($base_price, 2, ',', ' ') . ' €',
+            'duration_supplement' => number_format($duration_supplement, 2, ',', ' ') . ' €',
+            'guests_supplement' => number_format($guests_supplement, 2, ',', ' ') . ' €',
+            'delivery_cost' => number_format($delivery_cost, 2, ',', ' ') . ' €',
+            'products_total' => number_format($calculation['products_total'], 2, ',', ' ') . ' €',
+            'supplements_total' => number_format($calculation['supplements_total'], 2, ',', ' ') . ' €',
+            'subtotal' => number_format($calculation['subtotal'], 2, ',', ' ') . ' €',
+            'total_price' => number_format($calculation['total_price'], 2, ',', ' ') . ' €'
+        );
+        
+        return $calculation;
+    }
+    
+    /**
+     * Calculer le prix de base selon le service (ligne 478-481)
+     * 
+     * @param string $service_type
+     * @return float Prix de base
+     */
+    private function calculate_base_price($service_type) {
         if ($service_type === 'restaurant') {
-            // Prix de base restaurant : 300€ (2H incluses)
-            $this->price_breakdown['base'] = 300.00;
+            return $this->settings->get('restaurant_base_price', 300);
         } else {
-            // Prix de base remorque : 350€ (2H incluses)
-            $this->price_breakdown['base'] = 350.00;
+            return $this->settings->get('remorque_base_price', 350);
         }
     }
     
     /**
-     * Calculer le supplément durée selon les spécifications
+     * Calculer le supplément durée (ligne 483-487)
+     * 
+     * @param string $service_type
+     * @param int $duration Durée souhaitée en heures
+     * @return float Supplément durée
      */
-    private function calculate_duration_supplement() {
-        $duration = intval($this->form_data['duration'] ?? 2);
-        $service_type = $this->form_data['serviceType'] ?? 'restaurant';
+    private function calculate_duration_supplement($service_type, $duration) {
+        $included_hours = $service_type === 'restaurant' 
+            ? $this->settings->get('restaurant_included_hours', 2)
+            : $this->settings->get('remorque_included_hours', 2);
         
-        // 2H incluses pour les deux services
-        $base_duration = 2;
+        $extra_hours = max(0, $duration - $included_hours);
+        $hourly_rate = $this->settings->get('hourly_supplement', 50);
         
-        // Contraintes selon les spécifications
-        if ($service_type === 'restaurant') {
-            // Restaurant : 2-4 heures
-            $duration = max(2, min(4, $duration));
-        } else {
-            // Remorque : 2-5 heures
-            $duration = max(2, min(5, $duration));
-        }
-        
-        // Supplément : +50€/heure au-delà de 2H
-        if ($duration > $base_duration) {
-            $extra_hours = $duration - $base_duration;
-            $this->price_breakdown['duration'] = $extra_hours * 50.00;
-        } else {
-            $this->price_breakdown['duration'] = 0;
-        }
+        return $extra_hours * $hourly_rate;
     }
     
     /**
-     * Calculer le supplément invités selon les spécifications
+     * Calculer le supplément convives pour remorque (ligne 489-495)
+     * 
+     * @param string $service_type
+     * @param int $guest_count
+     * @return float Supplément convives
      */
-    private function calculate_guest_supplement() {
-        $guest_count = intval($this->form_data['guestCount'] ?? 0);
-        $service_type = $this->form_data['serviceType'] ?? 'restaurant';
+    private function calculate_guests_supplement($service_type, $guest_count) {
+        if ($service_type !== 'remorque') {
+            return 0;
+        }
         
-        // Contraintes selon les spécifications
-        if ($service_type === 'restaurant') {
-            // Restaurant : 10-30 personnes (pas de supplément)
-            $this->price_breakdown['guests'] = 0;
-        } else {
-            // Remorque : 20-100+ personnes, +150€ si >50 personnes
             if ($guest_count > 50) {
-                $this->price_breakdown['guests'] = 150.00;
-            } else {
-                $this->price_breakdown['guests'] = 0;
+            return $this->settings->get('remorque_50_guests_supplement', 150);
+        }
+        
+        return 0;
+    }
+    
+    /**
+     * Calculer les frais de livraison pour remorque (ligne 497-501)
+     * 
+     * @param string $service_type
+     * @param string $postal_code
+     * @return float Frais de livraison
+     */
+    private function calculate_delivery_cost($service_type, $postal_code) {
+        if ($service_type !== 'remorque' || empty($postal_code)) {
+            return 0;
+        }
+        
+        $distance = $this->get_distance_km($postal_code);
+        return $this->get_delivery_price_by_distance($distance);
+    }
+    
+    /**
+     * Obtenir la distance en km depuis le restaurant
+     * 
+     * @param string $postal_code
+     * @return int Distance en km
+     */
+    private function get_distance_km($postal_code) {
+        if (empty($postal_code)) {
+            return 0;
+        }
+        
+        // Simulation simple basée sur les départements
+        $department = substr($postal_code, 0, 2);
+        $restaurant_dept = substr($this->settings->get('restaurant_postal_code', '67000'), 0, 2);
+        
+        if ($department === $restaurant_dept) {
+            // Même département - distance aléatoire 0-30km
+            return rand(0, 30);
+        }
+        
+        // Départements limitrophes Grand Est
+        $nearby_depts = array('68', '54', '57', '88', '52', '51', '08', '55');
+        if (in_array($department, $nearby_depts)) {
+            return rand(30, 120);
+        }
+        
+        // Plus loin
+        return rand(120, 500);
+    }
+    
+    /**
+     * Obtenir le prix de livraison selon la distance
+     * 
+     * @param int $distance_km Distance en kilomètres
+     * @return float Prix de livraison
+     */
+    private function get_delivery_price_by_distance($distance_km) {
+        global $wpdb;
+        $table = $wpdb->prefix . 'restaurant_delivery_zones';
+        
+        $zone = $wpdb->get_row($wpdb->prepare(
+            "SELECT delivery_price FROM {$table} 
+             WHERE %d >= distance_min AND %d <= distance_max AND is_active = 1
+             ORDER BY display_order LIMIT 1",
+            $distance_km,
+            $distance_km
+        ));
+        
+        return $zone ? (float)$zone->delivery_price : 0;
+    }
+    
+    /**
+     * Calculer le total des produits sélectionnés (ligne 503-507)
+     * 
+     * @param array $products Produits avec quantités
+     * @return array Détail du calcul produits
+     */
+    private function calculate_products_total($products) {
+        $result = array(
+            'total' => 0,
+            'supplements' => 0,
+            'detail' => array()
+        );
+        
+        if (empty($products) || !is_array($products)) {
+            return $result;
+        }
+        
+        global $wpdb;
+        $products_table = $wpdb->prefix . 'restaurant_products';
+        
+        foreach ($products as $product_item) {
+            if (!isset($product_item['id']) || !isset($product_item['quantity'])) {
+                continue;
             }
-        }
-    }
-    
-    /**
-     * Calculer le supplément distance selon les spécifications
-     */
-    private function calculate_distance_supplement() {
-        if (!isset($this->form_data['distance']) || $this->form_data['serviceType'] !== 'remorque') {
-            $this->price_breakdown['distance'] = 0;
-            return;
-        }
-        
-        $distance = floatval($this->form_data['distance']);
-        
-        // Frais de livraison selon les zones spécifiées
-        if ($distance <= 30) {
-            // Zone gratuite : 0-30km
-            $this->price_breakdown['distance'] = 0;
-        } elseif ($distance <= 50) {
-            // Zone 1 : 30-50km = +20€
-            $this->price_breakdown['distance'] = 20.00;
-        } elseif ($distance <= 100) {
-            // Zone 2 : 50-100km = +70€
-            $this->price_breakdown['distance'] = 70.00;
-        } elseif ($distance <= 150) {
-            // Zone 3 : 100-150km = +118€
-            $this->price_breakdown['distance'] = 118.00;
-        } else {
-            // Hors zone (>150km) - non desservi
-            $this->price_breakdown['distance'] = 0;
-        }
-    }
-    
-    /**
-     * Calculer le prix des produits
-     */
-    private function calculate_products_price() {
-        $total = 0;
-        
-        if (!empty($this->form_data['selectedProducts'])) {
-            foreach ($this->form_data['selectedProducts'] as $product) {
-                $quantity = intval($product['quantity'] ?? 0);
-                $price = floatval($product['price'] ?? 0);
-                $total += $quantity * $price;
+            
+            $product_id = intval($product_item['id']);
+            $quantity = intval($product_item['quantity']);
+            $with_supplement = isset($product_item['with_supplement']) ? (bool)$product_item['with_supplement'] : false;
+            
+            if ($quantity <= 0) {
+                continue;
             }
-        }
-        
-        $this->price_breakdown['products'] = $total;
-    }
-    
-    /**
-     * Calculer le prix des boissons
-     */
-    private function calculate_beverages_price() {
-        $total = 0;
-        
-        if (!empty($this->form_data['selectedBeverages'])) {
-            foreach ($this->form_data['selectedBeverages'] as $beverage) {
-                $quantity = intval($beverage['quantity'] ?? 0);
-                $price = floatval($beverage['price'] ?? 0);
-                $total += $quantity * $price;
+            
+            // Récupérer les données du produit
+            $product = $wpdb->get_row($wpdb->prepare(
+                "SELECT name, price, supplement_name, supplement_price, unit_label 
+                 FROM {$products_table} 
+                 WHERE id = %d AND is_active = 1",
+                $product_id
+            ));
+            
+            if (!$product) {
+                continue;
             }
-        }
-        
-        $this->price_breakdown['beverages'] = $total;
-    }
-    
-    /**
-     * Calculer le prix des options selon les spécifications
-     */
-    private function calculate_options_price() {
-        $total = 0;
-        
-        if (!empty($this->form_data['selectedOptions'])) {
-            foreach ($this->form_data['selectedOptions'] as $option) {
-                switch ($option) {
-                    case 'tireuse':
-                        // Option 1 : Mise à disposition tireuse = 50€
-                        $total += 50.00;
-                        break;
-                    case 'jeux':
-                        // Option 2 : Installation jeux = 70€
-                        $total += 70.00;
-                        break;
-                }
+            
+            // Calcul prix produit
+            $product_total = $product->price * $quantity;
+            $result['total'] += $product_total;
+            
+            // Calcul supplément si sélectionné
+            $supplement_total = 0;
+            if ($with_supplement && $product->supplement_price > 0) {
+                $supplement_total = $product->supplement_price * $quantity;
+                $result['supplements'] += $supplement_total;
             }
+            
+            // Ajouter au détail
+            $result['detail'][] = array(
+                'id' => $product_id,
+                'name' => $product->name,
+                'quantity' => $quantity,
+                'unit_price' => $product->price,
+                'unit_label' => $product->unit_label,
+                'subtotal' => $product_total,
+                'supplement_name' => $product->supplement_name,
+                'supplement_price' => $product->supplement_price,
+                'supplement_total' => $supplement_total,
+                'with_supplement' => $with_supplement,
+                'total' => $product_total + $supplement_total
+            );
         }
         
-        $this->price_breakdown['options'] = $total;
+        return $result;
     }
     
     /**
-     * Obtenir le prix total
+     * Valider les contraintes de convives selon les spécifications
+     * 
+     * @param string $service_type
+     * @param int $guest_count
+     * @return array Résultat de validation
      */
-    public function get_total_price() {
-        return array_sum($this->price_breakdown);
-    }
-    
-    /**
-     * Obtenir le détail des prix
-     */
-    public function get_price_breakdown() {
-        return $this->price_breakdown;
-    }
-    
-    /**
-     * Obtenir le prix formaté
-     */
-    public function get_formatted_total() {
-        return number_format($this->get_total_price(), 2) . ' € TTC';
-    }
-    
-    /**
-     * Calculer une estimation rapide pour AJAX selon les spécifications
-     */
-    public static function quick_estimate($service_type, $guest_count, $duration, $distance = 0) {
-        $total = 0;
+    public function validate_guest_count($service_type, $guest_count) {
+        $pricing = $this->settings->get_pricing_settings();
         
-        // Prix de base selon les spécifications
         if ($service_type === 'restaurant') {
-            $total += 300.00; // Restaurant : 300€
+            $min = $pricing['restaurant_min_guests'];
+            $max = $pricing['restaurant_max_guests'];
         } else {
-            $total += 350.00; // Remorque : 350€
+            $min = $pricing['remorque_min_guests'];
+            $max = $pricing['remorque_max_guests'];
         }
         
-        // Supplément durée : +50€/heure au-delà de 2H
-        if ($duration > 2) {
-            $total += ($duration - 2) * 50.00;
+        return array(
+            'valid' => ($guest_count >= $min && $guest_count <= $max),
+            'min' => $min,
+            'max' => $max,
+            'message' => $guest_count < $min 
+                ? "Minimum {$min} convives requis" 
+                : ($guest_count > $max ? "Maximum {$max} convives autorisés" : '')
+        );
+    }
+    
+    /**
+     * Valider les contraintes de durée
+     * 
+     * @param string $service_type
+     * @param int $duration
+     * @return array Résultat de validation
+     */
+    public function validate_duration($service_type, $duration) {
+        $pricing = $this->settings->get_pricing_settings();
+        
+        $max = $service_type === 'restaurant' 
+            ? $pricing['restaurant_max_hours']
+            : $pricing['remorque_max_hours'];
+        
+        return array(
+            'valid' => ($duration > 0 && $duration <= $max),
+            'max' => $max,
+            'message' => $duration > $max ? "Maximum {$max} heures autorisées" : ''
+        );
+    }
+    
+    /**
+     * Obtenir un estimé rapide pour affichage
+     * 
+     * @param string $service_type
+     * @param int $guest_count
+     * @param int $duration
+     * @return array Estimé simple
+     */
+    public function get_quick_estimate($service_type, $guest_count = null, $duration = null) {
+        $base_price = $this->calculate_base_price($service_type);
+        
+        $estimate = array(
+            'base_price' => $base_price,
+            'formatted_base' => number_format($base_price, 0, ',', ' ') . ' €'
+        );
+        
+        if ($duration !== null) {
+            $duration_supplement = $this->calculate_duration_supplement($service_type, $duration);
+            $estimate['with_duration'] = $base_price + $duration_supplement;
+            $estimate['formatted_with_duration'] = number_format($estimate['with_duration'], 0, ',', ' ') . ' €';
         }
         
-        // Supplément invités (remorque seulement) : +150€ si >50 personnes
-        if ($service_type === 'remorque' && $guest_count > 50) {
-            $total += 150.00;
+        if ($guest_count !== null) {
+            $guests_supplement = $this->calculate_guests_supplement($service_type, $guest_count);
+            $with_guests = $base_price + ($duration_supplement ?? 0) + $guests_supplement;
+            $estimate['with_guests'] = $with_guests;
+            $estimate['formatted_with_guests'] = number_format($with_guests, 0, ',', ' ') . ' €';
         }
         
-        // Supplément distance (remorque seulement) selon les zones
-        if ($service_type === 'remorque' && $distance > 0) {
-            if ($distance <= 30) {
-                // Zone gratuite
-                $total += 0;
-            } elseif ($distance <= 50) {
-                // Zone 1 : +20€
-                $total += 20.00;
-            } elseif ($distance <= 100) {
-                // Zone 2 : +70€
-                $total += 70.00;
-            } elseif ($distance <= 150) {
-                // Zone 3 : +118€
-                $total += 118.00;
-            }
-            // >150km : non desservi
-        }
-        
-        return $total;
+        return $estimate;
     }
 }

@@ -1,6 +1,11 @@
 <?php
 /**
- * Classe de gestion des shortcodes
+ * Classe des shortcodes publics pour Block Traiteur
+ * VERSION COMPLÈTEMENT REFAITE selon cahier des charges
+ *
+ * @package Block_Traiteur
+ * @subpackage Public
+ * @since 1.0.0
  */
 
 if (!defined('ABSPATH')) {
@@ -9,224 +14,471 @@ if (!defined('ABSPATH')) {
 
 class Block_Traiteur_Shortcode {
     
-    /**
-     * Constructeur
-     */
+    private $settings;
+    private $calculator;
+    
     public function __construct() {
-        // Enregistrer les deux shortcodes pour compatibilité
-        add_shortcode('block_traiteur_form', array($this, 'render_quote_form'));
-        add_shortcode('block_quote_form', array($this, 'render_quote_form'));
+        $this->settings = Block_Traiteur_Settings::get_instance();
+        $this->calculator = new Block_Traiteur_Calculator();
         
-        // Debug - à supprimer après tests
-        error_log('Block Traiteur: Shortcodes enregistrés');
+        // Enregistrer les shortcodes
+        add_shortcode('block_traiteur_form', array($this, 'render_quote_form'));
+        add_shortcode('block_traiteur_services', array($this, 'render_services_selection'));
+        
+        error_log('Block Traiteur: Shortcodes enregistrés - nouvelle architecture');
     }
     
     /**
-     * Rendu du shortcode principal
+     * Shortcode principal : formulaire de devis
+     * Usage: [block_traiteur_form service="restaurant|remorque"]
      */
     public function render_quote_form($atts) {
-        // Debug - à supprimer après tests
-        error_log('Block Traiteur: Shortcode appelé avec attributs: ' . print_r($atts, true));
-        
         $atts = shortcode_atts(array(
-            'type' => 'both',
-            'service' => '', // Service pré-sélectionné (restaurant/remorque)
-            'theme' => 'light',
-            'show_progress' => 'true',
-            'auto_start' => 'true', // Démarrer automatiquement si service défini
-            'hide_header' => 'false',
-            'show_price' => 'true',
-            'custom_class' => ''
-        ), $atts, 'block_traiteur_form');
+            'service' => 'restaurant'
+        ), $atts);
         
-        // Valider les paramètres
-        $valid_types = array('both', 'restaurant', 'remorque');
-        if (!in_array($atts['type'], $valid_types)) {
-            $atts['type'] = 'both';
+        $service_type = sanitize_text_field($atts['service']);
+        if (!in_array($service_type, array('restaurant', 'remorque'))) {
+            $service_type = 'restaurant';
         }
         
-        // Enqueue des scripts et styles avec version forcée
-        $this->enqueue_form_assets();
+        $pricing = $this->settings->get_pricing_settings();
+        $texts = $this->settings->get_interface_texts();
         
-        // DEBUG: Forcer le rechargement des assets
-        add_action('wp_footer', function() {
-            echo "<!-- Block Traiteur Debug: Assets enqueued at " . date('Y-m-d H:i:s') . " -->";
-        });
-        
-        // Générer un ID unique pour ce formulaire
-        $form_id = 'block-quote-form-' . uniqid();
-        
-        // Construire les classes CSS
-        $css_classes = array(
-            'block-quote-form',
-            'block-traiteur-widget',
-            $form_id  // Ajouter l'ID unique comme classe
-        );
-        $css_classes[] = 'service-type-' . $atts['type'];
-        $css_classes[] = 'theme-' . $atts['theme'];
-        
-        if ($atts['custom_class']) {
-            $css_classes[] = sanitize_html_class($atts['custom_class']);
-        }
-        
-        // Configuration pour JavaScript
-        $js_config = array(
-            'formId' => $form_id,
-            'serviceType' => $atts['service'] ?: $atts['type'], // Service pré-sélectionné prioritaire
-            'showProgress' => ($atts['show_progress'] === 'true'),
-            'autoStart' => ($atts['auto_start'] === 'true') || !empty($atts['service']),
-            'hideHeader' => ($atts['hide_header'] === 'true'),
-            'showPrice' => ($atts['show_price'] === 'true'),
-            'ajaxUrl' => admin_url('admin-ajax.php'),
-            'nonce' => wp_create_nonce('block_traiteur_ajax'),
-            'settings' => $this->get_plugin_settings()
-        );
-        
-        // Démarrer la capture de sortie
         ob_start();
+        ?>
+        <div class="block-traiteur-form" data-service="<?php echo esc_attr($service_type); ?>">
+            <div class="form-header">
+                <h2><?php echo $service_type === 'restaurant' ? esc_html($texts['traiteur_restaurant_title']) : esc_html($texts['traiteur_remorque_title']); ?></h2>
+                <p><?php echo $service_type === 'restaurant' ? esc_html($texts['traiteur_restaurant_subtitle']) : esc_html($texts['traiteur_remorque_subtitle']); ?></p>
+            </div>
+            
+            <form id="quote-form">
+                <div class="form-step active" id="step-1">
+                    <h3>Étape 1 : Informations de base</h3>
+                    
+                    <div class="field-group">
+                        <label for="event-date">Date de l'événement *</label>
+                        <input type="date" id="event-date" name="event_date" required min="<?php echo date('Y-m-d'); ?>">
+                    </div>
+                    
+                    <div class="field-group">
+                        <label for="guest-count">Nombre de convives *</label>
+                        <input type="number" id="guest-count" name="guest_count" required 
+                               min="<?php echo $service_type === 'restaurant' ? $pricing['restaurant_min_guests'] : $pricing['remorque_min_guests']; ?>"
+                               max="<?php echo $service_type === 'restaurant' ? $pricing['restaurant_max_guests'] : $pricing['remorque_max_guests']; ?>">
+                        <small>Entre <?php echo $service_type === 'restaurant' ? $pricing['restaurant_min_guests'] : $pricing['remorque_min_guests']; ?> et <?php echo $service_type === 'restaurant' ? $pricing['restaurant_max_guests'] : $pricing['remorque_max_guests']; ?> personnes</small>
+                    </div>
+                    
+                    <div class="field-group">
+                        <label for="duration">Durée *</label>
+                        <select id="duration" name="duration" required>
+                            <option value="2">2 heures (incluses)</option>
+                            <option value="3">3 heures (+<?php echo $pricing['hourly_supplement']; ?>€)</option>
+                            <option value="4">4 heures (+<?php echo $pricing['hourly_supplement'] * 2; ?>€)</option>
+                            <?php if ($service_type === 'remorque'): ?>
+                            <option value="5">5 heures (+<?php echo $pricing['hourly_supplement'] * 3; ?>€)</option>
+                            <?php endif; ?>
+                        </select>
+                    </div>
+                    
+                    <?php if ($service_type === 'remorque'): ?>
+                    <div class="field-group">
+                        <label for="postal-code">Code postal *</label>
+                        <input type="text" id="postal-code" name="postal_code" pattern="[0-9]{5}" required>
+                    </div>
+                    <?php endif; ?>
+                </div>
+                
+                <div class="form-step" id="step-2">
+                    <h3>Étape 2 : Vos coordonnées</h3>
+                    
+                    <div class="field-row">
+                        <div class="field-group">
+                            <label for="first-name">Prénom *</label>
+                            <input type="text" id="first-name" name="first_name" required>
+                        </div>
+                        <div class="field-group">
+                            <label for="last-name">Nom *</label>
+                            <input type="text" id="last-name" name="last_name" required>
+                        </div>
+                    </div>
+                    
+                    <div class="field-group">
+                        <label for="email">Email *</label>
+                        <input type="email" id="email" name="email" required>
+                    </div>
+                    
+                    <div class="field-group">
+                        <label for="phone">Téléphone *</label>
+                        <input type="tel" id="phone" name="phone" required>
+                    </div>
+                    
+                    <div class="field-group">
+                        <label for="message">Message</label>
+                        <textarea id="message" name="message" rows="4"></textarea>
+                    </div>
+                </div>
+                
+                <div class="price-calculator">
+                    <h4>Estimation du prix</h4>
+                    <div class="price-breakdown">
+                        <div class="price-line">
+                            <span>Forfait de base :</span>
+                            <span id="base-price"><?php echo number_format($service_type === 'restaurant' ? $pricing['restaurant_base_price'] : $pricing['remorque_base_price'], 0, ',', ' '); ?> €</span>
+                        </div>
+                        <div class="price-line" id="duration-line" style="display: none;">
+                            <span>Supplément durée :</span>
+                            <span id="duration-price">0 €</span>
+                        </div>
+                        <?php if ($service_type === 'remorque'): ?>
+                        <div class="price-line" id="guests-line" style="display: none;">
+                            <span>Supplément convives :</span>
+                            <span id="guests-price">0 €</span>
+                        </div>
+                        <div class="price-line" id="delivery-line" style="display: none;">
+                            <span>Frais livraison :</span>
+                            <span id="delivery-price">0 €</span>
+                        </div>
+                        <?php endif; ?>
+                        <div class="price-total">
+                            <span><strong>Total estimé :</strong></span>
+                            <span id="total-price"><strong><?php echo number_format($service_type === 'restaurant' ? $pricing['restaurant_base_price'] : $pricing['remorque_base_price'], 0, ',', ' '); ?> €</strong></span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-navigation">
+                    <button type="button" id="prev-step" style="display: none;">Précédent</button>
+                    <button type="button" id="next-step">Suivant</button>
+                    <button type="submit" id="submit-quote" style="display: none;">Demander un devis</button>
+                </div>
+            </form>
+            
+            <div id="form-messages"></div>
+        </div>
         
-        // Vérifier si le template existe
-        $template_path = BLOCK_TRAITEUR_PLUGIN_DIR . 'templates/form-main.php';
-        if (file_exists($template_path)) {
-            include $template_path;
-        } else {
-            // Template de fallback
-            echo $this->render_fallback_form($form_id, $css_classes, $js_config);
+        <style>
+        .block-traiteur-form {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            font-family: system-ui, -apple-system, sans-serif;
         }
+        .form-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .form-step {
+            display: none;
+        }
+        .form-step.active {
+            display: block;
+        }
+        .field-group {
+            margin-bottom: 20px;
+        }
+        .field-row {
+            display: flex;
+            gap: 15px;
+        }
+        .field-row .field-group {
+            flex: 1;
+        }
+        .field-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        .field-group input,
+        .field-group select,
+        .field-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        .field-group small {
+            color: #666;
+            font-size: 14px;
+        }
+        .price-calculator {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .price-line {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+        }
+        .price-total {
+            display: flex;
+            justify-content: space-between;
+            padding: 15px 0;
+            border-top: 2px solid #007cba;
+            margin-top: 10px;
+        }
+        .form-navigation {
+            text-align: center;
+            margin-top: 30px;
+        }
+        .form-navigation button {
+            background: #007cba;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 0 10px;
+        }
+        .form-navigation button:hover {
+            background: #005a87;
+        }
+        .message {
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        .message.success {
+            background: #d1e7dd;
+            color: #0f5132;
+        }
+        .message.error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        @media (max-width: 768px) {
+            .field-row {
+                flex-direction: column;
+            }
+        }
+        </style>
+        
+        <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            let currentStep = 0;
+            const steps = document.querySelectorAll('.form-step');
+            const nextBtn = document.getElementById('next-step');
+            const prevBtn = document.getElementById('prev-step');
+            const submitBtn = document.getElementById('submit-quote');
+            const form = document.getElementById('quote-form');
+            const serviceType = '<?php echo $service_type; ?>';
+            
+            // Navigation
+            nextBtn.addEventListener('click', function() {
+                if (validateStep(currentStep)) {
+                    showStep(currentStep + 1);
+                }
+            });
+            
+            prevBtn.addEventListener('click', function() {
+                showStep(currentStep - 1);
+            });
+            
+            function showStep(step) {
+                steps[currentStep].classList.remove('active');
+                steps[step].classList.add('active');
+                currentStep = step;
+                
+                prevBtn.style.display = step > 0 ? 'inline-block' : 'none';
+                nextBtn.style.display = step < steps.length - 1 ? 'inline-block' : 'none';
+                submitBtn.style.display = step === steps.length - 1 ? 'inline-block' : 'none';
+            }
+            
+            function validateStep(step) {
+                const stepDiv = steps[step];
+                const required = stepDiv.querySelectorAll('[required]');
+                let valid = true;
+                
+                required.forEach(field => {
+                    if (!field.value) {
+                        field.style.borderColor = 'red';
+                        valid = false;
+                    } else {
+                        field.style.borderColor = '#ddd';
+                    }
+                });
+                
+                return valid;
+            }
+            
+            // Calculateur de prix
+            const guestInput = document.getElementById('guest-count');
+            const durationSelect = document.getElementById('duration');
+            const postalInput = document.getElementById('postal-code');
+            
+            [guestInput, durationSelect, postalInput].forEach(input => {
+                if (input) {
+                    input.addEventListener('input', updatePrice);
+                }
+            });
+            
+            function updatePrice() {
+                const guests = parseInt(guestInput.value) || 0;
+                const duration = parseInt(durationSelect.value) || 2;
+                const postal = postalInput ? postalInput.value : '';
+                
+                if (typeof blockTraiteur !== 'undefined') {
+                    fetch(blockTraiteur.ajaxUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                        body: new URLSearchParams({
+                            action: 'block_traiteur_calculate_price',
+                            nonce: blockTraiteur.nonce,
+                            service_type: serviceType,
+                            guest_count: guests,
+                            duration: duration,
+                            postal_code: postal,
+                            products: '[]'
+                        })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            updatePriceDisplay(data.data);
+                        }
+                    });
+                }
+            }
+            
+            function updatePriceDisplay(calc) {
+                document.getElementById('total-price').innerHTML = '<strong>' + calc.formatted.total_price + '</strong>';
+                
+                const durationLine = document.getElementById('duration-line');
+                if (calc.duration_supplement > 0) {
+                    document.getElementById('duration-price').textContent = calc.formatted.duration_supplement;
+                    durationLine.style.display = 'flex';
+                } else {
+                    durationLine.style.display = 'none';
+                }
+                
+                if (serviceType === 'remorque') {
+                    const guestsLine = document.getElementById('guests-line');
+                    if (calc.guests_supplement > 0) {
+                        document.getElementById('guests-price').textContent = calc.formatted.guests_supplement;
+                        guestsLine.style.display = 'flex';
+                    } else {
+                        guestsLine.style.display = 'none';
+                    }
+                    
+                    const deliveryLine = document.getElementById('delivery-line');
+                    if (calc.delivery_cost > 0) {
+                        document.getElementById('delivery-price').textContent = calc.formatted.delivery_cost;
+                        deliveryLine.style.display = 'flex';
+                    } else {
+                        deliveryLine.style.display = 'none';
+                    }
+                }
+            }
+            
+            // Soumission
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                if (!validateStep(currentStep)) return;
+                
+                const formData = new FormData(form);
+                formData.append('action', 'block_traiteur_submit_quote');
+                formData.append('nonce', blockTraiteur.nonce);
+                formData.append('service_type', serviceType);
+                
+                const customerData = {};
+                ['first_name', 'last_name', 'email', 'phone', 'message'].forEach(field => {
+                    const input = form.querySelector('[name="' + field + '"]');
+                    if (input) customerData[field] = input.value;
+                });
+                
+                formData.append('customer_data', JSON.stringify(customerData));
+                formData.append('selected_products', '[]');
+                
+                fetch(blockTraiteur.ajaxUrl, {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    const messagesDiv = document.getElementById('form-messages');
+                    if (data.success) {
+                        messagesDiv.innerHTML = '<div class="message success">Devis envoyé avec succès ! Numéro : ' + data.data.quote_number + '</div>';
+                        form.style.display = 'none';
+                    } else {
+                        messagesDiv.innerHTML = '<div class="message error">Erreur : ' + (data.data.message || 'Une erreur est survenue') + '</div>';
+                    }
+                });
+            });
+        });
+        </script>
+        <?php
         
         return ob_get_clean();
     }
     
     /**
-     * Template de fallback si le fichier principal n'existe pas
+     * Shortcode : sélection des services
      */
-    private function render_fallback_form($form_id, $css_classes, $js_config) {
-        return sprintf(
-            '<div id="%s" class="%s" data-config="%s">
-                <div class="form-header">
-                    <h2>Demande de Devis Block Traiteur</h2>
-                    <p>Le formulaire sera bientôt disponible.</p>
-                </div>
-                <div class="contact-info">
-                    <p><strong>En attendant, contactez-nous directement :</strong></p>
-                    <p>Téléphone : 06 58 13 38 05</p>
-                    <p>Email : contact@block-strasbourg.fr</p>
-                </div>
-            </div>',
-            esc_attr($form_id),
-            esc_attr(implode(' ', $css_classes)),
-            esc_attr(wp_json_encode($js_config))
-        );
-    }
-    
-    /**
-     * Récupérer les paramètres du plugin
-     */
-    private function get_plugin_settings() {
-        // Si la classe Block_Traiteur_Cache existe
-        if (class_exists('Block_Traiteur_Cache')) {
-            return Block_Traiteur_Cache::get_settings();
-        }
+    public function render_services_selection($atts) {
+        $texts = $this->settings->get_interface_texts();
         
-        // Sinon, paramètres par défaut
-        return array(
-            'restaurant_base_price' => 300,
-            'remorque_base_price' => 350,
-            'company_phone' => '06 58 13 38 05',
-            'company_email' => 'contact@block-strasbourg.fr'
-        );
+        ob_start();
+        ?>
+        <div class="block-traiteur-services">
+            <div class="services-grid">
+                <div class="service-card">
+                    <h3><?php echo esc_html($texts['traiteur_restaurant_title']); ?></h3>
+                    <p><?php echo esc_html($texts['traiteur_restaurant_subtitle']); ?></p>
+                    <div class="service-description">
+                        <?php echo wp_kses_post($texts['traiteur_restaurant_description']); ?>
+                    </div>
+                    <a href="#restaurant" class="service-button">Choisir le restaurant</a>
+                </div>
+                
+                <div class="service-card">
+                    <h3><?php echo esc_html($texts['traiteur_remorque_title']); ?></h3>
+                    <p><?php echo esc_html($texts['traiteur_remorque_subtitle']); ?></p>
+                    <div class="service-description">
+                        <?php echo wp_kses_post($texts['traiteur_remorque_description']); ?>
+                    </div>
+                    <a href="#remorque" class="service-button">Choisir la remorque</a>
+                </div>
+            </div>
+        </div>
+        
+        <style>
+        .block-traiteur-services {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .services-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 30px;
+        }
+        .service-card {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .service-button {
+            display: inline-block;
+            background: #007cba;
+            color: white;
+            padding: 12px 24px;
+            text-decoration: none;
+            border-radius: 4px;
+            margin-top: 20px;
+        }
+        .service-button:hover {
+            background: #005a87;
+        }
+        </style>
+        <?php
+        
+        return ob_get_clean();
     }
-    
-/**
- * Enqueue des assets du formulaire
- */
-private function enqueue_form_assets() {
-    // CSS de base
-    wp_enqueue_style(
-        'block-traiteur-base',
-        BLOCK_TRAITEUR_PLUGIN_URL . 'public/css/base.css',
-        array(),
-        BLOCK_TRAITEUR_VERSION
-    );
-    
-    // CSS du formulaire principal
-    wp_enqueue_style(
-        'block-traiteur-form',
-        BLOCK_TRAITEUR_PLUGIN_URL . 'public/css/form.css',
-        array('block-traiteur-base'),
-        BLOCK_TRAITEUR_VERSION
-    );
-    
-    // CSS des étapes détaillées - VERSION FORCÉE POUR ÉVITER LE CACHE
-    $css_file = BLOCK_TRAITEUR_PLUGIN_DIR . 'public/css/form-steps.css';
-    $css_version = file_exists($css_file) ? filemtime($css_file) : time();
-    wp_enqueue_style(
-        'block-traiteur-form-steps',
-        BLOCK_TRAITEUR_PLUGIN_URL . 'public/css/form-steps.css',
-        array('block-traiteur-form'),
-        $css_version
-    );
-    
-    // CSS public (si nécessaire)
-    wp_enqueue_style(
-        'block-traiteur-public',
-        BLOCK_TRAITEUR_PLUGIN_URL . 'public/css/public.css',
-        array('block-traiteur-form-steps'),
-        BLOCK_TRAITEUR_VERSION
-    );
-    
-    // CSS du calculateur de prix
-    wp_enqueue_style(
-        'block-traiteur-price-calculator',
-        BLOCK_TRAITEUR_PLUGIN_URL . 'public/css/price-calculator.css',
-        array('block-traiteur-public'),
-        BLOCK_TRAITEUR_VERSION
-    );
-    
-    // JavaScript
-    // JavaScript principal - VERSION FORCÉE POUR ÉVITER LE CACHE
-    $js_file = BLOCK_TRAITEUR_PLUGIN_DIR . 'public/js/form.js';
-    $js_version = file_exists($js_file) ? filemtime($js_file) : time();
-    wp_enqueue_script(
-        'block-traiteur-form',
-        BLOCK_TRAITEUR_PLUGIN_URL . 'public/js/form.js',
-        array('jquery'),
-        $js_version,
-        true
-    );
-    
-    // Calculateur de prix
-    wp_enqueue_script(
-        'block-traiteur-price-calculator',
-        BLOCK_TRAITEUR_PLUGIN_URL . 'public/js/price-calculator.js',
-        array('block-traiteur-form'),
-        BLOCK_TRAITEUR_VERSION,
-        true
-    );
-    
-    // Localisation avec toutes les variables nécessaires
-    wp_localize_script('block-traiteur-form', 'blockTraiteurAjax', array(
-        'ajaxUrl' => admin_url('admin-ajax.php'),
-        'nonce' => wp_create_nonce('block_traiteur_ajax'),
-        'settings' => array(
-            'restaurant_base_price' => get_option('block_traiteur_restaurant_base_price', 300),
-            'remorque_base_price' => get_option('block_traiteur_remorque_base_price', 350),
-            'restaurant_min_duration' => 2,
-            'restaurant_max_duration' => 4,
-            'remorque_min_duration' => 2,
-            'remorque_max_duration' => 5,
-            'hour_supplement' => 50,
-            'remorque_guest_supplement_threshold' => 50,
-            'remorque_guest_supplement' => 150
-        ),
-        'strings' => array(
-            'loading' => __('Chargement...', 'block-traiteur'),
-            'error' => __('Une erreur est survenue', 'block-traiteur'),
-            'success' => __('Demande envoyée avec succès', 'block-traiteur'),
-            'validationError' => __('Veuillez corriger les erreurs', 'block-traiteur'),
-            'noProducts' => __('Aucun produit disponible', 'block-traiteur'),
-            'noBeverages' => __('Aucune boisson disponible', 'block-traiteur')
-        )
-    ));
-}
 }

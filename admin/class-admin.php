@@ -1,31 +1,50 @@
 <?php
 /**
  * Classe principale de l'interface administration
+ * Interface selon cahier des charges (ligne 216-311)
+ *
+ * @package Block_Traiteur
+ * @subpackage Admin
+ * @since 1.0.0
  */
 
 if (!defined('ABSPATH')) {
     exit;
 }
 
+/**
+ * Classe Block_Traiteur_Admin
+ * 
+ * Gère l'interface d'administration WordPress selon les spécifications
+ */
 class Block_Traiteur_Admin {
+    
+    /**
+     * @var Block_Traiteur_Settings Instance des settings
+     */
+    private $settings;
     
     /**
      * Constructeur
      */
     public function __construct() {
+        $this->settings = Block_Traiteur_Settings::get_instance();
+        
         add_action('admin_menu', array($this, 'add_admin_menu'));
         add_action('admin_init', array($this, 'admin_init'));
         add_action('admin_notices', array($this, 'admin_notices'));
+        add_action('admin_post_update_database', array($this, 'handle_database_update'));
+        add_action('admin_post_recreate_database', array($this, 'handle_database_recreate'));
     }
     
     /**
-     * Ajouter le menu d'administration
+     * Ajouter le menu d'administration selon les spécifications (ligne 218-284)
      */
     public function add_admin_menu() {
-        // Menu principal
+        // Menu principal : "Restaurant Devis" (ligne 218)
         add_menu_page(
-            __('Block Traiteur', 'block-traiteur'),
-            __('Block Traiteur', 'block-traiteur'),
+            'Restaurant Devis',
+            'Restaurant Devis',
             'manage_options',
             'block-traiteur',
             array($this, 'dashboard_page'),
@@ -33,74 +52,54 @@ class Block_Traiteur_Admin {
             30
         );
         
-        // Tableau de bord
+        // Sous-menu "Tableau de bord" (ligne 220-224)
         add_submenu_page(
             'block-traiteur',
-            __('Tableau de bord', 'block-traiteur'),
-            __('Tableau de bord', 'block-traiteur'),
+            'Tableau de bord',
+            'Tableau de bord',
             'manage_options',
             'block-traiteur',
             array($this, 'dashboard_page')
         );
         
-        // Devis
+        // Sous-menu "Gestion des devis" (ligne 226-237)
         add_submenu_page(
             'block-traiteur',
-            __('Devis', 'block-traiteur'),
-            __('Devis', 'block-traiteur'),
+            'Gestion des devis',
+            'Gestion des devis',
             'manage_options',
             'block-traiteur-quotes',
             array($this, 'quotes_page')
         );
         
-        // Produits
+        // Sous-menu "Gestion des produits" (ligne 238-263)
         add_submenu_page(
             'block-traiteur',
-            __('Produits', 'block-traiteur'),
-            __('Produits', 'block-traiteur'),
+            'Produits',
+            'Produits',
             'manage_options',
             'block-traiteur-products',
             array($this, 'products_page')
         );
         
-        // Boissons
+        // Sous-menu "Paramètres généraux" (ligne 264-283)
         add_submenu_page(
             'block-traiteur',
-            __('Boissons', 'block-traiteur'),
-            __('Boissons', 'block-traiteur'),
-            'manage_options',
-            'block-traiteur-beverages',
-            array($this, 'beverages_page')
-        );
-        
-        // Disponibilités
-        add_submenu_page(
-            'block-traiteur',
-            __('Disponibilités', 'block-traiteur'),
-            __('Disponibilités', 'block-traiteur'),
-            'manage_options',
-            'block-traiteur-availability',
-            array($this, 'availability_page')
-        );
-        
-        // Paramètres
-        add_submenu_page(
-            'block-traiteur',
-            __('Paramètres', 'block-traiteur'),
-            __('Paramètres', 'block-traiteur'),
+            'Paramètres',
+            'Paramètres',
             'manage_options',
             'block-traiteur-settings',
             array($this, 'settings_page')
         );
         
-        // Rapports
+        // Sous-menu "Calendrier" (ligne 284-297)
         add_submenu_page(
             'block-traiteur',
-            __('Rapports', 'block-traiteur'),
-            __('Rapports', 'block-traiteur'),
+            'Disponibilités',
+            'Disponibilités',
             'manage_options',
-            'block-traiteur-reports',
-            array($this, 'reports_page')
+            'block-traiteur-calendar',
+            array($this, 'calendar_page')
         );
     }
     
@@ -108,14 +107,17 @@ class Block_Traiteur_Admin {
      * Initialisation admin
      */
     public function admin_init() {
-        // Enregistrer les paramètres
-        register_setting('block_traiteur_settings', 'block_traiteur_settings');
-        
-        // Ajouter les actions AJAX
-        add_action('wp_ajax_block_traiteur_update_quote_status', array($this, 'ajax_update_quote_status'));
-        add_action('wp_ajax_block_traiteur_delete_quote', array($this, 'ajax_delete_quote'));
-        add_action('wp_ajax_block_traiteur_generate_pdf', array($this, 'ajax_generate_pdf'));
-        add_action('wp_ajax_block_traiteur_send_email', array($this, 'ajax_send_email'));
+        // Gérer les actions
+        if (isset($_GET['action'])) {
+            switch ($_GET['action']) {
+                case 'update_db':
+                    $this->handle_database_update();
+                    break;
+                case 'recreate_db':
+                    $this->handle_database_recreate();
+                    break;
+            }
+        }
     }
     
     /**
@@ -133,247 +135,299 @@ class Block_Traiteur_Admin {
     }
     
     /**
-     * Page tableau de bord
+     * Page tableau de bord (ligne 220-224)
      */
     public function dashboard_page() {
-        // Récupérer les statistiques
-        $stats = $this->get_dashboard_stats();
-        
-        include BLOCK_TRAITEUR_PLUGIN_DIR . 'admin/partials/dashboard.php';
-    }
-    
-    /**
-     * Page des devis
-     */
-    public function quotes_page() {
-        $quotes_admin = new Block_Traiteur_Quotes_Admin();
-        $quotes_admin->display_page();
-    }
-    
-    /**
-     * Page des produits
-     */
-    public function products_page() {
-        $products_admin = new Block_Traiteur_Products_Admin();
-        $products_admin->display_page();
-    }
-    
-    /**
-     * Page des boissons
-     */
-    public function beverages_page() {
-        $beverages_admin = new Block_Traiteur_Beverages_Admin();
-        $beverages_admin->display_page();
-    }
-    
-    /**
-     * Page des disponibilités
-     */
-    public function availability_page() {
-        include BLOCK_TRAITEUR_PLUGIN_DIR . 'admin/partials/availability.php';
-    }
-    
-    /**
-     * Page des paramètres
-     */
-    public function settings_page() {
-        $settings_admin = new Block_Traiteur_Settings_Admin();
-        $settings_admin->display_page();
-    }
-    
-    /**
-     * Page des rapports
-     */
-    public function reports_page() {
-        include BLOCK_TRAITEUR_PLUGIN_DIR . 'admin/partials/reports.php';
-    }
-    
-    /**
-     * Obtenir les statistiques du tableau de bord
-     */
-    private function get_dashboard_stats() {
         global $wpdb;
         
-        $stats = array();
-        
-        // Devis du mois
-        $stats['quotes_this_month'] = $wpdb->get_var(
-            "SELECT COUNT(*) FROM {$wpdb->prefix}block_quotes 
-             WHERE MONTH(created_at) = MONTH(CURRENT_DATE()) 
-             AND YEAR(created_at) = YEAR(CURRENT_DATE())"
-        );
-        
-        // Devis en attente
-        $stats['pending_quotes'] = $wpdb->get_var(
-            "SELECT COUNT(*) FROM {$wpdb->prefix}block_quotes WHERE status = 'sent'"
-        );
-        
-        // CA estimé du mois
-        $stats['revenue_estimate'] = $wpdb->get_var(
-            "SELECT SUM(total_price) FROM {$wpdb->prefix}block_quotes 
-             WHERE status IN ('accepted', 'sent')
-             AND MONTH(created_at) = MONTH(CURRENT_DATE()) 
-             AND YEAR(created_at) = YEAR(CURRENT_DATE())"
-        );
-        
-        // Taux de conversion
-        $total_quotes = $wpdb->get_var(
-            "SELECT COUNT(*) FROM {$wpdb->prefix}block_quotes 
-             WHERE status IN ('accepted', 'declined', 'expired')"
-        );
-        $accepted_quotes = $wpdb->get_var(
-            "SELECT COUNT(*) FROM {$wpdb->prefix}block_quotes WHERE status = 'accepted'"
-        );
-        
-        $stats['conversion_rate'] = $total_quotes > 0 ? round(($accepted_quotes / $total_quotes) * 100, 1) : 0;
-        
-        // Prochains événements
-        $stats['upcoming_events'] = $wpdb->get_results(
-            "SELECT quote_number, customer_name, event_date, service_type, guest_count 
-             FROM {$wpdb->prefix}block_quotes 
-             WHERE status = 'accepted' AND event_date >= CURRENT_DATE() 
-             ORDER BY event_date ASC LIMIT 5"
+        // Statistiques rapides
+        $quotes_table = $wpdb->prefix . 'restaurant_quotes';
+        $stats = array(
+            'total_quotes' => $wpdb->get_var("SELECT COUNT(*) FROM {$quotes_table}"),
+            'pending_quotes' => $wpdb->get_var("SELECT COUNT(*) FROM {$quotes_table} WHERE status = 'draft'"),
+            'confirmed_quotes' => $wpdb->get_var("SELECT COUNT(*) FROM {$quotes_table} WHERE status = 'confirmed'"),
+            'total_revenue' => $wpdb->get_var("SELECT SUM(total_price) FROM {$quotes_table} WHERE status = 'confirmed'") ?: 0
         );
         
         // Devis récents
-        $stats['recent_quotes'] = $wpdb->get_results(
-            "SELECT id, quote_number, customer_name, service_type, total_price, status, created_at 
-             FROM {$wpdb->prefix}block_quotes 
-             ORDER BY created_at DESC LIMIT 10"
-        );
+        $recent_quotes = $wpdb->get_results("
+            SELECT id, quote_number, service_type, event_date, guest_count, total_price, status, created_at
+            FROM {$quotes_table} 
+            ORDER BY created_at DESC 
+            LIMIT 10
+        ");
         
-        return $stats;
+        ?>
+        <div class="wrap">
+            <h1>Tableau de bord - Restaurant Devis</h1>
+            
+            <!-- Actions rapides -->
+            <div class="dashboard-widgets-wrap">
+                <div class="metabox-holder">
+                    <div class="postbox-container" style="width: 100%;">
+                        
+                        <!-- Statistiques -->
+                        <div class="postbox">
+                            <h2 class="hndle"><span>Vue d'ensemble</span></h2>
+                            <div class="inside">
+                                <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+                                    <div class="dashboard-stat" style="background: #f0f6fc; padding: 15px; border-radius: 5px; min-width: 150px;">
+                                        <h3 style="margin: 0; color: #1d2327;"><?php echo $stats['total_quotes']; ?></h3>
+                                        <p style="margin: 5px 0 0; color: #646970;">Total devis</p>
+                                    </div>
+                                    <div class="dashboard-stat" style="background: #fff2e8; padding: 15px; border-radius: 5px; min-width: 150px;">
+                                        <h3 style="margin: 0; color: #1d2327;"><?php echo $stats['pending_quotes']; ?></h3>
+                                        <p style="margin: 5px 0 0; color: #646970;">En attente</p>
+                                    </div>
+                                    <div class="dashboard-stat" style="background: #f0fff4; padding: 15px; border-radius: 5px; min-width: 150px;">
+                                        <h3 style="margin: 0; color: #1d2327;"><?php echo $stats['confirmed_quotes']; ?></h3>
+                                        <p style="margin: 5px 0 0; color: #646970;">Confirmés</p>
+                                    </div>
+                                    <div class="dashboard-stat" style="background: #f6f7f7; padding: 15px; border-radius: 5px; min-width: 150px;">
+                                        <h3 style="margin: 0; color: #1d2327;"><?php echo number_format($stats['total_revenue'], 2, ',', ' '); ?> €</h3>
+                                        <p style="margin: 5px 0 0; color: #646970;">Chiffre d'affaires</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Actions rapides -->
+                        <div class="postbox">
+                            <h2 class="hndle"><span>Actions rapides</span></h2>
+                            <div class="inside">
+                                <p>
+                                    <a href="<?php echo admin_url('admin.php?page=block-traiteur-quotes'); ?>" class="button button-primary">Voir tous les devis</a>
+                                    <a href="<?php echo admin_url('admin.php?page=block-traiteur-products'); ?>" class="button">Gérer les produits</a>
+                                    <a href="<?php echo admin_url('admin.php?page=block-traiteur-settings'); ?>" class="button">Paramètres</a>
+                                </p>
+                                <p>
+                                    <a href="<?php echo admin_url('admin.php?page=block-traiteur&action=update_db'); ?>" class="button button-secondary">Mettre à jour la base de données</a>
+                                    <a href="<?php echo admin_url('admin.php?page=block-traiteur&action=recreate_db'); ?>" class="button button-secondary" onclick="return confirm('Attention: Cette action va supprimer toutes les données existantes. Continuer ?')">Recréer la base de données</a>
+                                </p>
+                            </div>
+                        </div>
+                        
+                        <!-- Devis récents -->
+                        <div class="postbox">
+                            <h2 class="hndle"><span>Devis récents (10 derniers)</span></h2>
+                            <div class="inside">
+                                <?php if ($recent_quotes): ?>
+                                <table class="widefat striped">
+                                    <thead>
+                                        <tr>
+                                            <th>Numéro</th>
+                                            <th>Service</th>
+                                            <th>Date événement</th>
+                                            <th>Convives</th>
+                                            <th>Total</th>
+                                            <th>Statut</th>
+                                            <th>Créé le</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <?php foreach ($recent_quotes as $quote): ?>
+                                        <tr>
+                                            <td><strong><?php echo esc_html($quote->quote_number); ?></strong></td>
+                                            <td><?php echo $quote->service_type === 'restaurant' ? 'Restaurant' : 'Remorque'; ?></td>
+                                            <td><?php echo date('d/m/Y', strtotime($quote->event_date)); ?></td>
+                                            <td><?php echo $quote->guest_count; ?> pers.</td>
+                                            <td><?php echo number_format($quote->total_price, 2, ',', ' '); ?> €</td>
+                                            <td>
+                                                <span class="status-<?php echo $quote->status; ?>">
+                                                    <?php 
+                                                    switch($quote->status) {
+                                                        case 'draft': echo 'Brouillon'; break;
+                                                        case 'sent': echo 'Envoyé'; break;
+                                                        case 'confirmed': echo 'Confirmé'; break;
+                                                        case 'cancelled': echo 'Annulé'; break;
+                                                        default: echo ucfirst($quote->status);
+                                                    }
+                                                    ?>
+                                                </span>
+                                            </td>
+                                            <td><?php echo date('d/m/Y H:i', strtotime($quote->created_at)); ?></td>
+                                        </tr>
+                                        <?php endforeach; ?>
+                                    </tbody>
+                                </table>
+                                <?php else: ?>
+                                <p>Aucun devis pour le moment.</p>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+                        
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <style>
+        .status-draft { color: #d63638; }
+        .status-sent { color: #dba617; }
+        .status-confirmed { color: #00a32a; }
+        .status-cancelled { color: #8c8f94; }
+        </style>
+        <?php
     }
     
     /**
-     * AJAX - Mettre à jour le statut d'un devis
+     * Page gestion des devis
      */
-    public function ajax_update_quote_status() {
-        check_ajax_referer('block_traiteur_admin', 'nonce');
-        
-        if (!current_user_can('manage_options')) {
-            wp_send_json_error('Permissions insuffisantes');
+    public function quotes_page() {
+        echo '<div class="wrap">';
+        echo '<h1>Gestion des devis</h1>';
+        echo '<p>Interface de gestion des devis en développement...</p>';
+        echo '</div>';
+    }
+    
+    /**
+     * Page gestion des produits
+     */
+    public function products_page() {
+        echo '<div class="wrap">';
+        echo '<h1>Gestion des produits</h1>';
+        echo '<p>Interface de gestion des produits en développement...</p>';
+        echo '</div>';
+    }
+    
+    /**
+     * Page paramètres
+     */
+    public function settings_page() {
+        // Traitement des données POST
+        if (isset($_POST['submit']) && wp_verify_nonce($_POST['_wpnonce'], 'block_traiteur_settings')) {
+            $this->save_settings();
+            echo '<div class="notice notice-success"><p>Paramètres sauvegardés avec succès !</p></div>';
         }
         
-        $quote_id = intval($_POST['quote_id']);
-        $new_status = sanitize_text_field($_POST['status']);
+        $pricing_settings = $this->settings->get_pricing_settings();
         
-        global $wpdb;
-        
-        $result = $wpdb->update(
-            $wpdb->prefix . 'block_quotes',
-            array('status' => $new_status),
-            array('id' => $quote_id),
-            array('%s'),
-            array('%d')
+        ?>
+        <div class="wrap">
+            <h1>Paramètres - Restaurant Devis</h1>
+            
+            <form method="post" action="">
+                <?php wp_nonce_field('block_traiteur_settings'); ?>
+                
+                <table class="form-table">
+                    <tr>
+                        <th scope="row">Prix de base restaurant</th>
+                        <td>
+                            <input type="number" name="restaurant_base_price" value="<?php echo esc_attr($pricing_settings['restaurant_base_price']); ?>" step="0.01" />
+                            <p class="description">Prix forfait restaurant (défaut: 300€)</p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Prix de base remorque</th>
+                        <td>
+                            <input type="number" name="remorque_base_price" value="<?php echo esc_attr($pricing_settings['remorque_base_price']); ?>" step="0.01" />
+                            <p class="description">Prix forfait remorque (défaut: 350€)</p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Supplément horaire</th>
+                        <td>
+                            <input type="number" name="hourly_supplement" value="<?php echo esc_attr($pricing_settings['hourly_supplement']); ?>" step="0.01" />
+                            <p class="description">Prix par heure supplémentaire (défaut: 50€)</p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Convives minimum restaurant</th>
+                        <td>
+                            <input type="number" name="restaurant_min_guests" value="<?php echo esc_attr($pricing_settings['restaurant_min_guests']); ?>" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Convives maximum restaurant</th>
+                        <td>
+                            <input type="number" name="restaurant_max_guests" value="<?php echo esc_attr($pricing_settings['restaurant_max_guests']); ?>" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Convives minimum remorque</th>
+                        <td>
+                            <input type="number" name="remorque_min_guests" value="<?php echo esc_attr($pricing_settings['remorque_min_guests']); ?>" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Convives maximum remorque</th>
+                        <td>
+                            <input type="number" name="remorque_max_guests" value="<?php echo esc_attr($pricing_settings['remorque_max_guests']); ?>" />
+                        </td>
+                    </tr>
+                </table>
+                
+                <?php submit_button(); ?>
+            </form>
+        </div>
+        <?php
+    }
+    
+    /**
+     * Page calendrier/disponibilités
+     */
+    public function calendar_page() {
+        echo '<div class="wrap">';
+        echo '<h1>Gestion des disponibilités</h1>';
+        echo '<p>Interface de gestion du calendrier en développement...</p>';
+        echo '</div>';
+    }
+    
+    /**
+     * Sauvegarder les paramètres
+     */
+    private function save_settings() {
+        $settings_to_save = array(
+            'restaurant_base_price' => floatval($_POST['restaurant_base_price'] ?? 300),
+            'remorque_base_price' => floatval($_POST['remorque_base_price'] ?? 350),
+            'hourly_supplement' => floatval($_POST['hourly_supplement'] ?? 50),
+            'restaurant_min_guests' => intval($_POST['restaurant_min_guests'] ?? 10),
+            'restaurant_max_guests' => intval($_POST['restaurant_max_guests'] ?? 30),
+            'remorque_min_guests' => intval($_POST['remorque_min_guests'] ?? 20),
+            'remorque_max_guests' => intval($_POST['remorque_max_guests'] ?? 100)
         );
         
-        if ($result !== false) {
-            wp_send_json_success('Statut mis à jour');
-        } else {
-            wp_send_json_error('Erreur lors de la mise à jour');
+        foreach ($settings_to_save as $key => $value) {
+            $this->settings->set($key, $value, 'number', 'pricing');
         }
     }
     
     /**
-     * AJAX - Supprimer un devis
+     * Gérer la mise à jour de la base de données
      */
-    public function ajax_delete_quote() {
-        check_ajax_referer('block_traiteur_admin', 'nonce');
-        
+    public function handle_database_update() {
         if (!current_user_can('manage_options')) {
-            wp_send_json_error('Permissions insuffisantes');
+            wp_die('Accès non autorisé');
         }
-        
-        $quote_id = intval($_POST['quote_id']);
-        
-        global $wpdb;
-        
-        // Supprimer les produits du devis d'abord
-        $wpdb->delete(
-            $wpdb->prefix . 'block_quote_products',
-            array('quote_id' => $quote_id),
-            array('%d')
-        );
-        
-        // Supprimer le devis
-        $result = $wpdb->delete(
-            $wpdb->prefix . 'block_quotes',
-            array('id' => $quote_id),
-            array('%d')
-        );
-        
-        if ($result !== false) {
-            wp_send_json_success('Devis supprimé');
-        } else {
-            wp_send_json_error('Erreur lors de la suppression');
-        }
-    }
-    
-    /**
-     * AJAX - Générer un PDF
-     */
-    public function ajax_generate_pdf() {
-        check_ajax_referer('block_traiteur_admin', 'nonce');
-        
-        if (!current_user_can('manage_options')) {
-            wp_send_json_error('Permissions insuffisantes');
-        }
-        
-        $quote_id = intval($_POST['quote_id']);
         
         try {
-            $pdf_generator = new Block_Traiteur_PDF_Generator();
-            $pdf_path = $pdf_generator->generate_quote_pdf($quote_id);
+            Block_Traiteur_Database::create_tables();
+            Block_Traiteur_Database::seed_default_data();
             
-            if ($pdf_path) {
-                wp_send_json_success(array(
-                    'message' => 'PDF généré avec succès',
-                    'pdf_url' => wp_upload_dir()['baseurl'] . '/block-traiteur-quotes/' . basename($pdf_path)
-                ));
-            } else {
-                wp_send_json_error('Erreur lors de la génération du PDF');
-            }
+            wp_redirect(admin_url('admin.php?page=block-traiteur&message=' . urlencode('Base de données mise à jour avec succès') . '&type=success'));
+            exit;
         } catch (Exception $e) {
-            wp_send_json_error('Erreur: ' . $e->getMessage());
+            wp_redirect(admin_url('admin.php?page=block-traiteur&message=' . urlencode('Erreur: ' . $e->getMessage()) . '&type=error'));
+            exit;
         }
     }
     
     /**
-     * AJAX - Envoyer un email
+     * Gérer la recréation complète de la base de données
      */
-    public function ajax_send_email() {
-        check_ajax_referer('block_traiteur_admin', 'nonce');
-        
+    public function handle_database_recreate() {
         if (!current_user_can('manage_options')) {
-            wp_send_json_error('Permissions insuffisantes');
+            wp_die('Accès non autorisé');
         }
         
-        $quote_id = intval($_POST['quote_id']);
-        $email_type = sanitize_text_field($_POST['email_type']);
-        
         try {
-            $mailer = new Block_Traiteur_Mailer();
+            Block_Traiteur_Database::force_recreate();
             
-            switch ($email_type) {
-                case 'confirmation':
-                    $result = $mailer->send_quote_confirmation($quote_id);
-                    break;
-                case 'reminder':
-                    $result = $mailer->send_quote_reminder($quote_id);
-                    break;
-                default:
-                    wp_send_json_error('Type d\'email invalide');
-                    return;
-            }
-            
-            if ($result) {
-                wp_send_json_success('Email envoyé avec succès');
-            } else {
-                wp_send_json_error('Erreur lors de l\'envoi de l\'email');
-            }
+            wp_redirect(admin_url('admin.php?page=block-traiteur&message=' . urlencode('Base de données recréée avec succès') . '&type=success'));
+            exit;
         } catch (Exception $e) {
-            wp_send_json_error('Erreur: ' . $e->getMessage());
+            wp_redirect(admin_url('admin.php?page=block-traiteur&message=' . urlencode('Erreur: ' . $e->getMessage()) . '&type=error'));
+            exit;
         }
     }
 }

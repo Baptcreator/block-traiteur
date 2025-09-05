@@ -23,18 +23,32 @@
     --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
 }
 
-/* Container principal */
+/* Container principal - FORCE STYLES CONTRE ELEMENTOR/WORDPRESS */
 .block-quote-form,
-.block-quote-form-68ba04dbb24a9 {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: var(--spacing-sm) var(--spacing-md);
-    font-family: var(--font-family);
-    background: var(--block-white);
-    border-radius: var(--border-radius);
-    box-shadow: var(--shadow-lg);
-    position: relative;
-    min-height: auto;
+.block-quote-form-68ba04dbb24a9,
+div[class*="block-quote-form"] {
+    max-width: 1200px !important;
+    margin: 0 auto !important;
+    padding: var(--spacing-sm) var(--spacing-md) !important;
+    font-family: var(--font-family) !important;
+    background: var(--block-white) !important;
+    border-radius: 20px !important;
+    box-shadow: var(--shadow-lg) !important;
+    position: relative !important;
+    min-height: auto !important;
+    border: 1px solid var(--block-light) !important;
+    overflow: hidden !important;
+}
+
+/* Spécificité maximale pour Elementor */
+.elementor-widget-container .block-quote-form,
+.elementor-section .block-quote-form,
+.elementor-element .block-quote-form,
+body .block-quote-form {
+    border-radius: 20px !important;
+    background: var(--block-white) !important;
+    padding: var(--spacing-sm) var(--spacing-md) !important;
+    box-sizing: border-box !important;
 }
 
 /* Header du formulaire */
@@ -1593,6 +1607,133 @@
 .beverage-tabs {
     width: 100% !important;
     max-width: none !important;
+}
+
+/* CORRECTIONS ANTI-CONFLIT ELEMENTOR/WORDPRESS */
+/* Force tous les éléments du formulaire */
+.block-quote-form * {
+    box-sizing: border-box !important;
+}
+
+/* Force la réinitialisation des margins/paddings WordPress */
+.block-quote-form h1, .block-quote-form h2, .block-quote-form h3, 
+.block-quote-form h4, .block-quote-form h5, .block-quote-form h6,
+.block-quote-form p, .block-quote-form div {
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+/* Réapplique les styles après reset */
+.block-quote-form .form-header h2 {
+    margin-bottom: var(--spacing-md) !important;
+    font-size: 2rem !important;
+    color: var(--block-primary) !important;
+}
+
+.block-quote-form .step-header h3 {
+    margin-bottom: var(--spacing-sm) !important;
+    font-size: 1.5rem !important;
+    color: var(--block-primary) !important;
+}
+
+/* Force les boutons contre Elementor */
+.block-quote-form .btn {
+    all: unset !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: var(--spacing-sm) var(--spacing-lg) !important;
+    border-radius: var(--border-radius-small) !important;
+    font-family: var(--font-family) !important;
+    font-weight: 600 !important;
+    text-decoration: none !important;
+    cursor: pointer !important;
+    transition: all var(--transition) !important;
+    border: 2px solid transparent !important;
+}
+
+.block-quote-form .btn-primary {
+    background: var(--block-secondary) !important;
+    color: var(--block-primary) !important;
+    border-color: var(--block-secondary) !important;
+}
+
+.block-quote-form .btn-primary:hover {
+    background: var(--block-primary) !important;
+    color: var(--block-white) !important;
+    border-color: var(--block-primary) !important;
+}
+
+/* Force les inputs contre WordPress/Elementor */
+.block-quote-form input,
+.block-quote-form select,
+.block-quote-form textarea {
+    all: unset !important;
+    display: block !important;
+    width: 100% !important;
+    padding: var(--spacing-sm) !important;
+    border: 2px solid var(--block-light) !important;
+    border-radius: var(--border-radius-small) !important;
+    background: var(--block-white) !important;
+    font-family: var(--font-family) !important;
+    font-size: 1rem !important;
+    color: var(--block-primary) !important;
+    box-sizing: border-box !important;
+}
+
+.block-quote-form input:focus,
+.block-quote-form select:focus,
+.block-quote-form textarea:focus {
+    outline: none !important;
+    border-color: var(--block-secondary) !important;
+    box-shadow: 0 0 0 3px rgba(255, 180, 4, 0.2) !important;
+}
+
+/* Force les cartes de service contre Elementor */
+.block-quote-form .service-card {
+    background: var(--block-white) !important;
+    border: 3px solid var(--block-light) !important;
+    border-radius: 20px !important;
+    padding: var(--spacing-xl) !important;
+    text-align: center !important;
+    cursor: pointer !important;
+    transition: all var(--transition) !important;
+    margin: var(--spacing-md) !important;
+    box-shadow: var(--shadow) !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+}
+
+.block-quote-form .service-card:hover {
+    border-color: var(--block-secondary) !important;
+    box-shadow: var(--shadow-lg) !important;
+    transform: translateY(-2px) !important;
+}
+
+/* Force les sections du formulaire */
+.block-quote-form .form-step {
+    background: transparent !important;
+    border: none !important;
+    padding: var(--spacing-lg) !important;
+    margin: 0 !important;
+}
+
+/* Force la barre de progression */
+.block-quote-form .progress-bar {
+    width: 100% !important;
+    height: 8px !important;
+    background: var(--block-light) !important;
+    border-radius: 4px !important;
+    overflow: hidden !important;
+    margin-bottom: var(--spacing-md) !important;
+}
+
+.block-quote-form .progress-fill {
+    height: 100% !important;
+    background: var(--block-secondary) !important;
+    transition: width var(--transition) !important;
 }
 
 /* Corrections pour l'étape 1 - Service Choice */

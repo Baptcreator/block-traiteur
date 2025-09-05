@@ -97,71 +97,25 @@ register_activation_hook(__FILE__, array('Block_Traiteur_Activator', 'activate')
 register_deactivation_hook(__FILE__, array('Block_Traiteur_Deactivator', 'deactivate'));
 
 /**
- * Initialiser le plugin principal
+ * Initialiser le plugin principal - VERSION COMPLÈTEMENT REFAITE
  */
 function block_traiteur_init() {
-    // Éviter les initialisations multiples avec une vérification renforcée
+    // Éviter les initialisations multiples
     static $initialized = false;
     if ($initialized) {
-        error_log('Block Traiteur: Tentative d\'initialisation multiple bloquée');
         return;
     }
     $initialized = true;
     
-    error_log('Block Traiteur: Début initialisation UNIQUE');
+    error_log('Block Traiteur: Initialisation nouvelle architecture');
     
-    // 1. Charger d'abord la classe cache
-    if (file_exists(BLOCK_TRAITEUR_PLUGIN_DIR . 'includes/class-cache.php')) {
-        require_once BLOCK_TRAITEUR_PLUGIN_DIR . 'includes/class-cache.php';
-        Block_Traiteur_Cache::init();
-    }
-    
-    // 2. Charger la classe principale
+    // Charger la classe principale qui gère tout
     if (file_exists(BLOCK_TRAITEUR_PLUGIN_DIR . 'includes/class-block-traiteur.php')) {
         require_once BLOCK_TRAITEUR_PLUGIN_DIR . 'includes/class-block-traiteur.php';
         new Block_Traiteur();
     }
     
-    // 3. Charger les shortcodes EN PRIORITÉ - PLUS DE RÉPÉTITIONS
-    if (file_exists(BLOCK_TRAITEUR_PLUGIN_DIR . 'public/class-shortcode.php')) {
-        require_once BLOCK_TRAITEUR_PLUGIN_DIR . 'public/class-shortcode.php';
-        
-        // NOUVELLE LOGIQUE : Vérifier si le shortcode n'est pas déjà enregistré
-        global $shortcode_tags;
-        if (!isset($shortcode_tags['block_traiteur_form'])) {
-            error_log('Block Traiteur: Shortcodes enregistrés');
-            new Block_Traiteur_Shortcode();
-            
-            // Vérifier l'enregistrement réussi
-            if (isset($shortcode_tags['block_traiteur_form'])) {
-                error_log('Block Traiteur: Shortcode block_traiteur_form enregistré avec succès');
-            } else {
-                error_log('Block Traiteur: ERREUR - Shortcode non enregistré');
-            }
-        } else {
-            error_log('Block Traiteur: Shortcode déjà enregistré, ignoré');
-        }
-    }
-    
-    // 4. Charger les handlers AJAX
-    if (file_exists(BLOCK_TRAITEUR_PLUGIN_DIR . 'includes/class-ajax-handler.php')) {
-        require_once BLOCK_TRAITEUR_PLUGIN_DIR . 'includes/class-ajax-handler.php';
-        new Block_Traiteur_Ajax_Handler();
-    }
-    
-    // 5. Charger l'administration (seulement en mode admin)
-    if (is_admin() && file_exists(BLOCK_TRAITEUR_PLUGIN_DIR . 'admin/class-admin.php')) {
-        require_once BLOCK_TRAITEUR_PLUGIN_DIR . 'admin/class-admin.php';
-        new Block_Traiteur_Admin();
-    }
-    
-    // 6. Charger le public
-    if (file_exists(BLOCK_TRAITEUR_PLUGIN_DIR . 'public/class-public.php')) {
-        require_once BLOCK_TRAITEUR_PLUGIN_DIR . 'public/class-public.php';
-        new Block_Traiteur_Public();
-    }
-    
-    error_log('Block Traiteur: Fin initialisation');
+    error_log('Block Traiteur: Nouvelle architecture initialisée');
 }
 
 
@@ -184,15 +138,7 @@ add_action('elementor/widgets/widgets_registered', 'block_traiteur_init_elemento
 // Initialiser le plugin UNE SEULE FOIS avec priorité élevée
 add_action('plugins_loaded', 'block_traiteur_init', 5);
 
-// Enregistrement des options des paramètres
-add_action('admin_init', function() {
-    register_setting('block_traiteur_settings', 'block_traiteur_company_name');
-    register_setting('block_traiteur_settings', 'block_traiteur_company_address');
-    register_setting('block_traiteur_settings', 'block_traiteur_company_phone');
-    register_setting('block_traiteur_settings', 'block_traiteur_company_email');
-    register_setting('block_traiteur_settings', 'block_traiteur_base_price_restaurant');
-    register_setting('block_traiteur_settings', 'block_traiteur_base_price_remorque');
-});
+// Plus besoin d'enregistrer les options individuelles - tout est géré par la nouvelle architecture
 
 // Charger les traductions
 add_action('plugins_loaded', function() {
