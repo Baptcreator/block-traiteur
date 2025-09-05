@@ -92,20 +92,21 @@ class Block_Traiteur_Activator {
     }
     
     /**
-     * Créer les tables de base de données
+     * Créer les tables de base de données SELON LES SPÉCIFICATIONS
      */
     private static function create_database_tables() {
-        // Utiliser le nouveau système de base de données
+        // FORCER l'utilisation du nouveau système selon les spécifications
         require_once BLOCK_TRAITEUR_PLUGIN_DIR . 'includes/class-database.php';
         
-        try {
-            Block_Traiteur_Database::create_tables();
-            Block_Traiteur_Database::seed_default_data();
-            error_log('Block Traiteur: Base de données initialisée avec le nouveau système');
-            return;
-        } catch (Exception $e) {
-            error_log('Block Traiteur: Erreur nouveau système, fallback vers ancien: ' . $e->getMessage());
-        }
+        // Supprimer les anciennes tables si elles existent
+        self::drop_old_tables();
+        
+        // Créer les nouvelles tables selon les spécifications
+        Block_Traiteur_Database::create_tables();
+        Block_Traiteur_Database::seed_default_data();
+        
+        error_log('Block Traiteur: NOUVELLES tables créées selon spécifications client');
+        return;
         
         // Fallback vers l'ancien système en cas d'erreur
         global $wpdb;
@@ -267,5 +268,27 @@ class Block_Traiteur_Activator {
         }
         
         error_log('Block Traiteur: Capacités utilisateur créées');
+    }
+    
+    /**
+     * Supprimer les anciennes tables
+     */
+    private static function drop_old_tables() {
+        global $wpdb;
+        
+        $old_tables = array(
+            'block_quotes',
+            'block_products', 
+            'block_food_categories',
+            'block_beverage_categories',
+            'block_beverages',
+            'block_settings'
+        );
+        
+        foreach ($old_tables as $table) {
+            $wpdb->query("DROP TABLE IF EXISTS {$wpdb->prefix}{$table}");
+        }
+        
+        error_log('Block Traiteur: Anciennes tables supprimées');
     }
 }

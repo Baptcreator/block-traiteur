@@ -34,10 +34,33 @@ if (!defined('ABSPATH')) {
     
     <form class="quote-form" method="post">
         <?php wp_nonce_field('block_traiteur_submit', '_wpnonce'); ?>
-        <input type="hidden" name="serviceType" id="serviceType" value="<?php echo esc_attr($js_config['serviceType']); ?>">
+        <input type="hidden" name="serviceType" id="serviceType" value="">
+        
+        <!-- Affichage du prix de base dès le départ -->
+        <div class="base-price-display" style="text-align: center; margin: 20px 0; padding: 15px; background: #f8f9fa; border-radius: 8px;">
+            <h4 style="margin: 0; color: #243127;">Prix estimatif</h4>
+            <div class="service-prices" style="display: flex; justify-content: center; gap: 30px; margin-top: 10px;">
+                <div class="price-option">
+                    <span style="font-weight: 600;">Restaurant :</span>
+                    <span style="color: #EF3D1D; font-size: 1.2em; font-weight: 700;">300€</span>
+                </div>
+                <div class="price-option">
+                    <span style="font-weight: 600;">Remorque :</span>
+                    <span style="color: #EF3D1D; font-size: 1.2em; font-weight: 700;">350€</span>
+                </div>
+            </div>
+            <p style="margin: 5px 0 0 0; font-size: 0.9em; color: #666;">
+                Prix de base TTC (2h incluses) - Mise à jour en temps réel selon vos choix
+            </p>
+        </div>
+        
+        <!-- Sélection du service (Étape 0 - OBLIGATOIRE) -->
+        <div class="service-selection-container">
+            <?php include BLOCK_TRAITEUR_PLUGIN_DIR . 'templates/form-steps/step-service-choice.php'; ?>
+        </div>
         
         <!-- Étapes du formulaire -->
-        <div class="form-steps-container">
+        <div class="form-steps-container" style="display: none;">
             
             <!-- Étape 1: Forfait de base -->
             <div class="form-step active" data-step="1">
@@ -71,7 +94,7 @@ if (!defined('ABSPATH')) {
         </div>
         
         <!-- Navigation -->
-        <div class="form-navigation" style="display: none;">
+        <div class="form-navigation">
             <button type="button" class="btn btn-secondary prev-step" style="display: none;">
                 ← Précédent
             </button>
@@ -104,34 +127,55 @@ if (!defined('ABSPATH')) {
 document.addEventListener('DOMContentLoaded', function() {
     const config = <?php echo wp_json_encode($js_config); ?>;
     
+    // Gérer les boutons CHOISIR
+    document.querySelectorAll('.select-service').forEach(button => {
+        button.addEventListener('click', function() {
+            const serviceType = this.getAttribute('data-service');
+            
+            // Définir le service sélectionné
+            document.getElementById('serviceType').value = serviceType;
+            
+            // Masquer la sélection de service et l'affichage des prix de base
+            const serviceContainer = document.querySelector('.service-selection-container');
+            const basePriceDisplay = document.querySelector('.base-price-display');
+            if (serviceContainer) {
+                serviceContainer.style.display = 'none';
+            }
+            if (basePriceDisplay) {
+                basePriceDisplay.style.display = 'none';
+            }
+            
+            // Afficher les étapes du formulaire
+            const stepsContainer = document.querySelector('.form-steps-container');
+            if (stepsContainer) {
+                stepsContainer.style.display = 'block';
+            }
+            
+            // Mettre à jour les contraintes selon le service
+            updateServiceConstraints(serviceType);
+            
+            // Initialiser le calculateur de prix
+            if (typeof window.updatePriceCalculator === 'function') {
+                window.updatePriceCalculator({
+                    serviceType: serviceType,
+                    total: serviceType === 'restaurant' ? 300 : 350,
+                    breakdown: {
+                        base: serviceType === 'restaurant' ? 300 : 350
+                    }
+                });
+            }
+            
+            // Log pour debug
+            console.log('Service sélectionné:', serviceType);
+        });
+    });
+    
     // Si un service est pré-sélectionné, démarrer automatiquement
     if (config.serviceType && config.serviceType !== 'both' && config.autoStart) {
-        // Définir le service et afficher le formulaire
-        document.getElementById('serviceType').value = config.serviceType;
-        
-        // Afficher les étapes du formulaire
-        const stepsContainer = document.querySelector('.form-steps-container');
-        const navigation = document.querySelector('.form-navigation');
-        
-        if (stepsContainer) {
-            stepsContainer.style.display = 'block';
-        }
-        if (navigation) {
-            navigation.style.display = 'flex';
-        }
-        
-        // Mettre à jour les contraintes selon le service
-        updateServiceConstraints(config.serviceType);
-        
-        // Initialiser le calculateur de prix
-        if (typeof window.updatePriceCalculator === 'function') {
-            window.updatePriceCalculator({
-                serviceType: config.serviceType,
-                total: config.serviceType === 'restaurant' ? 300 : 350,
-                breakdown: {
-                    base: config.serviceType === 'restaurant' ? 300 : 350
-                }
-            });
+        // Simuler le clic sur le bouton correspondant
+        const button = document.querySelector('.select-service[data-service="' + config.serviceType + '"]');
+        if (button) {
+            button.click();
         }
     }
     

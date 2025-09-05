@@ -556,7 +556,9 @@
 }
 
 .btn-primary:hover:not(:disabled) {
-    background: #E6A003;
+    background: var(--block-primary);
+    color: var(--block-white);
+    border-color: var(--block-primary);
     transform: translateY(-2px);
     box-shadow: var(--shadow-lg);
 }
@@ -568,9 +570,11 @@
 }
 
 .btn-secondary:hover:not(:disabled) {
-    background: var(--block-primary);
+    background: var(--block-accent);
     color: var(--block-white);
-    border-color: var(--block-primary);
+    border-color: var(--block-accent);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
 }
 
 .btn-outline {
@@ -1596,6 +1600,8 @@
     background: var(--block-primary) !important;
     color: var(--block-white) !important;
     border-color: var(--block-primary) !important;
+    transform: translateY(-2px) !important;
+    box-shadow: var(--shadow-lg) !important;
 }
 
 .block-quote-form .btn-secondary {
@@ -1605,9 +1611,11 @@
 }
 
 .block-quote-form .btn-secondary:hover {
-    background: var(--block-primary) !important;
+    background: var(--block-accent) !important;
     color: var(--block-white) !important;
-    border-color: var(--block-primary) !important;
+    border-color: var(--block-accent) !important;
+    transform: translateY(-2px) !important;
+    box-shadow: var(--shadow-lg) !important;
 }
 
 .signature-label {
