@@ -62,7 +62,7 @@ if (!defined('ABSPATH')) {
                     <label class="duration-option">
                         <input type="radio" name="duration" value="5">
                         <span class="duration-label">5h</span>
-                        <span class="duration-price">+20€ TTC</span>
+                        <span class="duration-price">+50€</span>
                     </label>
                 </div>
             </div>

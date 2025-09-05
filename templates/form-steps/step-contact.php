@@ -9,7 +9,7 @@ if (!defined('ABSPATH')) {
 ?>
 
 <div class="step-header">
-    <h3><?php _e('Vos informations de contact', 'block-traiteur'); ?></h3>
+    <h3><?php _e('4. Coordonnées / Contact', 'block-traiteur'); ?> <span class="required">(OBLIGATOIRE)</span></h3>
     <p><?php _e('Dernière étape ! Nous avons besoin de vos coordonnées pour finaliser votre devis', 'block-traiteur'); ?></p>
 </div>
 
@@ -17,31 +17,39 @@ if (!defined('ABSPATH')) {
     <div class="form-grid">
         <!-- Nom -->
         <div class="form-group">
-            <label for="customerName"><?php _e('Nom et prénom', 'block-traiteur'); ?> <span class="required">*</span></label>
+            <label for="customerName"><?php _e('Nom', 'block-traiteur'); ?> <span class="required">*</span></label>
             <input type="text" id="customerName" name="customerName" class="form-control" required>
         </div>
         
-        <!-- Email -->
+        <!-- Prénom -->
         <div class="form-group">
-            <label for="customerEmail"><?php _e('Adresse email', 'block-traiteur'); ?> <span class="required">*</span></label>
-            <input type="email" id="customerEmail" name="customerEmail" class="form-control" required>
-            <div class="field-help"><?php _e('Nous vous enverrons votre devis à cette adresse', 'block-traiteur'); ?></div>
+            <label for="customerFirstname"><?php _e('Prénom', 'block-traiteur'); ?> <span class="required">*</span></label>
+            <input type="text" id="customerFirstname" name="customerFirstname" class="form-control" required>
         </div>
         
         <!-- Téléphone -->
         <div class="form-group">
-            <label for="customerPhone"><?php _e('Téléphone', 'block-traiteur'); ?></label>
+            <label for="customerPhone"><?php _e('Téléphone', 'block-traiteur'); ?> <span class="required">*</span></label>
             <input type="tel" id="customerPhone" name="customerPhone" class="form-control" 
-                   placeholder="06 12 34 56 78">
-            <div class="field-help"><?php _e('Optionnel - pour un contact plus rapide', 'block-traiteur'); ?></div>
+                   placeholder="06 12 34 56 78" required>
+        </div>
+        
+        <!-- Email -->
+        <div class="form-group">
+            <label for="customerEmail"><?php _e('Mail', 'block-traiteur'); ?> <span class="required">*</span></label>
+            <input type="email" id="customerEmail" name="customerEmail" class="form-control" required>
+            <div class="field-help"><?php _e('Nous vous enverrons votre devis à cette adresse', 'block-traiteur'); ?></div>
         </div>
     </div>
     
     <!-- Commentaires -->
     <div class="form-group">
-        <label for="customerComments"><?php _e('Commentaires ou demandes spéciales', 'block-traiteur'); ?></label>
+        <label for="customerComments"><?php _e('Section question/commentaire', 'block-traiteur'); ?></label>
         <textarea id="customerComments" name="customerComments" class="form-control" rows="4" 
-                  placeholder="<?php _e('Allergies, préférences alimentaires, organisation particulière...', 'block-traiteur'); ?>"></textarea>
+                  placeholder="<?php _e('1 question, 1 souhait, n\'hésitez pas de nous en faire part, on en parle, on...', 'block-traiteur'); ?>"></textarea>
+        <div class="field-help">
+            <?php _e('Partagez vos questions, souhaits ou demandes spéciales', 'block-traiteur'); ?>
+        </div>
     </div>
     
     <!-- Récapitulatif final -->
@@ -146,27 +154,33 @@ if (!defined('ABSPATH')) {
     <!-- Message final -->
     <div class="final-message">
         <div class="message-content">
-            <h4><?php _e('Que se passe-t-il ensuite ?', 'block-traiteur'); ?></h4>
+            <div class="important-notice">
+                <h4>⚠️ <?php _e('Important : Montant estimatif !', 'block-traiteur'); ?></h4>
+                <p class="notice-text">
+                    <?php _e('Votre devis est d\'ores et déjà disponible dans votre boîte mail, la suite ? Block va prendre contact avec vous afin d\'affiner celui-ci et de créer avec vous toute l\'expérience dont vous rêvez', 'block-traiteur'); ?>
+                </p>
+            </div>
+            
             <div class="next-steps">
                 <div class="step-item">
                     <span class="step-number">1</span>
                     <div class="step-content">
-                        <strong><?php _e('Confirmation immédiate', 'block-traiteur'); ?></strong>
-                        <p><?php _e('Vous recevrez votre devis par email dans les minutes qui suivent', 'block-traiteur'); ?></p>
+                        <strong><?php _e('Email immédiat', 'block-traiteur'); ?></strong>
+                        <p><?php _e('Vous recevrez votre devis estimatif par email avec tous les détails', 'block-traiteur'); ?></p>
                     </div>
                 </div>
                 <div class="step-item">
                     <span class="step-number">2</span>
                     <div class="step-content">
-                        <strong><?php _e('Contact sous 48h', 'block-traiteur'); ?></strong>
-                        <p><?php _e('Notre équipe vous recontacte pour affiner votre devis', 'block-traiteur'); ?></p>
+                        <strong><?php _e('Contact Block', 'block-traiteur'); ?></strong>
+                        <p><?php _e('Notre équipe vous contacte pour affiner votre devis et personnaliser votre expérience', 'block-traiteur'); ?></p>
                     </div>
                 </div>
                 <div class="step-item">
                     <span class="step-number">3</span>
                     <div class="step-content">
-                        <strong><?php _e('Validation finale', 'block-traiteur'); ?></strong>
-                        <p><?php _e('Confirmation de votre événement et planification', 'block-traiteur'); ?></p>
+                        <strong><?php _e('Création sur mesure', 'block-traiteur'); ?></strong>
+                        <p><?php _e('Ensemble, nous créons l\'événement dont vous rêvez', 'block-traiteur'); ?></p>
                     </div>
                 </div>
             </div>

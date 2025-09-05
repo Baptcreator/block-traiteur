@@ -866,13 +866,32 @@ class Block_Traiteur_Elementor_Widget extends Widget_Base {
     }
 }
 
-// Enregistrer le widget auprès d'Elementor
-function register_block_traiteur_elementor_widget() {
-    if (did_action('elementor/loaded')) {
-        \Elementor\Plugin::instance()->widgets_manager->register_widget_type(new Block_Traiteur_Elementor_Widget());
+// Enregistrer tous les widgets Block Traiteur auprès d'Elementor
+function register_block_traiteur_elementor_widgets() {
+    if (!did_action('elementor/loaded')) {
+        return;
+    }
+    
+    // Widget principal de formulaire
+    \Elementor\Plugin::instance()->widgets_manager->register_widget_type(new Block_Traiteur_Elementor_Widget());
+    
+    // Charger et enregistrer le widget Hero Restaurant
+    if (file_exists(BLOCK_TRAITEUR_PLUGIN_DIR . 'public/widgets/class-hero-restaurant-widget.php')) {
+        require_once BLOCK_TRAITEUR_PLUGIN_DIR . 'public/widgets/class-hero-restaurant-widget.php';
+        if (class_exists('Block_Traiteur_Hero_Restaurant_Widget')) {
+            \Elementor\Plugin::instance()->widgets_manager->register_widget_type(new Block_Traiteur_Hero_Restaurant_Widget());
+        }
+    }
+    
+    // Charger et enregistrer le widget Service Selection
+    if (file_exists(BLOCK_TRAITEUR_PLUGIN_DIR . 'public/widgets/class-service-selection-widget.php')) {
+        require_once BLOCK_TRAITEUR_PLUGIN_DIR . 'public/widgets/class-service-selection-widget.php';
+        if (class_exists('Block_Traiteur_Service_Selection_Widget')) {
+            \Elementor\Plugin::instance()->widgets_manager->register_widget_type(new Block_Traiteur_Service_Selection_Widget());
+        }
     }
 }
-add_action('elementor/widgets/widgets_registered', 'register_block_traiteur_elementor_widget');
+add_action('elementor/widgets/widgets_registered', 'register_block_traiteur_elementor_widgets');
 
 // Créer une catégorie personnalisée pour les widgets Block Traiteur
 function add_block_traiteur_elementor_category($elements_manager) {

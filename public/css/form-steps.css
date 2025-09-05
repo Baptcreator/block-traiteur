@@ -1561,8 +1561,53 @@
 }
 
 .signature-option:has(input:checked) {
-    border-color: var(--block-secondary);
-    background: rgba(255, 180, 4, 0.1);
+    border-color: var(--block-secondary) !important;
+    background: rgba(255, 180, 4, 0.1) !important;
+}
+
+/* FORCER LES COULEURS - OVERRIDE TOUS LES CONFLITS */
+.block-quote-form .signature-option input[type="radio"]:checked + .signature-label {
+    color: var(--block-primary) !important;
+    font-weight: bold !important;
+}
+
+.block-quote-form .signature-option {
+    border: 3px solid var(--block-gray) !important;
+    background: var(--block-white) !important;
+}
+
+.block-quote-form .signature-option:hover {
+    border-color: var(--block-secondary) !important;
+    background: rgba(255, 180, 4, 0.05) !important;
+}
+
+.block-quote-form .signature-option input[type="radio"]:checked {
+    accent-color: var(--block-secondary) !important;
+}
+
+/* Forcer les boutons principaux */
+.block-quote-form .btn-primary {
+    background: var(--block-secondary) !important;
+    color: var(--block-primary) !important;
+    border: 2px solid var(--block-secondary) !important;
+}
+
+.block-quote-form .btn-primary:hover {
+    background: var(--block-primary) !important;
+    color: var(--block-white) !important;
+    border-color: var(--block-primary) !important;
+}
+
+.block-quote-form .btn-secondary {
+    background: var(--block-white) !important;
+    color: var(--block-primary) !important;
+    border: 2px solid var(--block-primary) !important;
+}
+
+.block-quote-form .btn-secondary:hover {
+    background: var(--block-primary) !important;
+    color: var(--block-white) !important;
+    border-color: var(--block-primary) !important;
 }
 
 .signature-label {

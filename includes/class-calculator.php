@@ -50,54 +50,71 @@ class Block_Traiteur_Calculator {
     }
     
     /**
-     * Calculer le prix de base
+     * Calculer le prix de base selon les spécifications
      */
     private function calculate_base_price() {
         $service_type = $this->form_data['serviceType'] ?? 'restaurant';
         
         if ($service_type === 'restaurant') {
-            $this->price_breakdown['base'] = $this->settings['restaurant_base_price'];
+            // Prix de base restaurant : 300€ (2H incluses)
+            $this->price_breakdown['base'] = 300.00;
         } else {
-            $this->price_breakdown['base'] = $this->settings['remorque_base_price'];
+            // Prix de base remorque : 350€ (2H incluses)
+            $this->price_breakdown['base'] = 350.00;
         }
     }
     
     /**
-     * Calculer le supplément durée
+     * Calculer le supplément durée selon les spécifications
      */
     private function calculate_duration_supplement() {
         $duration = intval($this->form_data['duration'] ?? 2);
         $service_type = $this->form_data['serviceType'] ?? 'restaurant';
         
-        $min_duration = $service_type === 'restaurant' 
-            ? $this->settings['restaurant_min_duration'] 
-            : $this->settings['remorque_min_duration'];
+        // 2H incluses pour les deux services
+        $base_duration = 2;
         
-        if ($duration > $min_duration) {
-            $extra_hours = $duration - $min_duration;
-            $this->price_breakdown['duration'] = $extra_hours * $this->settings['hour_supplement'];
+        // Contraintes selon les spécifications
+        if ($service_type === 'restaurant') {
+            // Restaurant : 2-4 heures
+            $duration = max(2, min(4, $duration));
+        } else {
+            // Remorque : 2-5 heures
+            $duration = max(2, min(5, $duration));
+        }
+        
+        // Supplément : +50€/heure au-delà de 2H
+        if ($duration > $base_duration) {
+            $extra_hours = $duration - $base_duration;
+            $this->price_breakdown['duration'] = $extra_hours * 50.00;
         } else {
             $this->price_breakdown['duration'] = 0;
         }
     }
     
     /**
-     * Calculer le supplément invités
+     * Calculer le supplément invités selon les spécifications
      */
     private function calculate_guest_supplement() {
         $guest_count = intval($this->form_data['guestCount'] ?? 0);
         $service_type = $this->form_data['serviceType'] ?? 'restaurant';
         
-        // Supplément uniquement pour la remorque au-delà de 50 invités
-        if ($service_type === 'remorque' && $guest_count > $this->settings['remorque_guest_supplement_threshold']) {
-            $this->price_breakdown['guests'] = $this->settings['remorque_guest_supplement'];
-        } else {
+        // Contraintes selon les spécifications
+        if ($service_type === 'restaurant') {
+            // Restaurant : 10-30 personnes (pas de supplément)
             $this->price_breakdown['guests'] = 0;
+        } else {
+            // Remorque : 20-100+ personnes, +150€ si >50 personnes
+            if ($guest_count > 50) {
+                $this->price_breakdown['guests'] = 150.00;
+            } else {
+                $this->price_breakdown['guests'] = 0;
+            }
         }
     }
     
     /**
-     * Calculer le supplément distance
+     * Calculer le supplément distance selon les spécifications
      */
     private function calculate_distance_supplement() {
         if (!isset($this->form_data['distance']) || $this->form_data['serviceType'] !== 'remorque') {
@@ -107,16 +124,21 @@ class Block_Traiteur_Calculator {
         
         $distance = floatval($this->form_data['distance']);
         
-        if ($distance <= $this->settings['delivery_zone_1_max']) {
+        // Frais de livraison selon les zones spécifiées
+        if ($distance <= 30) {
+            // Zone gratuite : 0-30km
             $this->price_breakdown['distance'] = 0;
-        } elseif ($distance <= $this->settings['delivery_zone_2_max']) {
-            $this->price_breakdown['distance'] = $this->settings['delivery_zone_2_price'];
-        } elseif ($distance <= $this->settings['delivery_zone_3_max']) {
-            $this->price_breakdown['distance'] = $this->settings['delivery_zone_3_price'];
-        } elseif ($distance <= $this->settings['delivery_zone_4_max']) {
-            $this->price_breakdown['distance'] = $this->settings['delivery_zone_4_price'];
+        } elseif ($distance <= 50) {
+            // Zone 1 : 30-50km = +20€
+            $this->price_breakdown['distance'] = 20.00;
+        } elseif ($distance <= 100) {
+            // Zone 2 : 50-100km = +70€
+            $this->price_breakdown['distance'] = 70.00;
+        } elseif ($distance <= 150) {
+            // Zone 3 : 100-150km = +118€
+            $this->price_breakdown['distance'] = 118.00;
         } else {
-            // Hors zone - prix sur devis
+            // Hors zone (>150km) - non desservi
             $this->price_breakdown['distance'] = 0;
         }
     }
@@ -156,7 +178,7 @@ class Block_Traiteur_Calculator {
     }
     
     /**
-     * Calculer le prix des options
+     * Calculer le prix des options selon les spécifications
      */
     private function calculate_options_price() {
         $total = 0;
@@ -165,10 +187,12 @@ class Block_Traiteur_Calculator {
             foreach ($this->form_data['selectedOptions'] as $option) {
                 switch ($option) {
                     case 'tireuse':
-                        $total += $this->settings['tireuse_option_price'];
+                        // Option 1 : Mise à disposition tireuse = 50€
+                        $total += 50.00;
                         break;
                     case 'jeux':
-                        $total += $this->settings['jeux_option_price'];
+                        // Option 2 : Installation jeux = 70€
+                        $total += 70.00;
                         break;
                 }
             }
@@ -199,40 +223,44 @@ class Block_Traiteur_Calculator {
     }
     
     /**
-     * Calculer une estimation rapide pour AJAX
+     * Calculer une estimation rapide pour AJAX selon les spécifications
      */
     public static function quick_estimate($service_type, $guest_count, $duration, $distance = 0) {
-        $settings = Block_Traiteur_Cache::get_settings();
         $total = 0;
         
-        // Prix de base
+        // Prix de base selon les spécifications
         if ($service_type === 'restaurant') {
-            $total += $settings['restaurant_base_price'];
-            $min_duration = $settings['restaurant_min_duration'];
+            $total += 300.00; // Restaurant : 300€
         } else {
-            $total += $settings['remorque_base_price'];
-            $min_duration = $settings['remorque_min_duration'];
+            $total += 350.00; // Remorque : 350€
         }
         
-        // Supplément durée
-        if ($duration > $min_duration) {
-            $total += ($duration - $min_duration) * $settings['hour_supplement'];
+        // Supplément durée : +50€/heure au-delà de 2H
+        if ($duration > 2) {
+            $total += ($duration - 2) * 50.00;
         }
         
-        // Supplément invités (remorque seulement)
-        if ($service_type === 'remorque' && $guest_count > $settings['remorque_guest_supplement_threshold']) {
-            $total += $settings['remorque_guest_supplement'];
+        // Supplément invités (remorque seulement) : +150€ si >50 personnes
+        if ($service_type === 'remorque' && $guest_count > 50) {
+            $total += 150.00;
         }
         
-        // Supplément distance (remorque seulement)
+        // Supplément distance (remorque seulement) selon les zones
         if ($service_type === 'remorque' && $distance > 0) {
-            if ($distance <= $settings['delivery_zone_2_max']) {
-                $total += $settings['delivery_zone_2_price'];
-            } elseif ($distance <= $settings['delivery_zone_3_max']) {
-                $total += $settings['delivery_zone_3_price'];
-            } elseif ($distance <= $settings['delivery_zone_4_max']) {
-                $total += $settings['delivery_zone_4_price'];
+            if ($distance <= 30) {
+                // Zone gratuite
+                $total += 0;
+            } elseif ($distance <= 50) {
+                // Zone 1 : +20€
+                $total += 20.00;
+            } elseif ($distance <= 100) {
+                // Zone 2 : +70€
+                $total += 70.00;
+            } elseif ($distance <= 150) {
+                // Zone 3 : +118€
+                $total += 118.00;
             }
+            // >150km : non desservi
         }
         
         return $total;

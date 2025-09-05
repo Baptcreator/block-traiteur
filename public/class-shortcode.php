@@ -30,9 +30,10 @@ class Block_Traiteur_Shortcode {
         
         $atts = shortcode_atts(array(
             'type' => 'both',
+            'service' => '', // Service pré-sélectionné (restaurant/remorque)
             'theme' => 'light',
             'show_progress' => 'true',
-            'auto_start' => 'false',
+            'auto_start' => 'true', // Démarrer automatiquement si service défini
             'hide_header' => 'false',
             'show_price' => 'true',
             'custom_class' => ''
@@ -44,8 +45,13 @@ class Block_Traiteur_Shortcode {
             $atts['type'] = 'both';
         }
         
-        // Enqueue des scripts et styles
+        // Enqueue des scripts et styles avec version forcée
         $this->enqueue_form_assets();
+        
+        // DEBUG: Forcer le rechargement des assets
+        add_action('wp_footer', function() {
+            echo "<!-- Block Traiteur Debug: Assets enqueued at " . date('Y-m-d H:i:s') . " -->";
+        });
         
         // Générer un ID unique pour ce formulaire
         $form_id = 'block-quote-form-' . uniqid();
@@ -66,9 +72,9 @@ class Block_Traiteur_Shortcode {
         // Configuration pour JavaScript
         $js_config = array(
             'formId' => $form_id,
-            'serviceType' => $atts['type'],
+            'serviceType' => $atts['service'] ?: $atts['type'], // Service pré-sélectionné prioritaire
             'showProgress' => ($atts['show_progress'] === 'true'),
-            'autoStart' => ($atts['auto_start'] === 'true'),
+            'autoStart' => ($atts['auto_start'] === 'true') || !empty($atts['service']),
             'hideHeader' => ($atts['hide_header'] === 'true'),
             'showPrice' => ($atts['show_price'] === 'true'),
             'ajaxUrl' => admin_url('admin-ajax.php'),
@@ -151,12 +157,14 @@ private function enqueue_form_assets() {
         BLOCK_TRAITEUR_VERSION
     );
     
-    // CSS des étapes détaillées
+    // CSS des étapes détaillées - VERSION FORCÉE POUR ÉVITER LE CACHE
+    $css_file = BLOCK_TRAITEUR_PLUGIN_DIR . 'public/css/form-steps.css';
+    $css_version = file_exists($css_file) ? filemtime($css_file) : time();
     wp_enqueue_style(
         'block-traiteur-form-steps',
         BLOCK_TRAITEUR_PLUGIN_URL . 'public/css/form-steps.css',
         array('block-traiteur-form'),
-        BLOCK_TRAITEUR_VERSION
+        $css_version
     );
     
     // CSS public (si nécessaire)
@@ -167,12 +175,23 @@ private function enqueue_form_assets() {
         BLOCK_TRAITEUR_VERSION
     );
     
+    // CSS du calculateur de prix
+    wp_enqueue_style(
+        'block-traiteur-price-calculator',
+        BLOCK_TRAITEUR_PLUGIN_URL . 'public/css/price-calculator.css',
+        array('block-traiteur-public'),
+        BLOCK_TRAITEUR_VERSION
+    );
+    
     // JavaScript
+    // JavaScript principal - VERSION FORCÉE POUR ÉVITER LE CACHE
+    $js_file = BLOCK_TRAITEUR_PLUGIN_DIR . 'public/js/form.js';
+    $js_version = file_exists($js_file) ? filemtime($js_file) : time();
     wp_enqueue_script(
         'block-traiteur-form',
         BLOCK_TRAITEUR_PLUGIN_URL . 'public/js/form.js',
         array('jquery'),
-        BLOCK_TRAITEUR_VERSION,
+        $js_version,
         true
     );
     

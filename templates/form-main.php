@@ -21,12 +21,11 @@ if (!defined('ABSPATH')) {
                     <div class="progress-fill" style="width: 0%;"></div>
                 </div>
                 <div class="progress-steps">
-                    <span class="step active" data-step="0">Service</span>
-                    <span class="step" data-step="1">Forfait</span>
-                    <span class="step" data-step="2">Repas</span>
+                    <span class="step active" data-step="1">Forfait de base</span>
+                    <span class="step" data-step="2">Formules repas</span>
                     <span class="step" data-step="3">Buffets</span>
                     <span class="step" data-step="4">Boissons</span>
-                    <span class="step" data-step="5">Options</span>
+                    <span class="step service-remorque-only" data-step="5">Options</span>
                     <span class="step" data-step="6">Contact</span>
                 </div>
             <?php endif; ?>
@@ -35,17 +34,13 @@ if (!defined('ABSPATH')) {
     
     <form class="quote-form" method="post">
         <?php wp_nonce_field('block_traiteur_submit', '_wpnonce'); ?>
+        <input type="hidden" name="serviceType" id="serviceType" value="<?php echo esc_attr($js_config['serviceType']); ?>">
         
         <!-- Étapes du formulaire -->
         <div class="form-steps-container">
             
-            <!-- Étape 0: Choix du service -->
-            <div class="form-step active" data-step="0">
-                <?php include BLOCK_TRAITEUR_PLUGIN_DIR . 'templates/form-steps/step-service-choice.php'; ?>
-            </div>
-            
             <!-- Étape 1: Forfait de base -->
-            <div class="form-step" data-step="1">
+            <div class="form-step active" data-step="1">
                 <?php include BLOCK_TRAITEUR_PLUGIN_DIR . 'templates/form-steps/step-base-package.php'; ?>
             </div>
             
@@ -59,13 +54,13 @@ if (!defined('ABSPATH')) {
                 <?php include BLOCK_TRAITEUR_PLUGIN_DIR . 'templates/form-steps/step-buffets.php'; ?>
             </div>
             
-            <!-- Étape 4: Boissons -->
+            <!-- Étape 4: Boissons (optionnelle) -->
             <div class="form-step" data-step="4">
                 <?php include BLOCK_TRAITEUR_PLUGIN_DIR . 'templates/form-steps/step-beverages.php'; ?>
             </div>
             
-            <!-- Étape 5: Options -->
-            <div class="form-step" data-step="5">
+            <!-- Étape 5: Options (remorque uniquement) -->
+            <div class="form-step service-remorque-only" data-step="5">
                 <?php include BLOCK_TRAITEUR_PLUGIN_DIR . 'templates/form-steps/step-options.php'; ?>
             </div>
             
@@ -76,7 +71,7 @@ if (!defined('ABSPATH')) {
         </div>
         
         <!-- Navigation -->
-        <div class="form-navigation">
+        <div class="form-navigation" style="display: none;">
             <button type="button" class="btn btn-secondary prev-step" style="display: none;">
                 ← Précédent
             </button>
@@ -101,30 +96,96 @@ if (!defined('ABSPATH')) {
         </div>
     </form>
     
-    <!-- Calculateur de prix -->
-    <?php if ($atts['show_price'] === 'true'): ?>
-        <div class="price-calculator">
-            <h4>Estimation de prix</h4>
-            <div class="price-breakdown">
-                <div class="price-line">
-                    <span>Forfait de base</span>
-                    <span class="base-price">0 €</span>
-                </div>
-                <div class="price-line total-line">
-                    <span>TOTAL TTC</span>
-                    <span class="total-price">0 € TTC</span>
-                </div>
-            </div>
-        </div>
-    <?php endif; ?>
+    <!-- Calculateur de prix sticky -->
+    <?php include BLOCK_TRAITEUR_PLUGIN_DIR . 'templates/price-calculator.php'; ?>
 </div>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    const config = <?php echo wp_json_encode($js_config); ?>;
+    
+    // Si un service est pré-sélectionné, démarrer automatiquement
+    if (config.serviceType && config.serviceType !== 'both' && config.autoStart) {
+        // Définir le service et afficher le formulaire
+        document.getElementById('serviceType').value = config.serviceType;
+        
+        // Afficher les étapes du formulaire
+        const stepsContainer = document.querySelector('.form-steps-container');
+        const navigation = document.querySelector('.form-navigation');
+        
+        if (stepsContainer) {
+            stepsContainer.style.display = 'block';
+        }
+        if (navigation) {
+            navigation.style.display = 'flex';
+        }
+        
+        // Mettre à jour les contraintes selon le service
+        updateServiceConstraints(config.serviceType);
+        
+        // Initialiser le calculateur de prix
+        if (typeof window.updatePriceCalculator === 'function') {
+            window.updatePriceCalculator({
+                serviceType: config.serviceType,
+                total: config.serviceType === 'restaurant' ? 300 : 350,
+                breakdown: {
+                    base: config.serviceType === 'restaurant' ? 300 : 350
+                }
+            });
+        }
+    }
+    
+    // Initialiser le formulaire si disponible
     if (typeof BlockQuoteForm !== 'undefined') {
         new BlockQuoteForm('<?php echo esc_js($form_id); ?>');
     } else {
         console.error('BlockQuoteForm non trouvé');
+    }
+    
+    // Fonction pour mettre à jour les contraintes selon le service
+    function updateServiceConstraints(serviceType) {
+        const guestInput = document.getElementById('guestCount');
+        const guestLimits = document.querySelector('.guest-limits');
+        const remorqueFields = document.querySelector('.remorque-fields');
+        const restaurantOnlyElements = document.querySelectorAll('.restaurant-only');
+        const remorqueOnlyElements = document.querySelectorAll('.remorque-only');
+        
+        if (serviceType === 'restaurant') {
+            // Contraintes restaurant : 10-30 personnes
+            if (guestInput) {
+                guestInput.min = 10;
+                guestInput.max = 30;
+                guestInput.value = Math.min(Math.max(guestInput.value, 10), 30);
+            }
+            if (guestLimits) {
+                guestLimits.textContent = 'min 10p / max 30p';
+            }
+            if (remorqueFields) {
+                remorqueFields.style.display = 'none';
+            }
+            
+            // Afficher éléments restaurant, masquer remorque
+            restaurantOnlyElements.forEach(el => el.style.display = 'block');
+            remorqueOnlyElements.forEach(el => el.style.display = 'none');
+            
+        } else if (serviceType === 'remorque') {
+            // Contraintes remorque : 20-100+ personnes
+            if (guestInput) {
+                guestInput.min = 20;
+                guestInput.max = 100;
+                guestInput.value = Math.min(Math.max(guestInput.value, 20), 100);
+            }
+            if (guestLimits) {
+                guestLimits.textContent = 'min 20p / max 100p';
+            }
+            if (remorqueFields) {
+                remorqueFields.style.display = 'block';
+            }
+            
+            // Afficher éléments remorque, masquer restaurant
+            remorqueOnlyElements.forEach(el => el.style.display = 'block');
+            restaurantOnlyElements.forEach(el => el.style.display = 'none');
+        }
     }
 });
 </script>

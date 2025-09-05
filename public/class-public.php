@@ -39,11 +39,19 @@ class Block_Traiteur_Public {
             BLOCK_TRAITEUR_VERSION
         );
         
+        // CSS des widgets Elementor
+        wp_enqueue_style(
+            'block-traiteur-widgets',
+            BLOCK_TRAITEUR_PLUGIN_URL . 'public/css/widgets.css',
+            array('block-traiteur-public'),
+            BLOCK_TRAITEUR_VERSION
+        );
+        
         // CSS spécifique formulaire
         wp_enqueue_style(
             'block-traiteur-form',
             BLOCK_TRAITEUR_PLUGIN_URL . 'public/css/form-steps.css',
-            array('block-traiteur-public'),
+            array('block-traiteur-widgets'),
             BLOCK_TRAITEUR_VERSION
         );
         

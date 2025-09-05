@@ -1,0 +1,518 @@
+/**
+ * CSS pour les widgets Elementor Block Traiteur
+ * Styles selon les spécifications
+ */
+
+/* Variables CSS */
+:root {
+    --block-primary-color: #243127;
+    --block-secondary-color: #FFB404;
+    --block-accent-color: #EF3D1D;
+    --block-text-color: #333333;
+    --block-light-bg: #f8f9fa;
+    --block-border-radius: 8px;
+    --block-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    --block-transition: all 0.3s ease;
+}
+
+/* =======================
+   HERO RESTAURANT WIDGET
+   ======================= */
+
+.block-hero-restaurant-widget {
+    padding: 60px 0;
+}
+
+.hero-restaurant-section {
+    margin-bottom: 80px;
+}
+
+.hero-content {
+    display: flex;
+    align-items: center;
+    gap: 60px;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+.hero-text {
+    flex: 1;
+}
+
+.hero-main-title {
+    font-size: 3.5rem;
+    font-weight: 700;
+    color: var(--block-primary-color);
+    margin-bottom: 20px;
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+}
+
+.hero-description {
+    font-size: 1.2rem;
+    color: var(--block-text-color);
+    margin-bottom: 40px;
+    line-height: 1.6;
+}
+
+.hero-buttons {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.hero-image {
+    flex: 0 0 400px;
+    text-align: center;
+}
+
+.hero-image img {
+    max-width: 100%;
+    height: auto;
+    border-radius: var(--block-border-radius);
+}
+
+/* Section Traiteur */
+.hero-traiteur-section {
+    text-align: center;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+.section-title {
+    font-size: 2.5rem;
+    font-weight: 600;
+    color: var(--block-primary-color);
+    margin-bottom: 20px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.section-description {
+    font-size: 1.1rem;
+    color: var(--block-text-color);
+    margin-bottom: 60px;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+    line-height: 1.6;
+}
+
+/* Cards Services */
+.services-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: 40px;
+    margin-top: 40px;
+}
+
+.service-card {
+    background: #ffffff;
+    border-radius: var(--block-border-radius);
+    box-shadow: var(--block-shadow);
+    overflow: hidden;
+    transition: var(--block-transition);
+    border: 1px solid #e9ecef;
+}
+
+.service-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+}
+
+.card-image {
+    height: 200px;
+    overflow: hidden;
+    background: var(--block-light-bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.card-image img {
+    max-width: 120px;
+    max-height: 120px;
+    object-fit: contain;
+}
+
+.card-content {
+    padding: 30px;
+}
+
+.card-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--block-primary-color);
+    margin-bottom: 10px;
+}
+
+.card-subtitle {
+    font-size: 1rem;
+    color: var(--block-secondary-color);
+    font-weight: 500;
+    margin-bottom: 15px;
+}
+
+.card-description {
+    font-size: 1rem;
+    color: var(--block-text-color);
+    line-height: 1.6;
+    margin-bottom: 25px;
+}
+
+.card-actions {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+/* Boutons */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px 24px;
+    font-size: 1rem;
+    font-weight: 500;
+    text-decoration: none;
+    border-radius: var(--block-border-radius);
+    transition: var(--block-transition);
+    border: 2px solid transparent;
+    cursor: pointer;
+    min-height: 48px;
+    line-height: 1;
+}
+
+.btn-primary {
+    background-color: var(--block-primary-color);
+    color: #ffffff;
+    border-color: var(--block-primary-color);
+}
+
+.btn-primary:hover {
+    background-color: var(--block-secondary-color);
+    border-color: var(--block-secondary-color);
+    color: #ffffff;
+    text-decoration: none;
+}
+
+.btn-secondary {
+    background-color: transparent;
+    color: var(--block-primary-color);
+    border-color: var(--block-primary-color);
+}
+
+.btn-secondary:hover {
+    background-color: var(--block-primary-color);
+    color: #ffffff;
+    text-decoration: none;
+}
+
+/* ============================
+   SERVICE SELECTION WIDGET
+   ============================ */
+
+.service-selection-widget {
+    padding: 60px 0;
+}
+
+.section-header {
+    text-align: center;
+    margin-bottom: 60px;
+}
+
+.section-subtitle {
+    font-size: 1.1rem;
+    color: var(--block-text-color);
+    margin-top: 15px;
+    line-height: 1.6;
+}
+
+/* Layouts des cards */
+.services-cards.layout-side-by-side {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+    gap: 40px;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+.services-cards.layout-stacked {
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+.services-cards.layout-centered {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 40px;
+    padding: 0 20px;
+}
+
+.services-cards.layout-centered .service-card {
+    flex: 0 0 450px;
+}
+
+/* Card styles spécifiques */
+.service-card .card-header {
+    margin-bottom: 20px;
+}
+
+.service-card .card-capacity {
+    font-size: 1.1rem;
+    color: var(--block-secondary-color);
+    font-weight: 600;
+    margin: 5px 0;
+}
+
+.card-features {
+    margin: 20px 0;
+}
+
+.feature-item {
+    font-size: 0.95rem;
+    color: var(--block-text-color);
+    margin-bottom: 8px;
+    padding-left: 20px;
+    position: relative;
+}
+
+.feature-item::before {
+    content: "✓";
+    position: absolute;
+    left: 0;
+    color: var(--block-secondary-color);
+    font-weight: 600;
+}
+
+.card-price {
+    margin: 20px 0;
+    text-align: center;
+}
+
+.price-info {
+    background: var(--block-light-bg);
+    color: var(--block-primary-color);
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 1rem;
+}
+
+.card-action {
+    margin-top: 25px;
+    text-align: center;
+}
+
+.card-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 15px 30px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    text-decoration: none;
+    border-radius: var(--block-border-radius);
+    transition: var(--block-transition);
+    border: none;
+    cursor: pointer;
+    min-width: 200px;
+    background-color: var(--block-primary-color);
+    color: #ffffff;
+}
+
+.card-button:hover {
+    background-color: var(--block-secondary-color);
+    transform: translateY(-2px);
+    text-decoration: none;
+    color: #ffffff;
+}
+
+/* Effets hover pour les cards */
+.services-cards.hover-lift .service-card:hover {
+    transform: translateY(-8px);
+}
+
+.services-cards.hover-scale .service-card:hover {
+    transform: scale(1.02);
+}
+
+.services-cards.hover-rotate .service-card:hover {
+    transform: rotate(1deg) scale(1.01);
+}
+
+/* Cards spécifiques */
+.card-restaurant {
+    border-top: 4px solid var(--block-primary-color);
+}
+
+.card-remorque {
+    border-top: 4px solid var(--block-secondary-color);
+}
+
+.btn-restaurant {
+    background-color: var(--block-primary-color);
+}
+
+.btn-restaurant:hover {
+    background-color: var(--block-secondary-color);
+}
+
+.btn-remorque {
+    background-color: var(--block-secondary-color);
+}
+
+.btn-remorque:hover {
+    background-color: var(--block-primary-color);
+}
+
+/* ====================
+   RESPONSIVE DESIGN
+   ==================== */
+
+@media (max-width: 768px) {
+    .hero-content {
+        flex-direction: column;
+        text-align: center;
+        gap: 40px;
+    }
+    
+    .hero-image {
+        flex: none;
+        order: -1;
+    }
+    
+    .hero-main-title {
+        font-size: 2.5rem;
+    }
+    
+    .section-title {
+        font-size: 2rem;
+    }
+    
+    .services-cards.layout-side-by-side {
+        grid-template-columns: 1fr;
+        gap: 30px;
+        padding: 0 15px;
+    }
+    
+    .services-cards.layout-centered .service-card {
+        flex: 0 0 100%;
+        max-width: 450px;
+    }
+    
+    .hero-buttons {
+        justify-content: center;
+    }
+    
+    .card-actions {
+        justify-content: center;
+    }
+}
+
+@media (max-width: 480px) {
+    .hero-main-title {
+        font-size: 2rem;
+    }
+    
+    .section-title {
+        font-size: 1.75rem;
+    }
+    
+    .btn {
+        padding: 10px 20px;
+        font-size: 0.95rem;
+    }
+    
+    .card-button {
+        min-width: 150px;
+        padding: 12px 24px;
+        font-size: 1rem;
+    }
+    
+    .service-card .card-content {
+        padding: 20px;
+    }
+}
+
+/* ====================
+   ELEMENTOR PREVIEW
+   ==================== */
+
+.elementor-editor .block-hero-restaurant-widget,
+.elementor-editor .service-selection-widget {
+    background: var(--block-light-bg);
+    border: 2px dashed #ccc;
+    border-radius: var(--block-border-radius);
+    padding: 20px;
+}
+
+.elementor-preview-notice {
+    text-align: center;
+    padding: 40px 20px;
+    background: #ffffff;
+    border: 2px dashed #ddd;
+    border-radius: var(--block-border-radius);
+    color: var(--block-text-color);
+}
+
+.preview-icon {
+    font-size: 3rem;
+    color: var(--block-primary-color);
+    margin-bottom: 20px;
+}
+
+.preview-features {
+    margin-top: 20px;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+}
+
+.feature-badge {
+    background: var(--block-primary-color);
+    color: #ffffff;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+/* Calculateur de prix en mode preview */
+.price-calculator.preview-mode {
+    background: var(--block-light-bg);
+    border: 1px solid #ddd;
+    border-radius: var(--block-border-radius);
+    padding: 20px;
+    margin-top: 20px;
+}
+
+.price-preview {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.price-line {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid #eee;
+}
+
+.price-total-line {
+    font-weight: 600;
+    color: var(--block-accent-color);
+    border-top: 2px solid var(--block-primary-color);
+    padding-top: 10px;
+    margin-top: 10px;
+}

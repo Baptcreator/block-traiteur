@@ -1,8 +1,9 @@
 /**
- * Gestionnaire principal du formulaire Block Traiteur
+ * Gestionnaire principal du formulaire Block Traiteur - VERSION MISE À JOUR
+ * Selon les spécifications client
  */
 
-console.log('form.js: Fichier chargé');
+console.log('form-updated.js: Fichier chargé');
 
 (function($) {
     'use strict';
@@ -12,8 +13,44 @@ console.log('form.js: Fichier chargé');
         this.formId = formId;
         this.form = document.getElementById(formId);
         this.currentStep = 0;
-        this.totalSteps = 6;
-        this.formData = {};
+        this.totalSteps = 6; // Service, Forfait, Repas, Buffets, Boissons, Contact (+ Options pour remorque)
+        this.formData = {
+            serviceType: '',
+            basePrice: 0,
+            totalPrice: 0,
+            guestCount: 0,
+            duration: 2,
+            recipes: {},
+            buffets: {},
+            beverages: {},
+            options: {}
+        };
+        this.settings = {
+            restaurant: {
+                basePrice: 300,
+                minGuests: 10,
+                maxGuests: 30,
+                minDuration: 2,
+                maxDuration: 4,
+                hourSupplement: 50
+            },
+            remorque: {
+                basePrice: 350,
+                minGuests: 20,
+                maxGuests: 100,
+                minDuration: 2,
+                maxDuration: 5,
+                hourSupplement: 50,
+                guestSupplementThreshold: 50,
+                guestSupplement: 150,
+                zones: [
+                    {min: 0, max: 30, price: 0, label: 'Zone 1 (0-30km)'},
+                    {min: 30, max: 50, price: 20, label: 'Zone 2 (30-50km)'},
+                    {min: 50, max: 100, price: 70, label: 'Zone 3 (50-100km)'},
+                    {min: 100, max: 150, price: 118, label: 'Zone 4 (100-150km)'}
+                ]
+            }
+        };
         
         if (!this.form) {
             console.error('Formulaire Block Traiteur non trouvé:', formId);
@@ -37,670 +74,707 @@ console.log('form.js: Fichier chargé');
         // Initialiser l'affichage du prix
         initPriceDisplay: function() {
             var $form = $('#' + this.formId);
-            var $priceValue = $form.find('.price-value');
+            var $priceDisplay = $form.find('.price-display');
             
-            if ($priceValue.length === 0) {
+            if ($priceDisplay.length === 0) {
                 // Créer l'affichage du prix s'il n'existe pas
                 var priceHtml = '<div class="price-display">';
                 priceHtml += '  <div class="price-content">';
                 priceHtml += '    <div class="price-label">Estimation</div>';
                 priceHtml += '    <div class="price-value">À partir de 300€</div>';
-                priceHtml += '    <div class="price-note">TTC - Prix indicatif</div>';
+                priceHtml += '    <div class="price-note">TTC - Montant indicatif estimatif</div>';
                 priceHtml += '  </div>';
                 priceHtml += '</div>';
                 
-                $form.find('.form-navigation').before(priceHtml);
+                $form.append(priceHtml);
             }
         },
 
+        // Lier les événements
         bindEvents: function() {
             var self = this;
-            console.log('BlockQuoteForm: Binding des événements');
-            
-            // Navigation avec délégation d'événements
-            $(document).on('click', '#' + this.formId + ' .next-step', function(e) {
+            var $form = $('#' + this.formId);
+
+            // Navigation
+            $form.on('click', '.next-step', function(e) {
                 e.preventDefault();
-                console.log('Bouton suivant cliqué');
-                self.nextStep();
+                if (self.validateCurrentStep()) {
+                    self.nextStep();
+                }
             });
-            
-            $(document).on('click', '#' + this.formId + ' .prev-step', function(e) {
+
+            $form.on('click', '.prev-step', function(e) {
                 e.preventDefault();
-                console.log('Bouton précédent cliqué');
                 self.prevStep();
             });
-            
-            // Sélection de service
-            $(document).on('click', '#' + this.formId + ' .select-service', function(e) {
+
+            // Choix de service
+            $form.on('click', '.select-service', function(e) {
                 e.preventDefault();
-                var service = $(this).data('service');
-                console.log('Service sélectionné:', service);
-                self.selectService(service);
+                var serviceType = $(this).data('service');
+                self.selectService(serviceType);
             });
-            
-            // Onglets de recettes (DOG/CROQ)
-            $(document).on('click', '#' + this.formId + ' .recipe-tabs .tab-btn', function(e) {
+
+            // Gestion des inputs de quantité
+            $form.on('click', '.qty-btn', function(e) {
                 e.preventDefault();
-                var $btn = $(this);
-                var category = $btn.data('category');
-                
-                // Mettre à jour les onglets
-                $btn.siblings().removeClass('active');
-                $btn.addClass('active');
-                
-                // Mettre à jour le contenu
-                var $form = $('#' + self.formId);
-                $form.find('.recipe-category').removeClass('active');
-                $form.find('[data-category="' + category + '"]').addClass('active');
-                
-                // Charger les produits si nécessaire
-                self.loadProducts(category, category + '-products');
+                self.handleQuantityButton($(this));
             });
-            
-            // Onglets de boissons
-            $(document).on('click', '#' + this.formId + ' .beverage-tabs .tab-btn', function(e) {
-                e.preventDefault();
-                var $btn = $(this);
-                var category = $btn.data('category');
-                
-                // Mettre à jour les onglets
-                $btn.siblings().removeClass('active');
-                $btn.addClass('active');
-                
-                // Mettre à jour le contenu
-                var $form = $('#' + self.formId);
-                $form.find('.beverage-category').removeClass('active');
-                $form.find('[data-category="' + category + '"]').addClass('active');
-                
-                // Charger les boissons
-                self.loadBeverages(category, '', category + '-beverages');
+
+            // Gestion des inputs numériques
+            $form.on('change', '.qty-input', function() {
+                self.calculatePrice();
             });
-            
-            // Onglets de vins
-            $(document).on('click', '#' + this.formId + ' .wine-tabs .wine-tab', function(e) {
-                e.preventDefault();
-                var $btn = $(this);
-                var wineType = $btn.data('wine-type');
-                
-                // Mettre à jour les onglets
-                $btn.siblings().removeClass('active');
-                $btn.addClass('active');
-                
-                // Mettre à jour le contenu
-                var $form = $('#' + self.formId);
-                $form.find('.wine-type').removeClass('active');
-                $form.find('[data-wine-type="' + wineType + '"]').addClass('active');
-                
-                // Charger les vins
-                self.loadBeverages('vins', wineType, 'vins-' + wineType + '-beverages');
+
+            // Gestion du choix de plat signature
+            $form.on('change', 'input[name="signature_type"]', function() {
+                self.handleSignatureChoice($(this).val());
             });
-            
-            // Onglets de bières
-            $(document).on('click', '#' + this.formId + ' .beer-tabs .beer-tab', function(e) {
-                e.preventDefault();
-                var $btn = $(this);
-                var beerType = $btn.data('beer-type');
-                
-                // Mettre à jour les onglets
-                $btn.siblings().removeClass('active');
-                $btn.addClass('active');
-                
-                // Mettre à jour le contenu
-                var $form = $('#' + self.formId);
-                $form.find('.beer-type').removeClass('active');
-                $form.find('[data-beer-type="' + beerType + '"]').addClass('active');
-                
-                // Charger les bières
-                self.loadBeverages('bieres', beerType, 'bieres-' + beerType + '-beverages');
+
+            // Gestion du choix d'accompagnement
+            $form.on('change', 'input[name="accompaniment_type"]', function() {
+                self.handleAccompanimentChoice($(this).val());
+            });
+
+            // Gestion des buffets
+            $form.on('change', 'input[name="buffetTypes[]"]', function() {
+                self.handleBuffetTypeChange();
+            });
+
+            // Gestion du skip boissons
+            $form.on('change', '#skip-beverages', function() {
+                self.handleSkipBeverages($(this).is(':checked'));
+            });
+
+            // Gestion des options remorque
+            $form.on('change', '#option-tireuse', function() {
+                self.handleTireuseOption($(this).is(':checked'));
+            });
+
+            // Calcul automatique à chaque changement
+            $form.on('change input', 'input, select, textarea', function() {
+                setTimeout(function() {
+                    self.calculatePrice();
+                }, 100);
             });
         },
 
-        showStep: function(stepNumber) {
-            console.log('Affichage étape:', stepNumber);
-            
-            var $form = $('#' + this.formId);
-            
-            // Masquer toutes les étapes
-            $form.find('.form-step').removeClass('active').hide();
-            
-            // Afficher l'étape courante
-            var $currentStep = $form.find('[data-step="' + stepNumber + '"]');
-            if ($currentStep.length) {
-                $currentStep.addClass('active').show();
-                console.log('Étape', stepNumber, 'affichée avec succès');
-            } else {
-                console.error('Étape', stepNumber, 'non trouvée dans le DOM');
-            }
-            
-            this.currentStep = stepNumber;
-            this.updateNavigationButtons();
-            this.updateProgress();
-            
-            // Charger les données spécifiques à l'étape
-            this.loadStepData(stepNumber);
-        },
-
-        // Charger les données spécifiques à chaque étape
-        loadStepData: function(stepNumber) {
-            var self = this;
-            
-            switch(stepNumber) {
-                case 2: // Étape formules repas
-                    // Charger les produits Mini Boss et Accompagnements immédiatement
-                    this.loadProducts('mini_boss', 'mini-boss-products');
-                    this.loadProducts('accompagnement', 'accompaniment-products');
-                    // DOG et CROQ seront chargés selon la sélection radio
-                    break;
-                    
-                case 4: // Étape boissons
-                    // Charger les softs par défaut (onglet actif)
-                    this.loadBeverages('softs', '', 'softs-beverages');
-                    break;
-            }
-        },
-
-        nextStep: function() {
-            console.log('nextStep: étape actuelle', this.currentStep, 'total', this.totalSteps);
-            if (this.currentStep < this.totalSteps) {
-                this.showStep(this.currentStep + 1);
-            } else {
-                console.log('Dernière étape atteinte');
-            }
-        },
-
-        prevStep: function() {
-            console.log('prevStep: étape actuelle', this.currentStep);
-            if (this.currentStep > 0) {
-                this.showStep(this.currentStep - 1);
-            } else {
-                console.log('Première étape atteinte');
-            }
-        },
-
+        // Sélectionner un service
         selectService: function(serviceType) {
             console.log('Service sélectionné:', serviceType);
             this.formData.serviceType = serviceType;
             
+            // Mettre à jour l'interface
+            $('#serviceType').val(serviceType);
+            
+            // Configurer les limites selon le service
+            this.updateServiceLimits(serviceType);
+            
+            // Passer à l'étape suivante
+            this.nextStep();
+        },
+
+        // Mettre à jour les limites selon le service
+        updateServiceLimits: function(serviceType) {
+            var settings = this.settings[serviceType];
+            var $guestCount = $('#guestCount');
             var $form = $('#' + this.formId);
             
-            // Mettre à jour les cartes de service
-            $form.find('.service-card').removeClass('selected');
-            $form.find('[data-service="' + serviceType + '"]').addClass('selected');
+            if (settings) {
+                // Mettre à jour les limites d'invités
+                $guestCount.attr('min', settings.minGuests);
+                $guestCount.attr('max', settings.maxGuests);
+                $guestCount.val(settings.minGuests);
+                
+                // Mettre à jour les textes d'aide
+                $('.guest-limits').text('min ' + settings.minGuests + 'p / max ' + settings.maxGuests + 'p');
+                
+                // Afficher/masquer les champs spécifiques
+                if (serviceType === 'remorque') {
+                    $('.remorque-fields').show();
+                    $('.remorque-only').show();
+                    $('.restaurant-only').hide();
+                    this.totalSteps = 7; // Inclure l'étape options
+                } else {
+                    $('.remorque-fields').hide();
+                    $('.remorque-only').hide();
+                    $('.restaurant-only').show();
+                    this.totalSteps = 6; // Pas d'étape options
+                }
+                
+                // Mettre à jour la barre de progression
+                this.updateProgressSteps();
+                
+                // Mettre à jour le prix de base
+                this.formData.basePrice = settings.basePrice;
+                this.calculatePrice();
+            }
+        },
+
+        // Mettre à jour les étapes de progression
+        updateProgressSteps: function() {
+            var $steps = $('.progress-steps .step');
+            if (this.formData.serviceType === 'restaurant') {
+                $('.service-remorque-only').hide();
+            } else {
+                $('.service-remorque-only').show();
+            }
+        },
+
+        // Gérer le choix de plat signature
+        handleSignatureChoice: function(signatureType) {
+            $('#recipes-section').show();
+            if (signatureType === 'dog') {
+                $('#dog-recipes').show();
+                $('#croq-recipes').hide();
+            } else {
+                $('#croq-recipes').show();
+                $('#dog-recipes').hide();
+            }
+            this.updateRecipeCounter();
+        },
+
+        // Gérer le choix d'accompagnement
+        handleAccompanimentChoice: function(accompanimentType) {
+            if (accompanimentType === 'frites') {
+                $('#frites-options').show();
+            } else {
+                $('#frites-options').hide();
+            }
+        },
+
+        // Gérer les changements de type de buffet
+        handleBuffetTypeChange: function() {
+            var saleChecked = $('input[value="sale"]').is(':checked') || $('input[value="mixte"]').is(':checked');
+            var sucreChecked = $('input[value="sucre"]').is(':checked') || $('input[value="mixte"]').is(':checked');
             
-            // Calculer le prix initial
+            $('#buffet-sale').toggle(saleChecked);
+            $('#buffet-sucre').toggle(sucreChecked);
+            $('.buffet-sale-counter').toggle(saleChecked);
+            $('.buffet-sucre-counter').toggle(sucreChecked);
+            
+            this.updateBuffetCounters();
+        },
+
+        // Gérer le skip des boissons
+        handleSkipBeverages: function(skip) {
+            if (skip) {
+                $('#beverages-content').hide();
+                $('#beverages-content .qty-input').val(0);
+            } else {
+                $('#beverages-content').show();
+            }
             this.calculatePrice();
-            
-            // Passer automatiquement à l'étape suivante
-            var self = this;
-            setTimeout(function() {
-                self.nextStep();
-            }, 800);
         },
 
-        updateNavigationButtons: function() {
-            var $form = $('#' + this.formId);
-            var $prevBtn = $form.find('.prev-step');
-            var $nextBtn = $form.find('.next-step');
-            var $submitBtn = $form.find('.submit-form');
-            
-            console.log('Mise à jour boutons pour étape', this.currentStep);
-            
-            // Bouton précédent
-            if (this.currentStep === 0) {
-                $prevBtn.hide();
+        // Gérer l'option tireuse
+        handleTireuseOption: function(selected) {
+            if (selected) {
+                $('#tireuse-futs').show();
             } else {
-                $prevBtn.show();
+                $('#tireuse-futs').hide();
+                $('input[name="tireuse_futs[]"]').prop('checked', false);
+            }
+            this.calculatePrice();
+        },
+
+        // Gérer les boutons de quantité
+        handleQuantityButton: function($btn) {
+            var target = $btn.data('target');
+            var $input = $('#' + target);
+            var isIncrease = $btn.hasClass('increase');
+            var currentValue = parseInt($input.val()) || 0;
+            
+            if (isIncrease) {
+                $input.val(currentValue + 1);
+            } else if (currentValue > 0) {
+                $input.val(currentValue - 1);
             }
             
-            // Bouton suivant / soumettre
-            if (this.currentStep === this.totalSteps) {
-                $nextBtn.hide();
-                $submitBtn.show();
+            // Mettre à jour les compteurs selon le contexte
+            if (target.includes('recipe') || target.includes('dog-') || target.includes('croq-') || target.includes('mini-')) {
+                this.updateRecipeCounter();
+            } else if (target.includes('buffet-')) {
+                this.updateBuffetCounters();
+            }
+            
+            this.calculatePrice();
+        },
+
+        // Mettre à jour le compteur de recettes
+        updateRecipeCounter: function() {
+            var guestCount = parseInt($('#guestCount').val()) || 0;
+            var totalRecipes = 0;
+            
+            $('.recipes-group .qty-input, .mini-boss-items .qty-input').each(function() {
+                totalRecipes += parseInt($(this).val()) || 0;
+            });
+            
+            $('#total-recipes').text(totalRecipes);
+            $('#required-recipes').text(guestCount);
+            
+            var $status = $('#recipe-status');
+            if (totalRecipes >= guestCount && guestCount > 0) {
+                $status.html('<span class="status-icon">✅</span><span class="status-text">Parfait !</span>');
+                $status.removeClass('warning').addClass('success');
             } else {
-                $nextBtn.show();
-                $submitBtn.hide();
+                $status.html('<span class="status-icon">⚠️</span><span class="status-text">Il manque des recettes</span>');
+                $status.removeClass('success').addClass('warning');
             }
         },
 
-        updateProgress: function() {
-            var progress = ((this.currentStep + 1) / (this.totalSteps + 1)) * 100;
-            var $form = $('#' + this.formId);
+        // Mettre à jour les compteurs de buffets
+        updateBuffetCounters: function() {
+            var guestCount = parseInt($('#guestCount').val()) || 0;
             
-            $form.find('.progress-fill').css('width', progress + '%');
+            // Buffet salé
+            var totalSale = 0;
+            var recipesSale = 0;
             
-            // Mettre à jour les étapes
-            $form.find('.progress-steps .step').each(function(index) {
-                var $step = $(this);
-                $step.removeClass('active completed');
-                
-                if (index < this.currentStep) {
-                    $step.addClass('completed');
-                } else if (index === this.currentStep) {
-                    $step.addClass('active');
-                }
-            }.bind(this));
-        },
-
-        // Charger les produits par catégorie
-        loadProducts: function(category, containerId) {
-            var self = this;
-            console.log('Chargement des produits pour catégorie:', category);
-            
-            var serviceType = this.formData.serviceType || 'both';
-            
-            $.ajax({
-                url: blockTraiteurAjax.ajaxUrl,
-                type: 'POST',
-                data: {
-                    action: 'block_traiteur_get_products',
-                    nonce: blockTraiteurAjax.nonce,
-                    category: category,
-                    service_type: serviceType
-                },
-                beforeSend: function() {
-                    $('#' + containerId).html('<div class="loading-products">Chargement des produits...</div>');
-                },
-                success: function(response) {
-                    if (response.success && response.data.products) {
-                        self.renderProducts(response.data.products, containerId);
-                        console.log('Produits chargés:', response.data.count, 'produits pour', category);
-                    } else {
-                        $('#' + containerId).html('<div class="no-products">Aucun produit disponible pour cette catégorie.</div>');
-                        console.error('Erreur chargement produits:', response.data);
-                    }
-                },
-                error: function(xhr, status, error) {
-                    console.error('Erreur AJAX produits:', error);
-                    $('#' + containerId).html('<div class="error-products">Erreur lors du chargement des produits.</div>');
-                }
-            });
-        },
-
-        // Rendre les produits dans le DOM
-        renderProducts: function(products, containerId) {
-            var html = '';
-            
-            products.forEach(function(product) {
-                html += '<div class="product-card" data-product-id="' + product.id + '">';
-                html += '  <div class="product-content">';
-                html += '    <div class="product-name">' + product.name + '</div>';
-                if (product.description) {
-                    html += '    <div class="product-description">' + product.description + '</div>';
-                }
-                if (product.allergens) {
-                    html += '    <div class="product-allergens">Allergènes: ' + product.allergens + '</div>';
-                }
-                html += '    <div class="product-price">' + product.price + '€/' + product.unit + '</div>';
-                html += '  </div>';
-                html += '  <div class="product-selector">';
-                html += '    <div class="quantity-selector">';
-                html += '      <button type="button" class="qty-btn decrease" data-target="product-' + product.id + '">-</button>';
-                html += '      <input type="number" id="product-' + product.id + '" class="qty-input" min="0" max="' + (product.max_quantity || 100) + '" value="0" data-price="' + product.price + '" data-product-id="' + product.id + '" data-name="' + product.name + '">';
-                html += '      <button type="button" class="qty-btn increase" data-target="product-' + product.id + '">+</button>';
-                html += '    </div>';
-                html += '  </div>';
-                html += '</div>';
-            });
-            
-            $('#' + containerId).html(html);
-            this.bindProductEvents();
-        },
-
-        // Charger les boissons par catégorie
-        loadBeverages: function(category, subcategory, containerId) {
-            var self = this;
-            console.log('Chargement des boissons pour catégorie:', category, 'sous-catégorie:', subcategory);
-            
-            var serviceType = this.formData.serviceType || 'both';
-            
-            $.ajax({
-                url: blockTraiteurAjax.ajaxUrl,
-                type: 'POST',
-                data: {
-                    action: 'block_traiteur_get_beverages',
-                    nonce: blockTraiteurAjax.nonce,
-                    category: category,
-                    subcategory: subcategory,
-                    service_type: serviceType
-                },
-                beforeSend: function() {
-                    $('#' + containerId).html('<div class="loading-beverages">Chargement des boissons...</div>');
-                },
-                success: function(response) {
-                    if (response.success && response.data.beverages) {
-                        self.renderBeverages(response.data.beverages, containerId);
-                        console.log('Boissons chargées:', response.data.count, 'boissons pour', category);
-                    } else {
-                        $('#' + containerId).html('<div class="no-beverages">Aucune boisson disponible pour cette catégorie.</div>');
-                        console.error('Erreur chargement boissons:', response.data);
-                    }
-                },
-                error: function(xhr, status, error) {
-                    console.error('Erreur AJAX boissons:', error);
-                    $('#' + containerId).html('<div class="error-beverages">Erreur lors du chargement des boissons.</div>');
-                }
-            });
-        },
-
-        // Rendre les boissons dans le DOM
-        renderBeverages: function(beverages, containerId) {
-            var html = '';
-            
-            beverages.forEach(function(beverage) {
-                html += '<div class="product-card beverage-card" data-beverage-id="' + beverage.id + '">';
-                html += '  <div class="product-content">';
-                html += '    <div class="product-name">' + beverage.name + '</div>';
-                if (beverage.description) {
-                    html += '    <div class="product-description">' + beverage.description + '</div>';
-                }
-                if (beverage.origin) {
-                    html += '    <div class="product-origin">Origine: ' + beverage.origin + '</div>';
-                }
-                html += '    <div class="product-details">' + beverage.volume;
-                if (beverage.alcohol_degree > 0) {
-                    html += ' - ' + beverage.alcohol_degree + '°';
-                }
-                html += '</div>';
-                html += '    <div class="product-price">' + beverage.price + '€</div>';
-                html += '  </div>';
-                html += '  <div class="product-selector">';
-                html += '    <div class="quantity-selector">';
-                html += '      <button type="button" class="qty-btn decrease" data-target="beverage-' + beverage.id + '">-</button>';
-                html += '      <input type="number" id="beverage-' + beverage.id + '" class="qty-input" min="0" max="50" value="0" data-price="' + beverage.price + '" data-beverage-id="' + beverage.id + '" data-name="' + beverage.name + '">';
-                html += '      <button type="button" class="qty-btn increase" data-target="beverage-' + beverage.id + '">+</button>';
-                html += '    </div>';
-                html += '  </div>';
-                html += '</div>';
-            });
-            
-            $('#' + containerId).html(html);
-            this.bindBeverageEvents();
-        },
-
-        // Lier les événements pour les produits
-        bindProductEvents: function() {
-            var self = this;
-            
-            // Boutons quantité
-            $(document).off('click', '.qty-btn').on('click', '.qty-btn', function(e) {
-                e.preventDefault();
-                var $btn = $(this);
-                var target = $btn.data('target');
-                var $input = $('#' + target);
-                var currentVal = parseInt($input.val()) || 0;
-                var isIncrease = $btn.hasClass('increase');
-                var min = parseInt($input.attr('min')) || 0;
-                var max = parseInt($input.attr('max')) || 100;
-                
-                if (isIncrease && currentVal < max) {
-                    $input.val(currentVal + 1).trigger('change');
-                } else if (!isIncrease && currentVal > min) {
-                    $input.val(currentVal - 1).trigger('change');
+            $('#buffet-sale .qty-input').each(function() {
+                var value = parseInt($(this).val()) || 0;
+                if (value > 0) {
+                    totalSale += value;
+                    recipesSale++;
                 }
             });
             
-            // Changement de quantité
-            $(document).off('change', '.qty-input').on('change', '.qty-input', function() {
-                self.updateSelectionSummary();
-                self.calculatePrice();
-            });
-        },
-
-        // Lier les événements pour les boissons
-        bindBeverageEvents: function() {
-            this.bindProductEvents(); // Même logique que les produits
-        },
-
-        // Mettre à jour le récapitulatif de sélection
-        updateSelectionSummary: function() {
-            var selectedItems = [];
-            var $form = $('#' + this.formId);
+            $('#total-buffet-sale').text(totalSale);
+            $('#required-buffet-sale').text(guestCount);
+            $('#recipes-buffet-sale').text(recipesSale);
             
-            // Récupérer les produits sélectionnés
-            $form.find('.qty-input').each(function() {
-                var $input = $(this);
-                var quantity = parseInt($input.val()) || 0;
-                
-                if (quantity > 0) {
-                    var name = $input.data('name');
-                    var price = parseFloat($input.data('price'));
-                    var total = quantity * price;
-                    
-                    selectedItems.push({
-                        name: name,
-                        quantity: quantity,
-                        unitPrice: price,
-                        total: total
-                    });
-                }
-            });
-            
-            // Mettre à jour l'affichage
-            var summaryHtml = '';
-            if (selectedItems.length === 0) {
-                summaryHtml = '<p class="no-selection">Aucun produit sélectionné</p>';
+            var $saleStatus = $('#buffet-sale-status');
+            if (totalSale >= guestCount && recipesSale >= 2 && guestCount > 0) {
+                $saleStatus.html('<span class="status-icon">✅</span><span class="status-text">Parfait !</span>');
+                $saleStatus.removeClass('warning').addClass('success');
             } else {
-                summaryHtml = '<div class="selected-items-list">';
-                selectedItems.forEach(function(item) {
-                    summaryHtml += '<div class="selected-item">';
-                    summaryHtml += '  <span class="item-name">' + item.name + '</span>';
-                    summaryHtml += '  <span class="item-quantity">x' + item.quantity + '</span>';
-                    summaryHtml += '  <span class="item-price">' + item.total.toFixed(2) + '€</span>';
-                    summaryHtml += '</div>';
-                });
-                summaryHtml += '</div>';
+                $saleStatus.html('<span class="status-icon">⚠️</span><span class="status-text">Sélection incomplète</span>');
+                $saleStatus.removeClass('success').addClass('warning');
             }
             
-            $form.find('#meal-summary, .selected-items').html(summaryHtml);
+            // Buffet sucré
+            var totalSucre = 0;
+            $('#buffet-sucre .qty-input').each(function() {
+                totalSucre += parseInt($(this).val()) || 0;
+            });
+            
+            $('#total-buffet-sucre').text(totalSucre);
+            $('#required-buffet-sucre').text(guestCount);
+            
+            var $sucreStatus = $('#buffet-sucre-status');
+            if (totalSucre >= guestCount && guestCount > 0) {
+                $sucreStatus.html('<span class="status-icon">✅</span><span class="status-text">Parfait !</span>');
+                $sucreStatus.removeClass('warning').addClass('success');
+            } else {
+                $sucreStatus.html('<span class="status-icon">⚠️</span><span class="status-text">Sélection incomplète</span>');
+                $sucreStatus.removeClass('success').addClass('warning');
+            }
         },
 
         // Calculer le prix total
         calculatePrice: function() {
-            console.log('🔢 Début calcul prix');
+            var total = this.formData.basePrice || 0;
+            var serviceType = this.formData.serviceType;
+            var guestCount = parseInt($('#guestCount').val()) || 0;
+            var duration = parseInt($('input[name="duration"]:checked').val()) || 2;
             
-            if (!window.PriceCalculator) {
-                console.error('❌ PriceCalculator non disponible');
+            if (!serviceType) return;
+            
+            var settings = this.settings[serviceType];
+            
+            // Supplément durée
+            if (duration > settings.minDuration) {
+                var extraHours = duration - settings.minDuration;
+                total += extraHours * settings.hourSupplement;
+            }
+            
+            // Supplément invités (remorque seulement)
+            if (serviceType === 'remorque' && guestCount > settings.guestSupplementThreshold) {
+                total += settings.guestSupplement;
+            }
+            
+            // Supplément zone (remorque seulement)
+            if (serviceType === 'remorque') {
+                // TODO: Calculer selon le code postal
+                // Pour l'instant, on considère zone 1 (gratuit)
+            }
+            
+            // Prix des recettes
+            total += this.calculateRecipesPrice();
+            
+            // Prix des accompagnements
+            total += this.calculateAccompanimentPrice();
+            
+            // Prix des buffets
+            total += this.calculateBuffetPrice();
+            
+            // Prix des boissons
+            if (!$('#skip-beverages').is(':checked')) {
+                total += this.calculateBeveragePrice();
+            }
+            
+            // Prix des options (remorque seulement)
+            if (serviceType === 'remorque') {
+                total += this.calculateOptionsPrice();
+            }
+            
+            this.formData.totalPrice = total;
+            this.updatePriceDisplay(total);
+        },
+
+        // Calculer le prix des recettes
+        calculateRecipesPrice: function() {
+            var total = 0;
+            var recipePrices = {
+                'dog-classic': 8,
+                'dog-spicy': 8.5,
+                'dog-veggie': 8,
+                'dog-premium': 9,
+                'croq-classic': 7.5,
+                'croq-madame': 8,
+                'croq-vege': 7.5,
+                'croq-gourmet': 8.5,
+                'mini-dog': 8,
+                'mini-croq': 8,
+                'mini-nuggets': 8
+            };
+            
+            $('.qty-input').each(function() {
+                var id = $(this).attr('id');
+                var quantity = parseInt($(this).val()) || 0;
+                if (recipePrices[id]) {
+                    total += quantity * recipePrices[id];
+                }
+            });
+            
+            return total;
+        },
+
+        // Calculer le prix des accompagnements
+        calculateAccompanimentPrice: function() {
+            var total = 0;
+            var basePrice = 4;
+            
+            var saladeQty = parseInt($('#acc-salade').val()) || 0;
+            var fritesQty = parseInt($('#acc-frites').val()) || 0;
+            
+            total += (saladeQty + fritesQty) * basePrice;
+            
+            // Supplément chimichuri
+            if ($('input[name="frites_chimichuri"]').is(':checked') && fritesQty > 0) {
+                total += fritesQty * 1;
+            }
+            
+            return total;
+        },
+
+        // Calculer le prix des buffets
+        calculateBuffetPrice: function() {
+            var total = 0;
+            var buffetPrices = {
+                'buffet-houmous': 3.5,
+                'buffet-bruschetta': 2.5,
+                'buffet-quiches': 3,
+                'buffet-charcuterie': 25,
+                'buffet-fromages': 28,
+                'buffet-verrines': 4.5,
+                'buffet-grilled': 5,
+                'dessert-tarte': 18,
+                'dessert-eclairs': 3.5,
+                'dessert-macarons': 2.8
+            };
+            
+            $('.qty-input').each(function() {
+                var id = $(this).attr('id');
+                var quantity = parseInt($(this).val()) || 0;
+                if (buffetPrices[id]) {
+                    total += quantity * buffetPrices[id];
+                }
+            });
+            
+            // Supplément jambon pour grilled cheese
+            if ($('input[name="grilled_cheese_jambon"]').is(':checked')) {
+                var grilledQty = parseInt($('#buffet-grilled').val()) || 0;
+                total += grilledQty * 1;
+            }
+            
+            return total;
+        },
+
+        // Calculer le prix des boissons
+        calculateBeveragePrice: function() {
+            var total = 0;
+            var beveragePrices = {
+                'coca-5l': 12, 'coca-20l': 45,
+                'orangina-5l': 13, 'orangina-20l': 48,
+                'pomme-5l': 15, 'pomme-10l': 28,
+                'limonade-5l': 16, 'limonade-20l': 58,
+                'eau-50cl': 1.5, 'eau-1l': 2.5,
+                'riesling': 18, 'gewurz': 20, 'pinot-blanc': 16,
+                'pinot-noir': 19, 'cotes-rhone': 17, 'beaujolais': 15,
+                'rose-provence': 16, 'cremant': 22, 'cuvee-speciale': 25,
+                'kro-1664': 3.5, 'stella': 3.8, 'hoegaarden': 4,
+                'brooklyn-ipa': 5, 'pelforth': 4.2,
+                'kro-fut-10l': 45, 'kro-fut-20l': 85,
+                'stella-fut-10l': 48, 'stella-fut-20l': 90
+            };
+            
+            $('.qty-input').each(function() {
+                var id = $(this).attr('id');
+                var quantity = parseInt($(this).val()) || 0;
+                if (beveragePrices[id]) {
+                    total += quantity * beveragePrices[id];
+                }
+            });
+            
+            return total;
+        },
+
+        // Calculer le prix des options
+        calculateOptionsPrice: function() {
+            var total = 0;
+            
+            // Option tireuse
+            if ($('#option-tireuse').is(':checked')) {
+                total += 50;
+                
+                // Prix des fûts sélectionnés
+                var futPrices = {
+                    'kro_10l': 45, 'kro_20l': 85,
+                    'stella_10l': 48, 'stella_20l': 90,
+                    'hoegaarden_10l': 52, 'hoegaarden_20l': 95,
+                    'brooklyn_10l': 65, 'brooklyn_20l': 120,
+                    'pelforth_10l': 55, 'pelforth_20l': 100
+                };
+                
+                $('input[name="tireuse_futs[]"]:checked').each(function() {
+                    var futType = $(this).val();
+                    if (futPrices[futType]) {
+                        total += futPrices[futType];
+                    }
+                });
+            }
+            
+            // Option jeux
+            if ($('#option-jeux').is(':checked')) {
+                total += 70;
+            }
+            
+            return total;
+        },
+
+        // Mettre à jour l'affichage du prix
+        updatePriceDisplay: function(price) {
+            var $priceValue = $('.price-value');
+            $priceValue.text(price + '€');
+            
+            // Mettre à jour les textes de durée
+            var duration = parseInt($('input[name="duration"]:checked').val()) || 2;
+            $('#duration-display').text(duration + 'H de privatisation (service inclus)');
+        },
+
+        // Validation des étapes
+        validateCurrentStep: function() {
+            var step = this.currentStep;
+            
+            switch(step) {
+                case 0: // Service
+                    if (!this.formData.serviceType) {
+                        this.showError('Veuillez choisir un type de service');
+                        return false;
+                    }
+                    break;
+                    
+                case 1: // Forfait
+                    var date = $('#eventDate').val();
+                    var guests = parseInt($('#guestCount').val());
+                    
+                    if (!date) {
+                        this.showError('Veuillez sélectionner une date');
+                        return false;
+                    }
+                    
+                    if (!guests || guests < this.settings[this.formData.serviceType].minGuests) {
+                        this.showError('Nombre d\'invités insuffisant');
+                        return false;
+                    }
+                    
+                    if (this.formData.serviceType === 'remorque') {
+                        var location = $('#eventLocation').val();
+                        var postal = $('#postalCode').val();
+                        
+                        if (!location) {
+                            this.showError('Veuillez indiquer le lieu de l\'événement');
+                            return false;
+                        }
+                        
+                        if (!postal || postal.length !== 5) {
+                            this.showError('Veuillez indiquer un code postal valide');
+                            return false;
+                        }
+                    }
+                    break;
+                    
+                case 2: // Formules repas
+                    var signatureType = $('input[name="signature_type"]:checked').val();
+                    if (!signatureType) {
+                        this.showError('Veuillez choisir un plat signature');
+                        return false;
+                    }
+                    
+                    var totalRecipes = parseInt($('#total-recipes').text()) || 0;
+                    var requiredRecipes = parseInt($('#required-recipes').text()) || 0;
+                    
+                    if (totalRecipes < requiredRecipes) {
+                        this.showError('Il manque des recettes (minimum 1 par personne)');
+                        return false;
+                    }
+                    
+                    var accompanimentType = $('input[name="accompaniment_type"]:checked').val();
+                    if (!accompanimentType) {
+                        this.showError('Veuillez choisir un accompagnement');
+                        return false;
+                    }
+                    
+                    var accTotal = (parseInt($('#acc-salade').val()) || 0) + (parseInt($('#acc-frites').val()) || 0);
+                    if (accTotal < requiredRecipes) {
+                        this.showError('Accompagnement insuffisant (minimum 1 par personne)');
+                        return false;
+                    }
+                    break;
+                    
+                case 3: // Buffets
+                    var buffetTypes = $('input[name="buffetTypes[]"]:checked');
+                    if (buffetTypes.length === 0) {
+                        this.showError('Veuillez choisir au moins un type de buffet');
+                        return false;
+                    }
+                    
+                    // Validation buffet salé
+                    if ($('input[value="sale"]').is(':checked') || $('input[value="mixte"]').is(':checked')) {
+                        var saleTotal = parseInt($('#total-buffet-sale').text()) || 0;
+                        var saleRecipes = parseInt($('#recipes-buffet-sale').text()) || 0;
+                        var required = parseInt($('#required-buffet-sale').text()) || 0;
+                        
+                        if (saleTotal < required || saleRecipes < 2) {
+                            this.showError('Buffet salé incomplet (min 1/personne et 2 recettes)');
+                            return false;
+                        }
+                    }
+                    
+                    // Validation buffet sucré
+                    if ($('input[value="sucre"]').is(':checked') || $('input[value="mixte"]').is(':checked')) {
+                        var sucreTotal = parseInt($('#total-buffet-sucre').text()) || 0;
+                        var requiredSucre = parseInt($('#required-buffet-sucre').text()) || 0;
+                        
+                        if (sucreTotal < requiredSucre) {
+                            this.showError('Buffet sucré incomplet (min 1/personne)');
+                            return false;
+                        }
+                    }
+                    break;
+                    
+                case 4: // Boissons (optionnel)
+                    // Pas de validation obligatoire
+                    break;
+                    
+                case 5: // Options (optionnel, remorque seulement)
+                    // Pas de validation obligatoire
+                    break;
+                    
+                case 6: // Contact
+                    var name = $('#customerName').val();
+                    var firstname = $('#customerFirstname').val();
+                    var phone = $('#customerPhone').val();
+                    var email = $('#customerEmail').val();
+                    
+                    if (!name || !firstname || !phone || !email) {
+                        this.showError('Tous les champs de contact sont obligatoires');
+                        return false;
+                    }
+                    
+                    if (!this.validateEmail(email)) {
+                        this.showError('Email invalide');
+                        return false;
+                    }
+                    break;
+            }
+            
+            return true;
+        },
+
+        // Validation email
+        validateEmail: function(email) {
+            var re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return re.test(email);
+        },
+
+        // Afficher une erreur
+        showError: function(message) {
+            var $errorDiv = $('.error-message');
+            $errorDiv.text(message).show();
+            setTimeout(function() {
+                $errorDiv.fadeOut();
+            }, 5000);
+        },
+
+        // Navigation
+        nextStep: function() {
+            if (this.currentStep < this.totalSteps - 1) {
+                this.currentStep++;
+                this.showStep(this.currentStep);
+                this.updateProgress();
+            }
+        },
+
+        prevStep: function() {
+            if (this.currentStep > 0) {
+                this.currentStep--;
+                this.showStep(this.currentStep);
+                this.updateProgress();
+            }
+        },
+
+        showStep: function(step) {
+            $('.form-step').removeClass('active').hide();
+            $('.form-step[data-step="' + step + '"]').addClass('active').show();
+            
+            // Gestion de la navigation
+            $('.prev-step').toggle(step > 0);
+            $('.next-step').toggle(step < this.totalSteps - 1);
+            $('.submit-form').toggle(step === this.totalSteps - 1);
+            
+            // Skip l'étape options si restaurant
+            if (step === 5 && this.formData.serviceType === 'restaurant') {
+                this.nextStep();
                 return;
             }
-            
-            var calculator = new PriceCalculator();
-            var formData = this.collectFormData();
-            
-            console.log('📊 Données pour calcul:', formData);
-            
-            calculator.updateFormData(formData);
-            var total = calculator.getFormattedTotal();
-            
-            console.log('💰 Prix calculé:', total);
-            
-            // Mettre à jour l'affichage du prix
-            var $form = $('#' + this.formId);
-            var $priceValue = $form.find('.price-value');
-            
-            if ($priceValue.length === 0) {
-                console.log('⚠️ Élément .price-value non trouvé, création...');
-                this.initPriceDisplay();
-                $priceValue = $form.find('.price-value');
-            }
-            
-            if ($priceValue.length > 0) {
-                $priceValue.text(total);
-                console.log('✅ Prix affiché:', total);
-            } else {
-                console.error('❌ Impossible de trouver .price-value');
-            }
-            
-            console.log('Prix calculé:', total);
         },
 
-        // Collecter toutes les données du formulaire
-        collectFormData: function() {
-            var $form = $('#' + this.formId);
-            var data = Object.assign({}, this.formData);
+        updateProgress: function() {
+            var progress = ((this.currentStep + 1) / this.totalSteps) * 100;
+            $('.progress-fill').css('width', progress + '%');
             
-            console.log('📋 Collecte des données formulaire');
-            console.log('🔧 FormData de base:', this.formData);
-            
-            // S'assurer que le service type est défini
-            if (!data.serviceType) {
-                var selectedService = $form.find('.service-card.selected').data('service');
-                if (selectedService) {
-                    data.serviceType = selectedService;
+            $('.progress-steps .step').removeClass('active completed');
+            $('.progress-steps .step').each(function(index) {
+                if (index < this.currentStep) {
+                    $(this).addClass('completed');
+                } else if (index === this.currentStep) {
+                    $(this).addClass('active');
                 }
-            }
-            
-            // Récupérer les données de base
-            data.guestCount = parseInt($form.find('#guestCount').val()) || 
-                            parseInt($form.find('input[name="guestCount"]').val()) || 20;
-            data.duration = parseInt($form.find('#duration').val()) || 
-                          parseInt($form.find('input[name="duration"]').val()) || 2;
-            
-            console.log('👥 Invités:', data.guestCount);
-            console.log('⏰ Durée:', data.duration);
-            console.log('🏢 Service:', data.serviceType);
-            
-            // Récupérer les produits sélectionnés
-            data.selectedProducts = [];
-            $form.find('.qty-input[data-product-id]').each(function() {
-                var $input = $(this);
-                var quantity = parseInt($input.val()) || 0;
-                
-                if (quantity > 0) {
-                    data.selectedProducts.push({
-                        id: $input.data('product-id'),
-                        name: $input.data('name'),
-                        price: parseFloat($input.data('price')),
-                        quantity: quantity
-                    });
-                }
-            });
-            
-            console.log('🍽️ Produits sélectionnés:', data.selectedProducts);
-            
-            // Récupérer les boissons sélectionnées
-            data.selectedBeverages = [];
-            $form.find('.qty-input[data-beverage-id]').each(function() {
-                var $input = $(this);
-                var quantity = parseInt($input.val()) || 0;
-                
-                if (quantity > 0) {
-                    data.selectedBeverages.push({
-                        id: $input.data('beverage-id'),
-                        name: $input.data('name'),
-                        price: parseFloat($input.data('price')),
-                        quantity: quantity
-                    });
-                }
-            });
-            
-            // Récupérer les autres données du formulaire
-            data.guestCount = parseInt($form.find('#guestCount').val()) || 20;
-            data.duration = parseInt($form.find('#duration').val()) || 2;
-            data.miniBossCount = parseInt($form.find('#miniBossCount').val()) || 0;
-            
-            return data;
-        },
-
-        // Gérer les boutons de quantité et les interactions
-        bindQuantityEvents: function() {
-            var self = this;
-            var $form = $('#' + this.formId);
-            
-            // Boutons +/- pour les quantités de produits
-            $form.on('click', '.qty-btn', function(e) {
-                e.preventDefault();
-                
-                var $btn = $(this);
-                var target = $btn.data('target');
-                var $input = $('#' + target);
-                
-                if ($input.length === 0) {
-                    return;
-                }
-                
-                var currentValue = parseInt($input.val()) || 0;
-                var min = parseInt($input.attr('min')) || 0;
-                var max = parseInt($input.attr('max')) || 999;
-                
-                if ($btn.hasClass('decrease')) {
-                    if (currentValue > min) {
-                        $input.val(currentValue - 1);
-                    }
-                } else if ($btn.hasClass('increase')) {
-                    if (currentValue < max) {
-                        $input.val(currentValue + 1);
-                    }
-                }
-                
-                $input.trigger('change');
-                self.calculatePrice();
-            });
-            
-            // Boutons +/- pour le nombre d'invités
-            $form.on('click', '.number-btn', function(e) {
-                e.preventDefault();
-                
-                var $btn = $(this);
-                var target = $btn.data('target');
-                var $input = $('#' + target);
-                
-                if ($input.length === 0) {
-                    return;
-                }
-                
-                var currentValue = parseInt($input.val()) || 0;
-                var min = parseInt($input.attr('min')) || 1;
-                var max = parseInt($input.attr('max')) || 100;
-                
-                if ($btn.hasClass('decrease')) {
-                    if (currentValue > min) {
-                        $input.val(currentValue - 1);
-                    }
-                } else if ($btn.hasClass('increase')) {
-                    if (currentValue < max) {
-                        $input.val(currentValue + 1);
-                    }
-                }
-                
-                $input.trigger('change');
-                self.calculatePrice();
-            });
-            
-            // Changement de durée - mettre à jour l'affichage
-            $form.on('change', 'input[name="duration"]', function() {
-                var duration = $(this).val();
-                var $durationDisplay = $('#duration-display');
-                
-                if ($durationDisplay.length > 0) {
-                    $durationDisplay.text(duration + 'H de privatisation (service inclus)');
-                }
-                
-                self.calculatePrice();
-            });
+            }.bind(this));
         }
     };
 
-    // Auto-initialisation avec protection contre les doublons
-    $(document).ready(function() {
-        console.log('DOM prêt, initialisation BlockQuoteForm');
-        
-        $('.block-quote-form').each(function() {
-            var $this = $(this);
-            var formId = $this.attr('id');
-            
-            // Éviter les doublons
-            if ($this.data('block-initialized')) {
-                console.log('Formulaire déjà initialisé:', formId);
-                return;
-            }
-            
-            console.log('Initialisation du formulaire:', formId);
-            $this.data('block-initialized', true);
-            
-            if (formId) {
-                new BlockQuoteForm(formId);
-            }
-        });
-    });
-
 })(jQuery);
+
+// Initialisation automatique
+document.addEventListener('DOMContentLoaded', function() {
+    // Trouver tous les formulaires Block Traiteur
+    var forms = document.querySelectorAll('.block-quote-form');
+    forms.forEach(function(form) {
+        if (typeof BlockQuoteForm !== 'undefined') {
+            new BlockQuoteForm(form.id);
+        }
+    });
+});
