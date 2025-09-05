@@ -1,541 +1,347 @@
 /**
- * Block Traiteur - JavaScript Frontend Principal
- * Version: 1.0.0
+ * JavaScript public pour Block Traiteur
+ * NOUVELLE ARCHITECTURE - Version minimaliste et fonctionnelle
+ *
+ * @package Block_Traiteur
+ * @subpackage Public/JS
+ * @since 1.0.0
  */
 
-(function($) {
+(function() {
     'use strict';
 
-    // Objet principal
-    window.BlockTraiteur = {
+    /**
+     * Objet principal pour le frontend
+     */
+    window.BlockTraiteurPublic = {
         
-        // Configuration
+        /**
+         * Configuration
+         */
         config: {
-            ajaxUrl: blockTraiteurPublic.ajaxUrl || '/wp-admin/admin-ajax.php',
-            nonce: blockTraiteurPublic.nonce || '',
-            strings: blockTraiteurPublic.strings || {}
+            ajaxUrl: '',
+            nonce: '',
+            settings: {},
+            texts: {}
         },
         
-        // Cache des éléments DOM
-        cache: {},
-        
-        // État du formulaire
-        state: {
-            currentStep: 1,
-            serviceType: null,
-            formData: {},
-            priceBreakdown: {}
-        },
-
         /**
          * Initialisation
          */
         init: function() {
-            this.cacheElements();
+            // Vérifier si les données WordPress sont disponibles
+            if (typeof blockTraiteur !== 'undefined') {
+                this.config = blockTraiteur;
+            }
+            
             this.bindEvents();
-            this.initFormSteps();
-            this.initCalculator();
-            console.log('Block Traiteur: Frontend initialisé');
+            this.initForms();
+            
+            console.log('Block Traiteur Public: Initialisé');
         },
-
+        
         /**
-         * Cache des éléments DOM
-         */
-        cacheElements: function() {
-            this.cache = {
-                $document: $(document),
-                $window: $(window),
-                $body: $('body'),
-                $form: $('.block-traiteur-form'),
-                $steps: $('.form-step'),
-                $nextBtn: $('.btn-next-step'),
-                $prevBtn: $('.btn-prev-step'),
-                $submitBtn: $('.btn-submit-quote'),
-                $progressBar: $('.progress-bar'),
-                $priceDisplay: $('.price-display'),
-                $serviceSelector: $('.service-selector')
-            };
-        },
-
-        /**
-         * Liaison des événements
+         * Lier les événements
          */
         bindEvents: function() {
-            var self = this;
-
+            document.addEventListener('DOMContentLoaded', () => {
+                this.initForms();
+            });
+        },
+        
+        /**
+         * Initialiser les formulaires
+         */
+        initForms: function() {
+            const forms = document.querySelectorAll('.block-traiteur-form');
+            
+            forms.forEach(form => {
+                this.initSingleForm(form);
+            });
+        },
+        
+        /**
+         * Initialiser un formulaire individuel
+         */
+        initSingleForm: function(formContainer) {
+            const form = formContainer.querySelector('#quote-form');
+            if (!form) return;
+            
+            const steps = formContainer.querySelectorAll('.form-step');
+            const nextBtn = formContainer.querySelector('#next-step');
+            const prevBtn = formContainer.querySelector('#prev-step');
+            const submitBtn = formContainer.querySelector('#submit-quote');
+            const messagesDiv = formContainer.querySelector('#form-messages');
+            
+            let currentStep = 0;
+            const serviceType = formContainer.dataset.service;
+            
             // Navigation entre étapes
-            this.cache.$nextBtn.on('click', function(e) {
-                e.preventDefault();
-                self.nextStep();
-            });
-
-            this.cache.$prevBtn.on('click', function(e) {
-                e.preventDefault();
-                self.prevStep();
-            });
-
-            // Sélection du service
-            this.cache.$serviceSelector.on('change', function() {
-                self.selectService($(this).val());
-            });
-
-            // Calcul automatique du prix
-            this.cache.$form.on('change', 'input, select', function() {
-                self.calculatePrice();
-            });
-
-            // Soumission du formulaire
-            this.cache.$form.on('submit', function(e) {
-                e.preventDefault();
-                self.submitForm();
-            });
-
-            // Validation en temps réel
-            this.cache.$form.on('blur', 'input[required]', function() {
-                self.validateField($(this));
-            });
-        },
-
-        /**
-         * Initialisation des étapes du formulaire
-         */
-        initFormSteps: function() {
-            this.updateProgressBar();
-            this.showStep(1);
-        },
-
-        /**
-         * Initialisation du calculateur
-         */
-        initCalculator: function() {
-            this.calculatePrice();
-        },
-
-        /**
-         * Sélection du service
-         */
-        selectService: function(serviceType) {
-            this.state.serviceType = serviceType;
-            
-            // Afficher/masquer les options spécifiques
-            $('.service-specific').hide();
-            $('.service-' + serviceType).show();
-            
-            // Recalculer le prix
-            this.calculatePrice();
-            
-            console.log('Service sélectionné:', serviceType);
-        },
-
-        /**
-         * Navigation - Étape suivante
-         */
-        nextStep: function() {
-            var currentStep = this.state.currentStep;
-            
-            // Valider l'étape actuelle
-            if (!this.validateStep(currentStep)) {
-                return false;
-            }
-            
-            // Sauvegarder les données de l'étape
-            this.saveStepData(currentStep);
-            
-            // Passer à l'étape suivante
-            if (currentStep < this.cache.$steps.length) {
-                this.showStep(currentStep + 1);
-            }
-        },
-
-        /**
-         * Navigation - Étape précédente
-         */
-        prevStep: function() {
-            var currentStep = this.state.currentStep;
-            
-            if (currentStep > 1) {
-                this.showStep(currentStep - 1);
-            }
-        },
-
-        /**
-         * Afficher une étape
-         */
-        showStep: function(stepNumber) {
-            this.state.currentStep = stepNumber;
-            
-            // Masquer toutes les étapes
-            this.cache.$steps.removeClass('active').hide();
-            
-            // Afficher l'étape courante
-            $('.form-step[data-step="' + stepNumber + '"]').addClass('active').show();
-            
-            // Mettre à jour les boutons
-            this.updateNavigationButtons();
-            
-            // Mettre à jour la barre de progression
-            this.updateProgressBar();
-            
-            console.log('Étape affichée:', stepNumber);
-        },
-
-        /**
-         * Mettre à jour les boutons de navigation
-         */
-        updateNavigationButtons: function() {
-            var currentStep = this.state.currentStep;
-            var totalSteps = this.cache.$steps.length;
-            
-            // Bouton précédent
-            if (currentStep <= 1) {
-                this.cache.$prevBtn.hide();
-            } else {
-                this.cache.$prevBtn.show();
-            }
-            
-            // Bouton suivant / soumettre
-            if (currentStep >= totalSteps) {
-                this.cache.$nextBtn.hide();
-                this.cache.$submitBtn.show();
-            } else {
-                this.cache.$nextBtn.show();
-                this.cache.$submitBtn.hide();
-            }
-        },
-
-        /**
-         * Mettre à jour la barre de progression
-         */
-        updateProgressBar: function() {
-            var currentStep = this.state.currentStep;
-            var totalSteps = this.cache.$steps.length;
-            var progress = (currentStep / totalSteps) * 100;
-            
-            this.cache.$progressBar.css('width', progress + '%');
-            
-            // Mettre à jour les indicateurs d'étapes
-            $('.step-indicator').removeClass('active completed');
-            $('.step-indicator').each(function(index) {
-                var stepNum = index + 1;
-                if (stepNum < currentStep) {
-                    $(this).addClass('completed');
-                } else if (stepNum === currentStep) {
-                    $(this).addClass('active');
-                }
-            });
-        },
-
-        /**
-         * Valider une étape
-         */
-        validateStep: function(stepNumber) {
-            var $step = $('.form-step[data-step="' + stepNumber + '"]');
-            var isValid = true;
-            
-            // Valider tous les champs requis de l'étape
-            $step.find('input[required], select[required]').each(function() {
-                if (!this.validateField($(this))) {
-                    isValid = false;
-                }
-            }.bind(this));
-            
-            // Validation spécifique selon l'étape
-            switch(stepNumber) {
-                case 1:
-                    if (!this.state.serviceType) {
-                        this.showError('Veuillez sélectionner un service');
-                        isValid = false;
+            if (nextBtn) {
+                nextBtn.addEventListener('click', () => {
+                    if (this.validateStep(steps[currentStep])) {
+                        this.showStep(steps, currentStep + 1, nextBtn, prevBtn, submitBtn);
+                        currentStep++;
                     }
-                    break;
-                case 2:
-                    // Validation de la date et du nombre de personnes
-                    var date = $step.find('[name="event_date"]').val();
-                    var guests = $step.find('[name="guest_count"]').val();
-                    
-                    if (!date || !guests) {
-                        this.showError('Veuillez remplir tous les champs obligatoires');
-                        isValid = false;
-                    }
-                    break;
-            }
-            
-            return isValid;
-        },
-
-        /**
-         * Valider un champ
-         */
-        validateField: function($field) {
-            var value = $field.val();
-            var isValid = true;
-            var errorMessage = '';
-            
-            // Supprimer les erreurs précédentes
-            $field.removeClass('error');
-            $field.next('.field-error').remove();
-            
-            // Validation selon le type de champ
-            if ($field.prop('required') && !value) {
-                errorMessage = 'Ce champ est obligatoire';
-                isValid = false;
-            } else if ($field.attr('type') === 'email' && value) {
-                var emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-                if (!emailRegex.test(value)) {
-                    errorMessage = 'Adresse email invalide';
-                    isValid = false;
-                }
-            } else if ($field.attr('type') === 'tel' && value) {
-                var phoneRegex = /^[\d\s\-\+\(\)\.]{10,}$/;
-                if (!phoneRegex.test(value)) {
-                    errorMessage = 'Numéro de téléphone invalide';
-                    isValid = false;
-                }
-            }
-            
-            // Afficher l'erreur si nécessaire
-            if (!isValid) {
-                $field.addClass('error');
-                $field.after('<div class="field-error">' + errorMessage + '</div>');
-            }
-            
-            return isValid;
-        },
-
-        /**
-         * Sauvegarder les données d'une étape
-         */
-        saveStepData: function(stepNumber) {
-            var $step = $('.form-step[data-step="' + stepNumber + '"]');
-            
-            $step.find('input, select, textarea').each(function() {
-                var $field = $(this);
-                var name = $field.attr('name');
-                var value = $field.val();
-                
-                if (name && value) {
-                    this.state.formData[name] = value;
-                }
-            }.bind(this));
-            
-            console.log('Données sauvegardées pour l\'étape ' + stepNumber, this.state.formData);
-        },
-
-        /**
-         * Calculer le prix
-         */
-        calculatePrice: function() {
-            var self = this;
-            
-            // Collecter toutes les données du formulaire
-            var formData = this.collectFormData();
-            
-            // Ajouter le service sélectionné
-            formData.service_type = this.state.serviceType;
-            
-            // Requête AJAX pour le calcul
-            $.ajax({
-                url: this.config.ajaxUrl,
-                type: 'POST',
-                data: {
-                    action: 'block_traiteur_calculate_price',
-                    nonce: this.config.nonce,
-                    data: formData
-                },
-                success: function(response) {
-                    if (response.success) {
-                        self.updatePriceDisplay(response.data);
-                    } else {
-                        console.error('Erreur calcul prix:', response.data);
-                    }
-                },
-                error: function(xhr, status, error) {
-                    console.error('Erreur AJAX calcul prix:', error);
-                }
-            });
-        },
-
-        /**
-         * Mettre à jour l'affichage du prix
-         */
-        updatePriceDisplay: function(priceData) {
-            this.state.priceBreakdown = priceData;
-            
-            // Prix total
-            var totalPrice = priceData.total || 0;
-            this.cache.$priceDisplay.find('.total-price').text(totalPrice + ' €');
-            
-            // Détail du prix
-            var $breakdown = this.cache.$priceDisplay.find('.price-breakdown');
-            $breakdown.empty();
-            
-            if (priceData.breakdown) {
-                $.each(priceData.breakdown, function(key, value) {
-                    $breakdown.append(
-                        '<div class="price-item">' +
-                        '<span class="price-label">' + key + '</span>' +
-                        '<span class="price-value">' + value + ' €</span>' +
-                        '</div>'
-                    );
                 });
             }
             
-            console.log('Prix mis à jour:', priceData);
-        },
-
-        /**
-         * Collecter toutes les données du formulaire
-         */
-        collectFormData: function() {
-            var formData = {};
+            if (prevBtn) {
+                prevBtn.addEventListener('click', () => {
+                    this.showStep(steps, currentStep - 1, nextBtn, prevBtn, submitBtn);
+                    currentStep--;
+                });
+            }
             
-            this.cache.$form.find('input, select, textarea').each(function() {
-                var $field = $(this);
-                var name = $field.attr('name');
-                var value = $field.val();
-                
-                if (name) {
-                    if ($field.attr('type') === 'checkbox') {
-                        value = $field.is(':checked');
-                    } else if ($field.attr('type') === 'radio') {
-                        if (!$field.is(':checked')) {
-                            return;
-                        }
+            // Calculateur de prix en temps réel
+            this.initPriceCalculator(formContainer, serviceType);
+            
+            // Soumission du formulaire
+            if (form) {
+                form.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    if (this.validateStep(steps[currentStep])) {
+                        this.submitQuote(form, serviceType, messagesDiv);
                     }
-                    
-                    formData[name] = value;
-                }
+                });
+            }
+        },
+        
+        /**
+         * Afficher une étape
+         */
+        showStep: function(steps, stepIndex, nextBtn, prevBtn, submitBtn) {
+            // Masquer toutes les étapes
+            steps.forEach(step => {
+                step.classList.remove('active');
             });
             
-            return formData;
-        },
-
-        /**
-         * Soumettre le formulaire
-         */
-        submitForm: function() {
-            var self = this;
+            // Afficher l'étape courante
+            if (steps[stepIndex]) {
+                steps[stepIndex].classList.add('active');
+            }
             
-            // Valider toutes les étapes
-            var isValid = true;
-            for (var i = 1; i <= this.cache.$steps.length; i++) {
-                if (!this.validateStep(i)) {
+            // Gérer les boutons de navigation
+            if (prevBtn) {
+                prevBtn.style.display = stepIndex > 0 ? 'inline-block' : 'none';
+            }
+            
+            if (nextBtn) {
+                nextBtn.style.display = stepIndex < steps.length - 1 ? 'inline-block' : 'none';
+            }
+            
+            if (submitBtn) {
+                submitBtn.style.display = stepIndex === steps.length - 1 ? 'inline-block' : 'none';
+            }
+        },
+        
+        /**
+         * Valider une étape
+         */
+        validateStep: function(step) {
+            const requiredFields = step.querySelectorAll('[required]');
+            let isValid = true;
+            
+            requiredFields.forEach(field => {
+                if (!field.value.trim()) {
+                    field.style.borderColor = '#dc3545';
                     isValid = false;
-                    break;
+                } else {
+                    field.style.borderColor = '';
                 }
-            }
+            });
             
-            if (!isValid) {
-                this.showError('Veuillez corriger les erreurs dans le formulaire');
-                return;
-            }
+            return isValid;
+        },
+        
+        /**
+         * Initialiser le calculateur de prix
+         */
+        initPriceCalculator: function(container, serviceType) {
+            const guestInput = container.querySelector('#guest-count');
+            const durationSelect = container.querySelector('#duration');
+            const postalInput = container.querySelector('#postal-code');
             
-            // Collecter toutes les données
-            var formData = this.collectFormData();
-            formData.service_type = this.state.serviceType;
-            formData.price_breakdown = this.state.priceBreakdown;
+            const updatePrice = () => {
+                const guests = parseInt(guestInput?.value) || 0;
+                const duration = parseInt(durationSelect?.value) || 2;
+                const postal = postalInput?.value || '';
+                
+                if (this.config.ajaxUrl && guests > 0) {
+                    this.calculatePrice(serviceType, guests, duration, postal, container);
+                }
+            };
             
-            // Afficher le loading
-            this.showLoading();
-            
-            // Soumettre via AJAX
-            $.ajax({
-                url: this.config.ajaxUrl,
-                type: 'POST',
-                data: {
-                    action: 'block_traiteur_submit_quote',
-                    nonce: this.config.nonce,
-                    data: formData
-                },
-                success: function(response) {
-                    self.hideLoading();
-                    
-                    if (response.success) {
-                        self.showSuccess('Votre demande de devis a été envoyée avec succès !');
-                        self.resetForm();
-                    } else {
-                        self.showError(response.data.message || 'Une erreur est survenue');
-                    }
-                },
-                error: function(xhr, status, error) {
-                    self.hideLoading();
-                    self.showError('Erreur de connexion. Veuillez réessayer.');
-                    console.error('Erreur AJAX soumission:', error);
+            // Écouter les changements
+            [guestInput, durationSelect, postalInput].forEach(input => {
+                if (input) {
+                    input.addEventListener('input', updatePrice);
+                    input.addEventListener('change', updatePrice);
                 }
             });
         },
-
+        
         /**
-         * Réinitialiser le formulaire
+         * Calculer le prix via AJAX
          */
-        resetForm: function() {
-            this.cache.$form[0].reset();
-            this.state.currentStep = 1;
-            this.state.serviceType = null;
-            this.state.formData = {};
-            this.state.priceBreakdown = {};
-            this.showStep(1);
-            this.calculatePrice();
-        },
-
-        /**
-         * Afficher un message de succès
-         */
-        showSuccess: function(message) {
-            this.showNotification(message, 'success');
-        },
-
-        /**
-         * Afficher un message d'erreur
-         */
-        showError: function(message) {
-            this.showNotification(message, 'error');
-        },
-
-        /**
-         * Afficher une notification
-         */
-        showNotification: function(message, type) {
-            var $notification = $('<div class="block-notification ' + type + '">' + message + '</div>');
+        calculatePrice: function(serviceType, guests, duration, postal, container) {
+            if (!this.config.ajaxUrl) return;
             
-            $('body').append($notification);
+            const formData = new URLSearchParams({
+                action: 'block_traiteur_calculate_price',
+                nonce: this.config.nonce,
+                service_type: serviceType,
+                guest_count: guests,
+                duration: duration,
+                postal_code: postal,
+                products: '[]'
+            });
             
-            setTimeout(function() {
-                $notification.addClass('show');
-            }, 100);
+            fetch(this.config.ajaxUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    this.updatePriceDisplay(data.data, container);
+                }
+            })
+            .catch(error => {
+                console.error('Erreur calcul prix:', error);
+            });
+        },
+        
+        /**
+         * Mettre à jour l'affichage des prix
+         */
+        updatePriceDisplay: function(calculation, container) {
+            const totalPrice = container.querySelector('#total-price');
+            if (totalPrice && calculation.formatted) {
+                totalPrice.innerHTML = '<strong>' + calculation.formatted.total_price + '</strong>';
+            }
             
-            setTimeout(function() {
-                $notification.removeClass('show');
-                setTimeout(function() {
-                    $notification.remove();
-                }, 300);
-            }, 5000);
+            // Supplément durée
+            const durationLine = container.querySelector('#duration-line');
+            const durationPrice = container.querySelector('#duration-price');
+            if (durationLine && durationPrice) {
+                if (calculation.duration_supplement > 0) {
+                    durationPrice.textContent = calculation.formatted.duration_supplement;
+                    durationLine.style.display = 'flex';
+                } else {
+                    durationLine.style.display = 'none';
+                }
+            }
+            
+            // Suppléments remorque
+            if (calculation.service_type === 'remorque') {
+                // Supplément convives
+                const guestsLine = container.querySelector('#guests-line');
+                const guestsPrice = container.querySelector('#guests-price');
+                if (guestsLine && guestsPrice) {
+                    if (calculation.guests_supplement > 0) {
+                        guestsPrice.textContent = calculation.formatted.guests_supplement;
+                        guestsLine.style.display = 'flex';
+                    } else {
+                        guestsLine.style.display = 'none';
+                    }
+                }
+                
+                // Frais livraison
+                const deliveryLine = container.querySelector('#delivery-line');
+                const deliveryPrice = container.querySelector('#delivery-price');
+                if (deliveryLine && deliveryPrice) {
+                    if (calculation.delivery_cost > 0) {
+                        deliveryPrice.textContent = calculation.formatted.delivery_cost;
+                        deliveryLine.style.display = 'flex';
+                    } else {
+                        deliveryLine.style.display = 'none';
+                    }
+                }
+            }
         },
-
+        
         /**
-         * Afficher le loading
+         * Soumettre un devis
          */
-        showLoading: function() {
-            this.cache.$submitBtn.prop('disabled', true);
-            this.cache.$submitBtn.html('<span class="spinner"></span> Envoi en cours...');
+        submitQuote: function(form, serviceType, messagesDiv) {
+            const formData = new FormData(form);
+            formData.append('action', 'block_traiteur_submit_quote');
+            formData.append('nonce', this.config.nonce);
+            formData.append('service_type', serviceType);
+            
+            // Collecter les données client
+            const customerData = {};
+            ['first_name', 'last_name', 'email', 'phone', 'message'].forEach(field => {
+                const input = form.querySelector(`[name="${field}"]`);
+                if (input && input.value) {
+                    customerData[field] = input.value;
+                }
+            });
+            
+            formData.append('customer_data', JSON.stringify(customerData));
+            formData.append('selected_products', '[]');
+            
+            // Afficher un indicateur de chargement
+            const submitBtn = form.querySelector('#submit-quote');
+            if (submitBtn) {
+                submitBtn.textContent = 'Envoi en cours...';
+                submitBtn.disabled = true;
+            }
+            
+            fetch(this.config.ajaxUrl, {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    this.showMessage(messagesDiv, 'Devis envoyé avec succès ! Numéro : ' + data.data.quote_number, 'success');
+                    form.style.display = 'none';
+                } else {
+                    this.showMessage(messagesDiv, 'Erreur : ' + (data.data?.message || 'Une erreur est survenue'), 'error');
+                }
+            })
+            .catch(error => {
+                this.showMessage(messagesDiv, 'Erreur de connexion. Veuillez réessayer.', 'error');
+            })
+            .finally(() => {
+                // Restaurer le bouton
+                if (submitBtn) {
+                    submitBtn.textContent = 'Demander un devis';
+                    submitBtn.disabled = false;
+                }
+            });
         },
-
+        
         /**
-         * Masquer le loading
+         * Afficher un message
          */
-        hideLoading: function() {
-            this.cache.$submitBtn.prop('disabled', false);
-            this.cache.$submitBtn.html('Envoyer ma demande de devis');
+        showMessage: function(container, message, type) {
+            if (!container) return;
+            
+            container.innerHTML = `<div class="message ${type}">${message}</div>`;
+            container.scrollIntoView({ behavior: 'smooth' });
+            
+            // Auto-masquer les messages de succès
+            if (type === 'success') {
+                setTimeout(() => {
+                    container.innerHTML = '';
+                }, 10000);
+            }
         }
     };
 
-    /**
-     * Initialisation au chargement du DOM
-     */
-    $(document).ready(function() {
-        // Vérifier si on est sur une page avec le formulaire
-        if ($('.block-traiteur-form').length > 0) {
-            BlockTraiteur.init();
-        }
-    });
+    // Initialisation automatique
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', () => {
+            BlockTraiteurPublic.init();
+        });
+    } else {
+        BlockTraiteurPublic.init();
+    }
 
-})(jQuery);
+})();
