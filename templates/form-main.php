@@ -36,8 +36,8 @@ if (!defined('ABSPATH')) {
         <?php wp_nonce_field('block_traiteur_submit', '_wpnonce'); ?>
         <input type="hidden" name="serviceType" id="serviceType" value="">
         
-        <!-- Affichage du prix de base dès le départ -->
-        <div class="base-price-display" style="text-align: center; margin: 20px 0; padding: 15px; background: #f8f9fa; border-radius: 8px;">
+        <!-- Section Prix estimatif - PRÉSENTE SUR TOUTES LES PAGES selon spécifications -->
+        <div class="initial-price-display" style="text-align: center; margin: 20px 0; padding: 15px; background: #f8f9fa; border-radius: 8px;">
             <h4 style="margin: 0; color: #243127;">Prix estimatif</h4>
             <div class="service-prices" style="display: flex; justify-content: center; gap: 30px; margin-top: 10px;">
                 <div class="price-option">
@@ -119,7 +119,55 @@ if (!defined('ABSPATH')) {
         </div>
     </form>
     
-    <!-- Calculateur de prix sticky -->
+    <!-- Calculateur de prix STICKY selon spécifications - Zone sticky en bas de page -->
+    <div id="sticky-price-calculator" class="price-calculator-sticky" style="display: none;">
+        <div class="price-calculator-content">
+            <div class="price-main">
+                <span class="price-label">Prix estimatif :</span>
+                <span class="price-value" id="total-price">300€ TTC</span>
+                <button type="button" class="price-toggle" onclick="togglePriceBreakdown()">
+                    <span id="toggle-text">Détail</span>
+                    <span class="toggle-icon">▼</span>
+                </button>
+            </div>
+            <div class="price-breakdown" id="price-breakdown" style="display: none;">
+                <div class="breakdown-item">
+                    <span>Forfait de base :</span>
+                    <span id="base-price">300€</span>
+                </div>
+                <div class="breakdown-item">
+                    <span>Durée (+50€/h sup.) :</span>
+                    <span id="duration-price">0€</span>
+                </div>
+                <div class="breakdown-item">
+                    <span>Convives (>50p +150€) :</span>
+                    <span id="guests-price">0€</span>
+                </div>
+                <div class="breakdown-item">
+                    <span>Distance/Livraison :</span>
+                    <span id="distance-price">0€</span>
+                </div>
+                <div class="breakdown-item">
+                    <span>Produits sélectionnés :</span>
+                    <span id="products-price">0€</span>
+                </div>
+                <div class="breakdown-item">
+                    <span>Boissons :</span>
+                    <span id="beverages-price">0€</span>
+                </div>
+                <div class="breakdown-item">
+                    <span>Options :</span>
+                    <span id="options-price">0€</span>
+                </div>
+                <div class="breakdown-total">
+                    <span>TOTAL TTC :</span>
+                    <span id="total-breakdown">300€</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Calculateur de prix (version originale pour compatibilité) -->
     <?php include BLOCK_TRAITEUR_PLUGIN_DIR . 'templates/price-calculator.php'; ?>
 </div>
 
@@ -135,14 +183,15 @@ document.addEventListener('DOMContentLoaded', function() {
             // Définir le service sélectionné
             document.getElementById('serviceType').value = serviceType;
             
-            // Masquer la sélection de service et l'affichage des prix de base
+            // Masquer SEULEMENT la sélection de service - GARDER l'affichage des prix !
             const serviceContainer = document.querySelector('.service-selection-container');
-            const basePriceDisplay = document.querySelector('.base-price-display');
+            const initialPriceDisplay = document.querySelector('.initial-price-display');
             if (serviceContainer) {
                 serviceContainer.style.display = 'none';
             }
-            if (basePriceDisplay) {
-                basePriceDisplay.style.display = 'none';
+            // GARDER l'affichage des prix selon les spécifications
+            if (initialPriceDisplay) {
+                initialPriceDisplay.style.display = 'block'; // TOUJOURS VISIBLE
             }
             
             // Afficher les étapes du formulaire
@@ -154,16 +203,29 @@ document.addEventListener('DOMContentLoaded', function() {
             // Mettre à jour les contraintes selon le service
             updateServiceConstraints(serviceType);
             
-            // Initialiser le calculateur de prix
-            if (typeof window.updatePriceCalculator === 'function') {
-                window.updatePriceCalculator({
-                    serviceType: serviceType,
-                    total: serviceType === 'restaurant' ? 300 : 350,
-                    breakdown: {
-                        base: serviceType === 'restaurant' ? 300 : 350
-                    }
-                });
-            }
+                            // Initialiser le calculateur de prix ET le sticky calculator
+                const basePrice = serviceType === 'restaurant' ? 300 : 350;
+                
+                // Afficher le calculateur sticky
+                const stickyCalculator = document.getElementById('sticky-price-calculator');
+                if (stickyCalculator) {
+                    stickyCalculator.style.display = 'block';
+                }
+                
+                // Mettre à jour les prix
+                document.getElementById('total-price').textContent = basePrice + '€ TTC';
+                document.getElementById('base-price').textContent = basePrice + '€';
+                document.getElementById('total-breakdown').textContent = basePrice + '€';
+                
+                if (typeof window.updatePriceCalculator === 'function') {
+                    window.updatePriceCalculator({
+                        serviceType: serviceType,
+                        total: basePrice,
+                        breakdown: {
+                            base: basePrice
+                        }
+                    });
+                }
             
             // Log pour debug
             console.log('Service sélectionné:', serviceType);
@@ -231,5 +293,22 @@ document.addEventListener('DOMContentLoaded', function() {
             restaurantOnlyElements.forEach(el => el.style.display = 'none');
         }
     }
+
+    // Fonction pour toggle le breakdown des prix selon les spécifications
+    window.togglePriceBreakdown = function() {
+        const breakdown = document.getElementById('price-breakdown');
+        const toggleText = document.getElementById('toggle-text');
+        const toggleIcon = document.querySelector('.toggle-icon');
+        
+        if (breakdown.style.display === 'none') {
+            breakdown.style.display = 'block';
+            toggleText.textContent = 'Masquer';
+            toggleIcon.textContent = '▲';
+        } else {
+            breakdown.style.display = 'none';
+            toggleText.textContent = 'Détail';
+            toggleIcon.textContent = '▼';
+        }
+    };
 });
 </script>
