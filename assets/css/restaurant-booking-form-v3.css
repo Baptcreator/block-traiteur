@@ -2430,9 +2430,27 @@ button.rbf-v3-subcategory-btn.active {
 /* Grille Mini Boss */
 .rbf-v3-mini-boss-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    grid-template-columns: repeat(3, 1fr);
     gap: var(--rbf-v3-spacing-md);
     margin-top: var(--rbf-v3-spacing-md);
+    max-width: 900px; /* Limiter la largeur maximale pour simuler 3 colonnes */
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* Responsive pour la grille Mini Boss */
+@media (max-width: 768px) {
+    .rbf-v3-mini-boss-grid {
+        grid-template-columns: 1fr;
+        max-width: none;
+    }
+}
+
+@media (max-width: 480px) {
+    .rbf-v3-mini-boss-grid {
+        grid-template-columns: 1fr;
+        max-width: none;
+    }
 }
 
 .rbf-v3-mini-boss-products {
@@ -3561,5 +3579,74 @@ button.rbf-v3-subcategory-btn.active {
         flex-direction: column;
         gap: var(--rbf-v3-spacing-sm);
         text-align: center;
+    }
+}
+
+/* ========================================
+   CONTRÔLES DE SUPPLÉMENTS BUFFET
+   ======================================== */
+
+/* Styles pour le conteneur des suppléments */
+.rbf-v3-buffet-supplements {
+    margin-top: var(--rbf-v3-spacing-md);
+    padding: var(--rbf-v3-spacing-sm);
+    background: var(--rbf-v3-green-light);
+    border-radius: var(--rbf-v3-radius-sm);
+    border-top: 1px solid var(--rbf-v3-beige);
+}
+
+.rbf-v3-supplements-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--rbf-v3-green);
+    margin: 0 0 var(--rbf-v3-spacing-sm) 0;
+}
+
+.rbf-v3-supplement-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--rbf-v3-spacing-sm);
+    padding: var(--rbf-v3-spacing-xs);
+    background: var(--rbf-v3-white);
+    border-radius: var(--rbf-v3-radius-sm);
+}
+
+.rbf-v3-supplement-item:last-child {
+    margin-bottom: 0;
+}
+
+.rbf-v3-supplement-info {
+    flex: 1;
+}
+
+.rbf-v3-supplement-name {
+    font-weight: 500;
+    color: var(--rbf-v3-green);
+    margin-right: var(--rbf-v3-spacing-xs);
+}
+
+.rbf-v3-supplement-price {
+    color: var(--rbf-v3-orange);
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+/* Responsive pour les suppléments */
+@media (max-width: 768px) {
+    .rbf-v3-supplement-item {
+        flex-direction: column;
+        gap: var(--rbf-v3-spacing-xs);
+        text-align: center;
+    }
+    
+    .rbf-v3-supplement-info {
+        order: 1;
+        margin-bottom: var(--rbf-v3-spacing-xs);
+    }
+    
+    .rbf-v3-quantity-selector {
+        order: 2;
+        max-width: 160px;
     }
 }

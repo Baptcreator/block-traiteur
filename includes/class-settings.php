@@ -237,7 +237,8 @@ class RestaurantBooking_Settings
             $wpdb->query('COMMIT');
             
             // Log de la mise à jour
-            RestaurantBooking_Logger::log("Paramètres du groupe '$group' mis à jour", 'info', array(
+            $logger = RestaurantBooking_Logger::get_instance();
+            $logger->info("Paramètres du groupe '$group' mis à jour", array(
                 'group' => $group,
                 'count' => count($settings)
             ));
@@ -246,7 +247,8 @@ class RestaurantBooking_Settings
         } catch (Exception $e) {
             $wpdb->query('ROLLBACK');
             
-            RestaurantBooking_Logger::log("Erreur lors de la mise à jour du groupe '$group': " . $e->getMessage(), 'error');
+            $logger = RestaurantBooking_Logger::get_instance();
+            $logger->error("Erreur lors de la mise à jour du groupe '$group': " . $e->getMessage());
             
             return false;
         }

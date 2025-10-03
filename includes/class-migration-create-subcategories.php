@@ -196,7 +196,8 @@ class RestaurantBooking_Migration_Create_Subcategories {
             foreach ($existing_beers as $beer) {
                 // Les beer_category sont déjà correctes, pas besoin de les modifier
                 // Elles correspondent aux subcategory_key de notre nouvelle table
-                RestaurantBooking_Logger::debug('Produit avec beer_category trouvé', array(
+                $logger = RestaurantBooking_Logger::get_instance();
+                $logger->debug('Produit avec beer_category trouvé', array(
                     'product_id' => $beer->id,
                     'beer_category' => $beer->beer_category,
                     'category_type' => $beer->type

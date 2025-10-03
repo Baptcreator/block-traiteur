@@ -198,7 +198,10 @@ class RestaurantBookingPlugin
         if (file_exists(RESTAURANT_BOOKING_PLUGIN_DIR . 'includes/class-migration-v2.php')) {
             require_once RESTAURANT_BOOKING_PLUGIN_DIR . 'includes/class-migration-v2.php';
             require_once RESTAURANT_BOOKING_PLUGIN_DIR . 'includes/class-migration-v3.php';
-            require_once RESTAURANT_BOOKING_PLUGIN_DIR . 'includes/class-migration-v4-cleanup.php';
+            // ✅ CORRECTION : Fichier supprimé, vérifier son existence avant inclusion
+            if (file_exists(RESTAURANT_BOOKING_PLUGIN_DIR . 'includes/class-migration-v4-cleanup.php')) {
+                require_once RESTAURANT_BOOKING_PLUGIN_DIR . 'includes/class-migration-v4-cleanup.php';
+            }
             require_once RESTAURANT_BOOKING_PLUGIN_DIR . 'includes/class-migration-fix-hardcoded-issues.php';
             require_once RESTAURANT_BOOKING_PLUGIN_DIR . 'includes/class-migration-beer-types.php';
             require_once RESTAURANT_BOOKING_PLUGIN_DIR . 'includes/class-migration-add-games.php';

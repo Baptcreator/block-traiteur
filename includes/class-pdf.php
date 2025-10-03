@@ -283,7 +283,8 @@ class RestaurantBooking_PDF
             
             return $result !== false;
         } catch (Exception $e) {
-            RestaurantBooking_Logger::debug("Native WP PDF error: " . $e->getMessage());
+            $logger = RestaurantBooking_Logger::get_instance();
+            $logger->debug("Native WP PDF error: " . $e->getMessage());
             return false;
         }
     }
@@ -455,7 +456,8 @@ class RestaurantBooking_PDF
             
             return true;
         } catch (Exception $e) {
-            RestaurantBooking_Logger::debug("DomPDF error: " . $e->getMessage());
+            $logger = RestaurantBooking_Logger::get_instance();
+            $logger->debug("DomPDF error: " . $e->getMessage());
             return false;
         }
     }
@@ -481,7 +483,8 @@ class RestaurantBooking_PDF
             
             return true;
         } catch (Exception $e) {
-            RestaurantBooking_Logger::debug("TCPDF error: " . $e->getMessage());
+            $logger = RestaurantBooking_Logger::get_instance();
+            $logger->debug("TCPDF error: " . $e->getMessage());
             return false;
         }
     }

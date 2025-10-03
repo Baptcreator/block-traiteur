@@ -34,37 +34,37 @@ class RestaurantBooking_Logger {
     /**
      * Logger pour les erreurs
      */
-    public function error($message, $context = array()) {
-        $this->log('ERROR', $message, $context);
+    public static function error($message, $context = array()) {
+        self::log('ERROR', $message, $context);
     }
     
     /**
      * Logger pour les avertissements
      */
-    public function warning($message, $context = array()) {
-        $this->log('WARNING', $message, $context);
+    public static function warning($message, $context = array()) {
+        self::log('WARNING', $message, $context);
     }
     
     /**
      * Logger pour les informations
      */
-    public function info($message, $context = array()) {
-        $this->log('INFO', $message, $context);
+    public static function info($message, $context = array()) {
+        self::log('INFO', $message, $context);
     }
     
     /**
      * Logger pour le debug
      */
-    public function debug($message, $context = array()) {
+    public static function debug($message, $context = array()) {
         if (defined('WP_DEBUG') && WP_DEBUG) {
-            $this->log('DEBUG', $message, $context);
+            self::log('DEBUG', $message, $context);
         }
     }
     
     /**
      * Log principal
      */
-    private function log($level, $message, $context = array()) {
+    private static function log($level, $message, $context = array()) {
         $timestamp = current_time('Y-m-d H:i:s');
         $context_string = !empty($context) ? ' | Context: ' . wp_json_encode($context) : '';
         

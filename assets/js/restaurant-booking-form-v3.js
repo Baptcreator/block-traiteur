@@ -371,9 +371,23 @@
                 this.loadSignatureProducts($(e.currentTarget).val());
             });
             
-            // Toggle Mini Boss - Code original qui fonctionnait
+            // Toggle Mini Boss - Version améliorée pour éviter le double clic
             this.container.on('change', '[data-action="toggle-mini-boss"]', (e) => {
-                this.toggleMiniBoss($(e.currentTarget).is(':checked'));
+                const $checkbox = $(e.currentTarget);
+                const isChecked = $checkbox.is(':checked');
+                
+                // Prevenir les doubles événements
+                if ($checkbox.data('toggling')) {
+                    return;
+                }
+                
+                $checkbox.data('toggling', true);
+                
+                // Appliquer le toggle avec un délai pour laisser le temps au DOM de se mettre à jour
+                setTimeout(() => {
+                    this.toggleMiniBoss(isChecked);
+                    $checkbox.data('toggling', false);
+                }, 50);
             });
             
             // Gestion des accompagnements - Code original qui fonctionnait
@@ -391,6 +405,58 @@
                 if (this.currentStep >= 2) {
                     this.calculatePrice();
                 }
+            });
+            
+            // ✅ CORRECTION : Événements pour les onglets de boissons - Code original qui fonctionnait
+            this.container.on('click', '.rbf-v3-tab-btn', (e) => {
+                e.preventDefault();
+                const $tabBtn = $(e.currentTarget);
+                this.switchBeverageTab($tabBtn);
+            });
+            
+            // ✅ CORRECTION : Événements pour les filtres de sous-catégories des boissons
+            this.container.on('click', '.rbf-v3-subcategory-btn', (e) => {
+                e.preventDefault();
+                const $filterBtn = $(e.currentTarget);
+                this.handleSubcategoryFilter($filterBtn);
+            });
+            
+            // ✅ CORRECTION : Toggle Tireuse à bière (choix des fûts)
+            this.container.on('change', '[data-action="toggle-kegs"]', (e) => {
+                const $checkbox = $(e.currentTarget);
+                const isChecked = $checkbox.is(':checked');
+                
+                // Prevenir les doubles événements
+                if ($checkbox.data('toggling')) {
+                    return;
+                }
+                
+                $checkbox.data('toggling', true);
+                
+                // Appliquer le toggle avec un délai pour laisser le temps au DOM de se mettre à jour
+                setTimeout(() => {
+                    this.toggleKegsSelection(isChecked);
+                    $checkbox.data('toggling', false);
+                }, 50);
+            });
+            
+            // ✅ CREATION : Toggle Installation jeux (choix des jeux)
+            this.container.on('change', '[data-action="toggle-games"]', (e) => {
+                const $checkbox = $(e.currentTarget);
+                const isChecked = $checkbox.is(':checked');
+                
+                // Prevenir les doubles événements
+                if ($checkbox.data('toggling')) {
+                    return;
+                }
+                
+                $checkbox.data('toggling', true);
+                
+                // Appliquer le toggle avec un délai pour laisser le temps au DOM de se mettre à jour
+                setTimeout(() => {
+                    this.toggleGamesSelection(isChecked);
+                    $checkbox.data('toggling', false);
+                }, 50);
             });
             
         }
@@ -933,26 +999,25 @@
                         
                         console.log('🚚 📊 Données extraites:', {distance, supplement, zone, duration, method, overLimitMessage});
                         
-                        // ✅ TEST TEMPORAIRE : Forcer l'affichage pour debug
-                        if (!distance && !supplement && !zone) {
-                            console.log('🚚 🧪 Données vides, test avec données simulées...');
-                            this.displayDeliveryInfo(50, 60, 'Zone test', '45 min', 'test');
-                        }
+                        // ✅ DEBUG SUPPRIMÉ : Test forcé retiré
                         
                         // Stocker les données de distance
                         this.formData.delivery_distance = distance;
                         this.formData.delivery_supplement = supplement;
                         this.formData.delivery_zone = zone;
                         
-                        // Si la zone dépasse la limite, afficher seulement le message d'erreur
+                        // ✅ DEBUG: Vérifier la présence d'un message de dépassement de limite
                         if (overLimitMessage) {
+                            console.log('🚚 ⚠️ Zone limite dépassée:', overLimitMessage);
                             // Réinitialiser le supplément à 0 pour les zones non couvertes
                             this.formData.delivery_supplement = 0;
                             this.displayDeliveryError(overLimitMessage);
                         } else {
                             // Afficher le supplément seulement si la zone est couverte
                             console.log('🚚 💰 Affichage informations livraison:', {distance, supplement, zone, duration, method});
+                            console.log('🚚 🎯 Avant appel displayDeliveryInfo');
                             this.displayDeliveryInfo(distance, supplement, zone, duration, method);
+                            console.log('🚚 🎯 Après appel displayDeliveryInfo');
                         }
                         
                         // Recalculer le prix avec le supplément
@@ -1004,12 +1069,16 @@
             console.log('🚚 📋 displayDeliveryInfo appelée avec:', {distance, supplement, zone, duration, method});
             
             let $deliveryInfo = this.container.find('.rbf-v3-delivery-info');
+            console.log('🚚 🔍 Container trouvé:', this.container.length, 'éléments delivery-info existants:', $deliveryInfo.length);
             
             // Créer l'élément s'il n'existe pas
             if ($deliveryInfo.length === 0) {
                 console.log('🚚 📋 Création nouvel élément delivery-info');
                 $deliveryInfo = $('<div class="rbf-v3-delivery-info"></div>');
-                this.container.find('[name="postal_code"]').closest('.rbf-v3-form-group').after($deliveryInfo);
+                const $postalGroup = this.container.find('[name="postal_code"]').closest('.rbf-v3-form-group');
+                console.log('🚚 📍 Groupe postal trouvé:', $postalGroup.length);
+                $postalGroup.after($deliveryInfo);
+                console.log('🚚 ✅ Élément inséré après le groupe postal');
             } else {
                 console.log('🚚 📋 Élément delivery-info existant trouvé:', $deliveryInfo.length);
             }
@@ -1131,7 +1200,18 @@
                     const parsedResponse = AjaxUtils.parseResponse(response);
                     this.log('📊 Réponse parsée:', parsedResponse);
                     
-                    if (parsedResponse.success) {
+                    // ✅ DEBUG : Vérifier le format exact de la réponse
+                    console.group('🔍 Debug Calcul Prix');
+                    console.log('Type response:', typeof response);
+                    console.log('Response originale:', response);
+                    console.log('Response parsée:', parsedResponse);
+                    console.log('has success:', 'success' in parsedResponse);
+                    console.log('success value:', parsedResponse.success);
+                    console.log('has data:', 'data' in parsedResponse);
+                    console.log('data value:', parsedResponse.data);
+                    console.groupEnd();
+                    
+                    if (parsedResponse && parsedResponse.success && parsedResponse.data) {
                         this.priceData = parsedResponse.data;
                         // Ajouter le prix des boissons au total
                         this.priceData.beverages = beveragesPrice;
@@ -1140,11 +1220,26 @@
                         this.updatePriceDisplay();
                         this.log('✅ Prix calculé et affiché:', this.priceData);
                     } else {
-                        this.log('❌ Échec calcul prix:', parsedResponse.data);
+                        // ✅ CORRECTION : Logging détaillé des erreurs de prix
+                        this.log('❌ Échec calcul prix - réponse complète:', parsedResponse);
+                        this.log('❌ Échec calcul prix - data:', parsedResponse.data);
+                        this.log('❌ Échec calcul prix - message:', parsedResponse.data?.message || 'Message non disponible');
+                        
+                        // Si on a un message d'erreur spécifique, l'afficher à l'utilisateur
+                        if (parsedResponse.data && typeof parsedResponse.data === 'object' && parsedResponse.data.message) {
+                            console.error('Erreur calcul prix:', parsedResponse.data.message);
+                        }
                     }
                 },
-                error: () => {
-                    this.log('Erreur lors du calcul du prix');
+                error: (xhr, status, error) => {
+                    this.log('❌ Erreur AJAX lors du calcul du prix');
+                    console.group('🔍 Erreur AJAX Calcul Prix');
+                    console.log('Status:', status);
+                    console.log('Error:', error);
+                    console.log('Response:', xhr.responseText);
+                    console.log('Response Status:', xhr.status);
+                    console.log('Response Headers:', xhr.getAllResponseHeaders());
+                    console.groupEnd();
                 }
             });
         }
@@ -1200,17 +1295,6 @@
                                     <span class="rbf-v3-price">${optionPrice}</span>
                                 </div>`;
                                 
-                                // ✅ NOUVEAU : Afficher les sous-options avec double indentation
-                                if (option.suboptions && option.suboptions.length > 0) {
-                                    option.suboptions.forEach(suboption => {
-                                        const suboptionQuantity = suboption.quantity ? suboption.quantity + '× ' : '';
-                                        const suboptionPrice = suboption.total > 0 ? this.formatPrice(suboption.total) : '';
-                                        html += `<div class="rbf-v3-price-line rbf-v3-price-suboption">
-                                            <span class="rbf-v3-option-indent">    └── ${suboptionQuantity}${suboption.name}</span>
-                                            <span class="rbf-v3-price">${suboptionPrice}</span>
-                                        </div>`;
-                                    });
-                                }
                             });
                         }
                     });
@@ -1480,8 +1564,13 @@
                 }
                 
                 // ✅ CORRECTION : Validation générique pour toutes les options d'accompagnements
-                if (targetName.includes('sauce_') || targetName.includes('chimichurri') || $input.hasClass('rbf-v3-option-input')) {
+                if (targetName.includes('sauce_') || targetName.includes('chimichurri') || targetName.includes('enrobee') || $input.hasClass('rbf-v3-option-input')) {
                     this.validateAccompanimentOptionsTotal($input);
+                }
+                
+                // ✅ NOUVEAU : Validation pour les suppléments de buffets
+                if (targetName.includes('_supplement_') || targetName.includes('buffet_')) {
+                    this.validateGenericProductOptionsTotal($input);
                 }
                 
                 // Validation spéciale pour les frites (gardée pour compatibilité)
@@ -1528,7 +1617,7 @@
             
             // Récupérer le nom du produit et le type depuis le DOM
             const $beverageCard = $input.closest('.rbf-v3-beverage-card');
-            let productName = 'Produit inconnu';
+            let productName = 'Produit sélectionné';
             let beverageType = 'soft';
             
             if ($beverageCard.length) {
@@ -1936,6 +2025,15 @@
          * Mettre à jour l'état des boutons de quantité
          */
         updateQuantityButtons($input) {
+            // ✅ CORRECTION : S'assurer que $input est un objet jQuery
+            if (typeof $input === 'string') {
+                $input = this.container.find(`input[name="${$input}"]`);
+            }
+            if (!$input || $input.length === 0) {
+                this.log('❌ Input non trouvé pour updateQuantityButtons:', $input);
+                return;
+            }
+            
             const value = parseInt($input.val()) || 0;
             const min = parseInt($input.attr('min')) || 0;
             let max = parseInt($input.attr('max')) || 999;
@@ -1943,17 +2041,40 @@
             
             this.log('🔧 Mise à jour boutons pour:', name, 'valeur:', value);
             
-            // Validation spéciale pour les options de frites
-            if (name && (name.includes('sauce_') || name.includes('frites_chimichurri') || name.includes('chimichurri'))) {
-                const validatedMax = this.validateFritesOptionsQuantity($input, value);
+            // ✅ CORRECTION : Validation générale pour toutes les options/suppléments de produits
+            if (name && (
+                $input.hasClass('rbf-v3-option-input') || 
+                $input.hasClass('supplement-qty-input') ||
+                name.includes('sauce_') || 
+                name.includes('frites_chimichurri') || 
+                name.includes('chimichurri') || 
+                name.includes('enrobee') ||
+                name.includes('_supplement_')
+            )) {
+                // Essayer d'abord la validation générique (nouvelle logique unifiée)
+                let validatedMax = this.validateGenericProductOptionsTotal($input, value);
                 
-                // TEMPORAIRE : Si la validation retourne 999, utiliser une limite raisonnable
+                // Si la validation générique ne fonctionne pas (retourne 999), utiliser l'ancienne logique
+                if (validatedMax === 999 || (validatedMax === -1)) {
+                    if (name.includes('sauce_') || name.includes('chimichurri') || name.includes('enrobee')) {
+                        validatedMax = this.validateFritesOptionsQuantity($input, value);
+                    } else {
+                        // Pour les suppléments de buffet et autres, utiliser une limite par défaut si pas de validation spécifique
+                        validatedMax = parseInt($input.attr('max')) || 50;
+                    }
+                }
+                
+                // Appliquer la limite validée avec un minimum de 1 pour les options
                 if (validatedMax === 999) {
                     max = 50; // Limite raisonnable par défaut
                     this.log('🔧 Limite par défaut appliquée:', max);
+                } else if (validatedMax === 0) {
+                    // Si validation retourne 0 (pas de produit parent), permettre au moins 1 option
+                    max = 1;
+                    this.log('🔧 Limite minimale appliquée (pas de produit parent):', max);
                 } else {
-                    max = Math.min(max, Math.max(validatedMax, 1)); // Au minimum 1
-                    this.log('🔧 Limite validée:', max, 'depuis validation:', validatedMax);
+                    max = validatedMax; // Utiliser exactement ce que la validation retourne
+                    this.log('🔧 Limite validée appliquée:', max, 'depuis validation:', validatedMax);
                 }
                 
                 // Mettre à jour l'attribut max de l'input
@@ -2027,15 +2148,44 @@
          */
         toggleMiniBoss(enabled) {
             const $container = this.container.find('.rbf-v3-mini-boss-products');
+            const $checkbox = this.container.find('[data-action="toggle-mini-boss"]');
+            
+            // S'assurer que l'état du checkbox correspond à la valeur attendue
+            const isChecked = $checkbox.is(':checked');
+            const initialState = $checkbox.data('initial-state');
+            
+            // Log pour debug
+            this.log(`Mini Boss toggle - enabled: ${enabled}, checkbox checked: ${isChecked}, initial state: ${initialState}`);
             
             if (enabled) {
-                $container.slideDown();
+                // Forcer l'affichage et initialiser seulement si pas déjà visible
+                if ($container.is(':hidden')) {
+                    $container.slideDown(300);
+                } else {
+                    $container.show();
+                }
                 this.initializeQuantitySelectors();
+                $checkbox.prop('checked', true);
+                
+                // Marquer comme activé dans les données
+                $container.attr('data-current-state', 'enabled');
             } else {
-                $container.slideUp();
+                // Masquer seulement si pas déjà caché
+                if ($container.is(':visible')) {
+                    $container.slideUp(300);
+                } else {
+                    $container.hide();
+                }
+                $checkbox.prop('checked', false);
+                
                 // Remettre toutes les quantités à 0
                 $container.find('.rbf-v3-qty-input').val(0).trigger('change');
+                
+                // Marquer comme désactivé dans les données
+                $container.attr('data-current-state', 'disabled');
             }
+            
+            this.log(`Mini Boss toggle terminé - Container visible: ${$container.is(':visible')}`);
         }
 
         /**
@@ -2161,9 +2311,21 @@
         validateFritesOptionsQuantity($input, proposedValue) {
             this.log('🔍 VALIDATION FRITES - Input concerné:', $input.attr('name'));
             
-            // SOLUTION SIMPLE ET DIRECTE : Chercher les frites par leur nom dans le DOM
+            // ✅ CORRECTION : Commencer par chercher dans la card d'accompagnement parent
             let totalFrites = 0;
             let $fritesQtyInput = null;
+            
+            const $parentAccCard = $input.closest('.rbf-v3-accompaniment-card');
+            if ($parentAccCard.length > 0) {
+                $fritesQtyInput = $parentAccCard.find('input[name^="accompaniment_"][name$="_qty"]');
+                totalFrites = parseInt($fritesQtyInput.val()) || 0;
+                this.log(`🎯 Card d'accompagnement trouvée: ${totalFrites} accompagnements`);
+                
+                if (totalFrites > 0) {
+                    // Utiliser la nouvelle fonction de calcul optimisée
+                    return this.calculateMaxOptionsAllowed($input, totalFrites);
+                }
+            }
             
             // Chercher TOUS les inputs d'accompagnements dans le formulaire
             this.container.find('input[name*="accompaniment_"][name$="_qty"]').each((index, input) => {
@@ -2266,14 +2428,25 @@
             let totalOtherOptions = 0;
             const currentInputName = $input.attr('name');
             
-            // Chercher dans toute la section des options de frites
-            const $fritesOptions = $input.closest('.rbf-v3-frites-options');
-            if ($fritesOptions.length) {
-                $fritesOptions.find('input[name^="sauce_"][name$="_qty"], input[name*="chimichurri"][name$="_qty"], input[name*="enrobee"][name$="_qty"]').each(function() {
+            // ✅ CORRECTION : Chercher dans la card d'accompagnement pour toutes les options
+            if ($parentAccCard && $parentAccCard.length > 0) {
+                // Chercher toutes les options dans cette card d'accompagnement
+                $parentAccCard.find('.rbf-v3-option-input').each(function() {
                     if ($(this).attr('name') !== currentInputName) {
                         totalOtherOptions += parseInt($(this).val()) || 0;
                     }
                 });
+                this.log('🔍 Options trouvées dans la card:', totalOtherOptions);
+            } else {
+                // Fallback vers l'ancienne logique si pas dans une card
+                const $fritesOptions = $input.closest('.rbf-v3-frites-options');
+                if ($fritesOptions.length) {
+                    $fritesOptions.find('input[name^="sauce_"][name$="_qty"], input[name*="chimichurri"][name$="_qty"], input[name*="enrobee"][name$="_qty"]').each(function() {
+                        if ($(this).attr('name') !== currentInputName) {
+                            totalOtherOptions += parseInt($(this).val()) || 0;
+                        }
+                    });
+                }
             }
             
             // Le maximum pour cette option = total frites - autres options utilisées
@@ -2295,6 +2468,174 @@
             }
             
             return maxForThisOption;
+        }
+
+        /**
+         * ✅ NOUVEAU : Calculer le maximum d'options autorisées pour un input donné
+         */
+        calculateMaxOptionsAllowed($input, totalAccompaniments) {
+            let totalOtherOptions = 0;
+            const currentInputName = $input.attr('name');
+            
+            // Chercher toutes les autres options dans la même card d'accompagnement
+            const $accCard = $input.closest('.rbf-v3-accompaniment-card');
+            if ($accCard.length > 0) {
+                $accCard.find('.rbf-v3-option-input').each(function() {
+                    if ($(this).attr('name') !== currentInputName) {
+                        totalOtherOptions += parseInt($(this).val()) || 0;
+                    }
+                });
+            }
+            
+            const maxAllowed = Math.max(0, totalAccompaniments - totalOtherOptions);
+            
+            this.log('📊 Calcul max options:', {
+                totalAccompaniments,
+                totalOtherOptions,
+                maxAllowed,
+                currentInput: currentInputName
+            });
+            
+            return maxAllowed;
+        }
+
+        /**
+         * ✅ NOUVEAU : Fonction générique pour valider le maximum d'options/suppléments pour n'importe quel produit
+         */
+        validateGenericProductOptionsTotal($input, proposedValue = -1) {
+            const inputName = $input.attr('name');
+            this.log('🔍 Validation générique pour:', inputName);
+            
+            // Déterminer le type de produit et récupérer la quantité du produit parent
+            let parentQuantity = 0;
+            let productId = null;
+            let productType = null;
+            
+            // Pattern 1: Suppléments de buffet (buffet_TYPE_PRODUCT_supplement_SUPPLEMENT_qty)
+            if (inputName.includes('buffet_') && inputName.includes('_supplement_')) {
+                const matches = inputName.match(/buffet_(sale|sucre)_(\d+)_supplement_\d+_qty/);
+                if (matches) {
+                    productType = 'buffet';
+                    const buffetType = matches[1];
+                    productId = matches[2];
+                    
+                    // Trouver l'input de quantité du produit parent
+                    const $parentInput = this.container.find(`input[name="buffet_${buffetType}_${productId}_qty"]`);
+                    parentQuantity = parseInt($parentInput.val()) || 0;
+                    
+                    this.log('🍽️ Buffet trouvé:', { buffetType, productId, parentQuantity });
+                } else {
+                    this.log('❌ Pattern buffet non reconnu:', inputName);
+                }
+            }
+            
+            // Pattern 2: Options d'accompagnement 
+            else if ($input.hasClass('rbf-v3-option-input') || inputName.includes('sauce_') || inputName.includes('chimichurri') || inputName.includes('enrobee')) {
+                const $accCard = $input.closest('.rbf-v3-accompaniment-card');
+                if ($accCard.length > 0) {
+                    productType = 'accompaniment';
+                    const $parentInput = $accCard.find('input[name^="accompaniment_"][name$="_qty"]');
+                    parentQuantity = parseInt($parentInput.val()) || 0;
+                    
+                    this.log('🥗 Accompagnement trouvé:', { parentQuantity, accCard: $accCard.length });
+                } else {
+                    this.log('❌ Card d\'accompagnement non trouvée pour:', inputName);
+                }
+            }
+            
+            // Pattern 3: Extensions futures (plats signature avec options, etc.)
+            else if (inputName.includes('signature_') && inputName.includes('_option_')) {
+                // TODO: Implémenter pour les options de plats signature si nécessaire
+                return 0; // Pour l'instant, pas d'options pour les plats signature
+            }
+            
+            if (parentQuantity === 0) {
+                this.log('❌ Parent quantity = 0, options bloquées');
+                return 0;
+            }
+            
+            // ✅ CORRECTION : Si on ne trouve pas le produit parent, utiliser l'ancienne logique
+            if (productType === null) {
+                this.log('❌ Type de produit non déterminé, fallback vers ancienne logique');
+                // Essayer la validation spécifique aux frites
+                if (inputName.includes('sauce_') || inputName.includes('chimichurri') || inputName.includes('enrobee')) {
+                    return this.validateFritesOptionsQuantity($input, proposedValue);
+                }
+                // Sinon, retourner une valeur par défaut haute pour ne pas bloquer
+                return 999;
+            }
+            
+            // Calculer le total des autres options/suppléments du même produit
+            let totalOtherOptions = 0;
+            
+            if (productType) {
+                const allRelatedOptions = this.findRelatedOptions($input, productType, productId);
+                
+                allRelatedOptions.each(function() {
+                    if ($(this).attr('name') !== inputName) {
+                        totalOtherOptions += parseInt($(this).val()) || 0;
+                    }
+                });
+            } else {
+                this.log('❌ Type de produit non déterminé pour:', inputName);
+                return 0;
+            }
+            
+            const maxAllowed = Math.max(0, parentQuantity - totalOtherOptions);
+            
+            this.log('📊 Validation générique:', {
+                inputName,
+                productType,
+                productId,
+                parentQuantity,
+                totalOtherOptions,
+                maxAllowed
+            });
+            
+            return maxAllowed;
+        }
+
+        /**
+         * ✅ NOUVEAU : Trouver toutes les options/suppléments liées à un produit
+         */
+        findRelatedOptions($input, productType, productId) {
+            let relatedInputs = $();
+            
+            switch (productType) {
+                case 'buffet':
+                    // Pour les buffets, chercher dans le conteneur de suppléments du même produit
+                    const inputName = $input.attr('name');
+                    const buffetMatches = inputName.match(/buffet_(sale|sucre)_(\d+)_supplement_\d+_qty/);
+                    if (buffetMatches) {
+                        const buffetType = buffetMatches[1];
+                        const actualProductId = buffetMatches[2];
+                        const supplementContainer = this.container.find(`[data-buffet-type="${buffetType}"][data-product-id="${actualProductId}"]`);
+                        if (supplementContainer.length > 0) {
+                            relatedInputs = supplementContainer.find('.supplement-qty-input');
+                            this.log('🔍 Suppléments buffet trouvés:', relatedInputs.length, 'pour produit:', actualProductId);
+                        } else {
+                            this.log('❌ Conteneur de suppléments buffet non trouvé pour:', buffetType, actualProductId);
+                        }
+                    }
+                    break;
+                    
+                case 'accompaniment':
+                    // Pour les accompagnements, chercher dans la même card
+                    const $accCard = $input.closest('.rbf-v3-accompaniment-card');
+                    if ($accCard.length > 0) {
+                        relatedInputs = $accCard.find('.rbf-v3-option-input');
+                        this.log('🔍 Options accompagnement trouvées:', relatedInputs.length);
+                    }
+                    break;
+                    
+                default:
+                    // Fallback pour les autres types
+                    this.log('❌ Type de produit non supporté:', productType);
+                    break;
+            }
+            
+            this.log('🔍 Options liées trouvées:', relatedInputs.length, 'pour type:', productType);
+            return relatedInputs;
         }
 
         /**
@@ -2326,7 +2667,7 @@
                 }
                 
                 // Mettre à jour les boutons
-                this.updateQuantityButtons(inputName, maxAllowed);
+                this.updateQuantityButtons($input);
             });
         }
 
@@ -3431,18 +3772,36 @@
             const supplementContainer = this.container.find(`[data-buffet-type="${buffetType}"][data-product-id="${productId}"]`);
             if (supplementContainer.length === 0) return;
 
+            // ✅ CORRECTION : Si le nouveau quantity est 0, remettre tous les suppléments à 0
+            if (newQuantity === 0) {
+                const supplementInputs = supplementContainer.find('.supplement-qty-input');
+                supplementInputs.val(0).trigger('change');
+                this.log('🍽️ Produit buffet supprimé, suppléments remis à 0');
+                return;
+            }
+
             const supplementInputs = supplementContainer.find('.supplement-qty-input');
             supplementInputs.each((index, input) => {
                 const $input = $(input);
-                const maxQuantity = Math.max(newQuantity, 1); // Au moins 1
+                
+                // ✅ CORRECTION : Utiliser notre nouvelle validation générique pour obtenir le max réel
+                const validatedMax = this.validateGenericProductOptionsTotal($input, parseInt($input.val()));
+                
+                // Appliquer la limite sans forcer un minimum de 1
+                const maxQuantity = validatedMax === 999 ? newQuantity : validatedMax;
+                
                 $input.attr('max', maxQuantity);
                 $input.attr('data-max', maxQuantity);
                 
                 // Réinitialiser la quantité si elle dépasse la nouvelle limite
                 const currentQty = parseInt($input.val()) || 0;
                 if (currentQty > maxQuantity) {
-                    $input.val(maxQuantity);
+                    $input.val(maxQuantity).trigger('change');
+                    this.log(`🍽️ Supplément buffet ajusté de ${currentQty} à ${maxQuantity} (max autorisé pour ${newQuantity} produits)`);
                 }
+                
+                // Mettre à jour les boutons pour cet input
+                this.updateQuantityButtons($input);
             });
         }
     }

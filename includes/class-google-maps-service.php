@@ -184,7 +184,7 @@ class RestaurantBooking_Google_Maps_Service
         $cached_response = wp_cache_get($cache_key, 'restaurant_booking_maps');
         
         if ($cached_response !== false) {
-            RestaurantBooking_Logger::info('Distance récupérée depuis le cache', array('cache_key' => $cache_key));
+            RestaurantBooking_Logger::get_instance()->info('Distance récupérée depuis le cache', array('cache_key' => $cache_key));
             return $cached_response;
         }
 
@@ -197,7 +197,7 @@ class RestaurantBooking_Google_Maps_Service
         ));
 
         if (is_wp_error($response)) {
-            RestaurantBooking_Logger::error('Erreur requête Google Maps API', array(
+            RestaurantBooking_Logger::get_instance()->error('Erreur requête Google Maps API', array(
                 'error' => $response->get_error_message(),
                 'url' => $url
             ));
@@ -206,7 +206,7 @@ class RestaurantBooking_Google_Maps_Service
 
         $response_code = wp_remote_retrieve_response_code($response);
         if ($response_code !== 200) {
-            RestaurantBooking_Logger::error('Erreur HTTP Google Maps API', array(
+            RestaurantBooking_Logger::get_instance()->error('Erreur HTTP Google Maps API', array(
                 'response_code' => $response_code,
                 'url' => $url
             ));
@@ -217,7 +217,7 @@ class RestaurantBooking_Google_Maps_Service
         $data = json_decode($body, true);
 
         if (json_last_error() !== JSON_ERROR_NONE) {
-            RestaurantBooking_Logger::error('Erreur JSON Google Maps API', array(
+            RestaurantBooking_Logger::get_instance()->error('Erreur JSON Google Maps API', array(
                 'json_error' => json_last_error_msg(),
                 'body' => $body
             ));
@@ -241,7 +241,7 @@ class RestaurantBooking_Google_Maps_Service
         // Vérifier le statut global
         if (!isset($response['status']) || $response['status'] !== 'OK') {
             $error_message = $this->get_api_error_message($response['status'] ?? 'UNKNOWN_ERROR');
-            RestaurantBooking_Logger::error('Erreur statut Google Maps API', array(
+            RestaurantBooking_Logger::get_instance()->error('Erreur statut Google Maps API', array(
                 'status' => $response['status'] ?? 'UNKNOWN',
                 'response' => $response
             ));
@@ -274,7 +274,7 @@ class RestaurantBooking_Google_Maps_Service
             'destination' => $response['destination_addresses'][0] ?? ''
         );
 
-        RestaurantBooking_Logger::info('Distance calculée avec Google Maps', $result);
+        RestaurantBooking_Logger::get_instance()->info('Distance calculée avec Google Maps', $result);
 
         return $result;
     }
@@ -367,9 +367,12 @@ class RestaurantBooking_Google_Maps_Service
             wp_send_json_error($result->get_error_message());
         }
 
+        // Récupérer l'adresse du restaurant pour l'affichage
+        $restaurant_display = !empty($restaurant_address) ? $restaurant_address : get_option('restaurant_booking_restaurant_postal_code', '67000');
+        
         $message = sprintf(
             __('API fonctionnelle ! Test: %s → %s = %s km (%s)', 'restaurant-booking'),
-            $restaurant_postal,
+            $restaurant_display,
             $test_postal_code,
             $result['distance_km'],
             $result['duration_text']

@@ -758,7 +758,8 @@ class RestaurantBooking_Email
             if (defined('RESTAURANT_BOOKING_DEBUG') && RESTAURANT_BOOKING_DEBUG) {
                 $phpmailer->SMTPDebug = 2;
                 $phpmailer->Debugoutput = function($str, $level) {
-                    RestaurantBooking_Logger::debug("SMTP Debug: " . $str);
+                    $logger = RestaurantBooking_Logger::get_instance();
+                    $logger->debug("SMTP Debug: " . $str);
                 };
             }
         }

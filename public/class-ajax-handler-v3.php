@@ -125,9 +125,6 @@ class RestaurantBooking_Ajax_Handler_V3
         } else {
             wp_send_json_error($data, $status_code);
         }
-        
-        // S'assurer que la script termine proprement
-        exit;
     }
 
     /**
@@ -201,7 +198,6 @@ class RestaurantBooking_Ajax_Handler_V3
         if (!wp_verify_nonce($_POST['nonce'] ?? '', 'restaurant_booking_form_v3')) {
             $this->send_json_response(false, ['message' => 'Erreur de sécurité (nonce invalide)']);
             return; // IMPORTANT: Sortir après la réponse d'erreur
-            return; // IMPORTANT: Sortir après la réponse d'erreur
         }
 
         $step = intval($_POST['step'] ?? 0);
@@ -233,7 +229,6 @@ class RestaurantBooking_Ajax_Handler_V3
         if (!wp_verify_nonce($_POST['nonce'] ?? '', 'restaurant_booking_form_v3')) {
             $this->send_json_response(false, ['message' => 'Erreur de sécurité (nonce invalide)']);
             return; // IMPORTANT: Sortir après la réponse d'erreur
-            return; // IMPORTANT: Sortir après la réponse d'erreur
         }
 
         $service_type = sanitize_text_field($_POST['service_type'] ?? '');
@@ -241,18 +236,55 @@ class RestaurantBooking_Ajax_Handler_V3
 
         if (empty($service_type)) {
             $this->send_json_response(false, ['message' => 'Type de service manquant']);
+            return; // ✅ CORRECTION : N'oublions pas de sortir après l'erreur
         }
 
         try {
+            // ✅ DEBUG : Log avant le calcul
+            error_log('Restaurant Booking V3 calculate_price: Début du calcul pour ' . $service_type);
+            error_log('Restaurant Booking V3 calculate_price: Form data: ' . json_encode($form_data));
+            
             $price_data = $this->calculate_quote_price($service_type, $form_data);
+            
+            // ✅ DEBUG : Log après le calcul
+            error_log('Restaurant Booking V3 calculate_price: Résultat: ' . json_encode($price_data));
             if (!is_array($price_data)) {
+                $this->log_price_calculation_error('Données de prix invalides', $service_type, $form_data, $price_data);
                 $this->send_json_response(false, ['message' => 'Données de prix invalides']);
+                return;
             }
             $this->send_json_response(true, $price_data);
         } catch (Exception $e) {
-            error_log('Restaurant Booking V3 calculate_price: ' . $e->getMessage());
-            $this->send_json_response(false, ['message' => 'Erreur lors du calcul du prix']);
+            $this->log_price_calculation_error($e->getMessage(), $service_type, $form_data);
+            $this->send_json_response(false, ['message' => 'Erreur lors du calcul du prix: ' . $e->getMessage()]);
         }
+    }
+
+    /**
+     * ✅ NOUVEAU : Logger les erreurs de calcul de prix de manière détaillée
+     */
+    private function log_price_calculation_error($error_message, $service_type, $form_data, $invalid_data = null)
+    {
+        $debug_info = [
+            'error' => $error_message,
+            'service_type' => $service_type,
+            'form_data_summary' => [
+                'event_date' => $form_data['event_date'] ?? 'non défini',
+                'guest_count' => $form_data['guest_count'] ?? 'non défini',
+                'postal_code' => $form_data['postal_code'] ?? 'non défini',
+                'selected_products_count' => count(array_filter($form_data, function($key) {
+                    return strpos($key, '_qty') !== false;
+                }, ARRAY_FILTER_USE_KEY))
+            ],
+            'timestamp' => current_time('mysql')
+        ];
+        
+        if ($invalid_data !== null) {
+            $debug_info['invalid_data'] = json_encode($invalid_data);
+            $debug_info['data_type'] = gettype($invalid_data);
+        }
+        
+        error_log('Restaurant Booking V3 calculate_price ERROR: ' . json_encode($debug_info));
     }
 
     /**
@@ -263,7 +295,6 @@ class RestaurantBooking_Ajax_Handler_V3
         // ✅ CORRECTION : Vérification de sécurité robuste
         if (!wp_verify_nonce($_POST['nonce'] ?? '', 'restaurant_booking_form_v3')) {
             $this->send_json_response(false, ['message' => 'Erreur de sécurité (nonce invalide)']);
-            return; // IMPORTANT: Sortir après la réponse d'erreur
             return; // IMPORTANT: Sortir après la réponse d'erreur
         }
 
@@ -653,14 +684,14 @@ class RestaurantBooking_Ajax_Handler_V3
                 <p class="rbf-v3-help-text"><em>Optionnel - Pour les plus petits</em></p>
                 
                 <label class="rbf-v3-checkbox-card">
-                    <input type="checkbox" name="mini_boss_enabled" value="1" data-action="toggle-mini-boss">
+                    <input type="checkbox" name="mini_boss_enabled" value="1" data-action="toggle-mini-boss" data-initial-state="<?php echo (isset($form_data['mini_boss_enabled']) && $form_data['mini_boss_enabled']) ? 'enabled' : 'disabled'; ?>"<?php echo (isset($form_data['mini_boss_enabled']) && $form_data['mini_boss_enabled']) ? ' checked' : ''; ?>>
                     <div class="rbf-v3-checkbox-content">
                         <span class="rbf-v3-checkbox-title">Ajouter le menu Mini Boss</span>
                         <span class="rbf-v3-checkbox-subtitle">Menu spécialement conçu pour les enfants</span>
                     </div>
                 </label>
                 
-                <div class="rbf-v3-mini-boss-products" style="display: none;">
+                <div class="rbf-v3-mini-boss-products" style="<?php echo (isset($form_data['mini_boss_enabled']) && $form_data['mini_boss_enabled']) ? '' : 'display: none;'; ?>" data-initial-state="<?php echo (isset($form_data['mini_boss_enabled']) && $form_data['mini_boss_enabled']) ? 'visible' : 'hidden'; ?>">
                     <?php echo $this->get_mini_boss_products_html(); ?>
                 </div>
             </div>
@@ -1106,9 +1137,9 @@ class RestaurantBooking_Ajax_Handler_V3
         // Récupérer les jeux par ID de catégorie 111 (Jeux et Animations)
         global $wpdb;
         $games = $wpdb->get_results($wpdb->prepare(
-            "SELECT p.*, c.name as category_name, c.type as category_type 
+            "SELECT DISTINCT p.*, c.name as category_name, c.type as category_type 
              FROM {$wpdb->prefix}restaurant_products p
-             LEFT JOIN {$wpdb->prefix}restaurant_categories c ON p.category_id = c.id
+             INNER JOIN {$wpdb->prefix}restaurant_categories c ON p.category_id = c.id
              WHERE p.category_id = %d AND p.is_active = 1 AND c.is_active = 1
              ORDER BY p.display_order ASC, p.name ASC",
             111
@@ -1212,16 +1243,24 @@ class RestaurantBooking_Ajax_Handler_V3
                                                         </div>
                                                     <?php endforeach; 
                                                 else : ?>
-                                                    <div class="rbf-v3-size-option">
-                                                        <div class="rbf-v3-size-info">
-                                                            <span class="rbf-v3-size-label">Prix de base: <?php echo number_format($keg->price, 0); ?>€</span>
+                                                    <?php if ($keg->price > 0) : ?>
+                                                        <div class="rbf-v3-size-option">
+                                                            <div class="rbf-v3-size-info">
+                                                                <span class="rbf-v3-size-label">Prix de base: <?php echo number_format($keg->price, 0); ?>€</span>
+                                                            </div>
+                                                            <div class="rbf-v3-quantity-selector">
+                                                                <button type="button" class="rbf-v3-qty-btn rbf-v3-qty-minus" data-target="keg_<?php echo $keg->id; ?>_qty">-</button>
+                                                                <input type="number" name="keg_<?php echo $keg->id; ?>_qty" value="0" min="0" max="999" class="rbf-v3-qty-input">
+                                                                <button type="button" class="rbf-v3-qty-btn rbf-v3-qty-plus" data-target="keg_<?php echo $keg->id; ?>_qty">+</button>
+                                                            </div>
                                                         </div>
-                                                        <div class="rbf-v3-quantity-selector">
-                                                            <button type="button" class="rbf-v3-qty-btn rbf-v3-qty-minus" data-target="keg_<?php echo $keg->id; ?>_qty">-</button>
-                                                            <input type="number" name="keg_<?php echo $keg->id; ?>_qty" value="0" min="0" max="999" class="rbf-v3-qty-input">
-                                                            <button type="button" class="rbf-v3-qty-btn rbf-v3-qty-plus" data-target="keg_<?php echo $keg->id; ?>_qty">+</button>
+                                                    <?php else : ?>
+                                                        <div class="rbf-v3-size-option">
+                                                            <div class="rbf-v3-size-info">
+                                                                <span class="rbf-v3-size-label">Sélectionnez une contenance ci-dessous</span>
+                                                            </div>
                                                         </div>
-                                                    </div>
+                                                    <?php endif; ?>
                                                 <?php endif; ?>
                                             </div>
                                         </div>
@@ -1469,9 +1508,30 @@ class RestaurantBooking_Ajax_Handler_V3
             $options_total = $options_data['total'];
         }
 
-        // Calculer les totaux
-        $supplements_total = array_sum(array_column($supplements_array, 'price'));
-        $products_total = array_sum(array_column($products_array, 'total'));
+        // Calculer les totaux avec protection contre les erreurs
+        $supplements_total = 0;
+        foreach ($supplements_array as $supplement) {
+            if (is_numeric($supplement['price'])) {
+                $supplements_total += (float) $supplement['price'];
+            }
+        }
+        
+        $products_total = 0;
+        foreach ($products_array as $product) {
+            if (is_numeric($product['total'])) {
+                $products_total += (float) $product['total'];
+            }
+        }
+        
+        // ✅ DEBUG : Log des totaux calculés
+        error_log('Restaurant Booking V3 Totals Debug: ' . json_encode([
+            'base_price' => $base_price,
+            'supplements_total' => $supplements_total,
+            'products_total' => $products_total,
+            'options_total' => $options_total,
+            'final_total' => $base_price + $supplements_total + $products_total + $options_total
+        ]));
+        
         $total = $base_price + $supplements_total + $products_total + $options_total;
 
         return [
@@ -1549,13 +1609,18 @@ class RestaurantBooking_Ajax_Handler_V3
                         $options_total = 0;
                         foreach ($product_item['options'] as $option) {
                             $options_total += $option['total'];
-                            // Ajouter aussi les sous-options si elles ont un prix
-                            if (isset($option['suboptions'])) {
-                                foreach ($option['suboptions'] as $suboption) {
-                                    $options_total += $suboption['total'];
-                                }
-                            }
                         }
+                        
+                        // ✅ DEBUG : Log du calcul des options
+                        error_log('Restaurant Booking V3 Accompaniment Options Total Debug: ' . json_encode([
+                            'product_name' => $product_name,
+                            'product_id' => $product_id,
+                            'product_base_total' => $quantity * $product_price,
+                            'options_count' => count($product_item['options']),
+                            'options_total' => $options_total,
+                            'final_total' => ($quantity * $product_price) + $options_total
+                        ]));
+                        
                         $product_item['total'] += $options_total;
                         
                         $products[] = $product_item;
@@ -1579,7 +1644,9 @@ class RestaurantBooking_Ajax_Handler_V3
                         'quantity' => $quantity,
                         'price' => $product_price,
                         'total' => $quantity * $product_price,
-                        'category' => 'Buffet salé'
+                        'category' => 'Buffet salé',
+                        'product_id' => $product_id,
+                        'product_type' => 'buffet_sale'
                     ];
                     
                     // Logger si le prix est 0 pour diagnostic
@@ -1609,7 +1676,9 @@ class RestaurantBooking_Ajax_Handler_V3
                         'quantity' => $quantity,
                         'price' => $product_price,
                         'total' => $quantity * $product_price,
-                        'category' => 'Buffet sucré'
+                        'category' => 'Buffet sucré',
+                        'product_id' => $product_id,
+                        'product_type' => 'buffet_sucre'
                     ];
                     
                     // Logger si le prix est 0 pour diagnostic
@@ -1619,6 +1688,44 @@ class RestaurantBooking_Ajax_Handler_V3
                             'product_name' => $product_name,
                             'quantity' => $quantity
                         ));
+                    }
+                }
+            }
+        }
+        
+        // ✅ NOUVEAU : Calculer les suppléments buffet (salé et sucré) et les ajouter comme options
+        foreach ($form_data as $key => $value) {
+            if (preg_match('/^buffet_(sale|sucre)_(\d+)_supplement_(\d+)_qty$/', $key, $matches) && intval($value) > 0) {
+                $buffet_type = $matches[1];
+                $product_id = intval($matches[2]);
+                $supplement_id = intval($matches[3]);
+                $quantity = intval($value);
+                
+                // Récupérer les infos du supplément depuis la base de données
+                $supplement_info = $this->get_supplement_info($supplement_id);
+                if ($supplement_info && $supplement_info['price'] > 0) {
+                    // Trouver le produit parent dans la liste des produits
+                    $parent_product_index = null;
+                    foreach ($products as $index => $product) {
+                        if (isset($product['product_id']) && $product['product_id'] == $product_id && 
+                            $product['product_type'] === 'buffet_' . $buffet_type) {
+                            $parent_product_index = $index;
+                            break;
+                        }
+                    }
+                    
+                    // Si le produit parent existe, ajouter le supplément comme option
+                    if ($parent_product_index !== null) {
+                        if (!isset($products[$parent_product_index]['options'])) {
+                            $products[$parent_product_index]['options'] = [];
+                        }
+                        
+                        $products[$parent_product_index]['options'][] = [
+                            'name' => $supplement_info['name'],
+                            'quantity' => $quantity,
+                            'price' => $supplement_info['price'],
+                            'total' => $quantity * $supplement_info['price']
+                        ];
                     }
                 }
             }
@@ -1721,19 +1828,47 @@ class RestaurantBooking_Ajax_Handler_V3
             // Chercher les quantités sélectionnées pour cette option
             $option_quantity = $this->find_option_quantity_in_form_data($option, $form_data);
             
-            if ($option_quantity > 0) {
+            // ✅ DEBUG : Log pour diagnostiquer les options trouvées
+            if (class_exists('RestaurantBooking_Logger')) {
+                $logger = RestaurantBooking_Logger::get_instance();
+                $logger->debug("Option trouvée pour produit $product_id", [
+                    'option_id' => $option->id,
+                    'option_name' => $option->option_name,
+                    'option_quantity' => $option_quantity,
+                    'found_field' => $this->get_option_field_name($option->option_name)
+                ]);
+            }
+            
+            // ✅ DEBUG AJAX : Log plus détaillé pour le debugging AJAX
+            error_log('Restaurant Booking V3 Option Debug: ' . json_encode([
+                'product_id' => $product_id,
+                'option_name' => $option->option_name,
+                'option_price' => $option->option_price,
+                'option_quantity' => $option_quantity,
+                'field_name' => $this->get_option_field_name($option->option_name),
+                'form_data_key_exists' => isset($form_data[$this->get_option_field_name($option->option_name)]),
+                'form_data_value' => $form_data[$this->get_option_field_name($option->option_name)] ?? 'N/A'
+            ]));
+            
+            // ✅ CORRECTION : Limitation de sécurité pour les quantités d'options
+            $max_option_quantity = min($product_quantity, 50); // Maximum 50 options par accompagnement
+            $safe_quantity = min($option_quantity, $max_option_quantity);
+            
+            if ($safe_quantity > 0) {
                 $option_item = [
                     'name' => $option->option_name . ($option->option_price > 0 ? ' (+' . number_format($option->option_price, 2) . '€)' : ''),
-                    'quantity' => $option_quantity,
+                    'quantity' => $safe_quantity,
                     'price' => (float) $option->option_price,
-                    'total' => $option_quantity * (float) $option->option_price
+                    'total' => $safe_quantity * (float) $option->option_price
                 ];
                 
-                // Récupérer les sous-options pour cette option
-                $suboptions = $this->get_suboptions_for_display($option->id, $form_data);
-                if (!empty($suboptions)) {
-                    $option_item['suboptions'] = $suboptions;
+                // ✅ DEBUG : Log si la quantité a été limitée
+                if ($safe_quantity !== $option_quantity) {
+                    error_log('Restaurant Booking V3 Option quantity clamped: ' . $option_quantity . ' -> ' . $safe_quantity . ' for ' . $option->option_name);
                 }
+                
+                // ✅ CORRECTION : Pas de sous-options pour les options simples
+                // Les sous-options ont été supprimées - éviter l'appel à get_suboptions_for_display
                 
                 $options[] = $option_item;
             }
@@ -1773,74 +1908,28 @@ class RestaurantBooking_Ajax_Handler_V3
         return 0;
     }
     
+    
+    
     /**
-     * Récupérer les sous-options pour l'affichage
+     * Générer un nom de champ pour une option
      */
-    private function get_suboptions_for_display($option_id, $form_data)
+    private function get_option_field_name($optionName)
     {
-        global $wpdb;
-        
-        $suboptions = [];
-        
-        // Récupérer les sous-options depuis la DB
-        // CORRECTION: La colonne option_price n'existe pas dans cette table
-        $db_suboptions = $wpdb->get_results($wpdb->prepare("
-            SELECT id, suboption_name, 0 as option_price
-            FROM {$wpdb->prefix}restaurant_accompaniment_suboptions
-            WHERE option_id = %d AND is_active = 1
-            ORDER BY display_order, suboption_name
-        ", $option_id));
-        
-        foreach ($db_suboptions as $suboption) {
-            $suboption_quantity = $this->find_suboption_quantity_in_form_data($suboption, $form_data);
-            
-            if ($suboption_quantity > 0) {
-                $suboptions[] = [
-                    'name' => $suboption->suboption_name . ($suboption->option_price > 0 ? ' (+' . number_format($suboption->option_price, 2) . '€)' : ''),
-                    'quantity' => $suboption_quantity,
-                    'price' => (float) $suboption->option_price,
-                    'total' => $suboption_quantity * (float) $suboption->option_price
-                ];
-            }
-        }
-        
-        return $suboptions;
+        return 'option_' . $this->sanitize_field_name($optionName) . '_qty';
     }
     
     /**
-     * Trouver la quantité d'une sous-option dans les données du formulaire
+     * Sanitiser un nom pour être utilisé comme nom de champ
      */
-    private function find_suboption_quantity_in_form_data($suboption, $form_data)
+    private function sanitize_field_name($name)
     {
-        // Utiliser la même logique que la génération HTML
-        $field_name = $this->get_suboption_field_name($suboption->suboption_name);
+        // Convertir en minuscules et supprimer les caractères spéciaux
+        $clean = strtolower($name);
+        $clean = preg_replace('/[^a-z0-9_]/', '_', $clean);
+        $clean = preg_replace('/_+/', '_', $clean); // Simplifier les underscores multiples
+        $clean = trim($clean, '_');
         
-        if (isset($form_data[$field_name]) && intval($form_data[$field_name]) > 0) {
-            return intval($form_data[$field_name]);
-        }
-        
-        // Stratégies alternatives pour compatibilité
-        $possible_field_names = [
-            // Mapping explicite des sous-options connues
-            'sauce_ketchup_qty',
-            'sauce_mayonnaise_qty', 
-            'sauce_moutarde_qty',
-            'sauce_sauce_bbq_qty',
-            // Format sans préfixe sauce_
-            $this->sanitize_field_name($suboption->suboption_name) . '_qty',
-            // Format avec préfixe suboption_
-            'suboption_' . $this->sanitize_field_name($suboption->suboption_name) . '_qty',
-            // Format avec ID
-            'suboption_' . $suboption->id . '_qty'
-        ];
-        
-        foreach ($possible_field_names as $fallback_name) {
-            if (isset($form_data[$fallback_name]) && intval($form_data[$fallback_name]) > 0) {
-                return intval($form_data[$fallback_name]);
-            }
-        }
-        
-        return 0;
+        return $clean;
     }
     
     /**
@@ -1887,13 +1976,16 @@ class RestaurantBooking_Ajax_Handler_V3
                         $keg_name = $this->get_product_name($keg_id, 'fut');
                         $keg_price = $this->get_product_price($keg_id, 'fut');
                         
-                        $kegs_options[] = [
-                            'name' => $keg_name,
-                            'quantity' => $quantity,
-                            'price' => $keg_price,
-                            'total' => $quantity * $keg_price
-                        ];
-                        $kegs_total += $quantity * $keg_price;
+                        // CORRECTION : Ne pas afficher le produit principal s'il a un prix de 0€
+                        if ($keg_price > 0) {
+                            $kegs_options[] = [
+                                'name' => $keg_name,
+                                'quantity' => $quantity,
+                                'price' => $keg_price,
+                                'total' => $quantity * $keg_price
+                            ];
+                            $kegs_total += $quantity * $keg_price;
+                        }
                     }
                 }
             }
@@ -2015,7 +2107,8 @@ class RestaurantBooking_Ajax_Handler_V3
         }
         
         if ($product) {
-            RestaurantBooking_Logger::debug('Produit trouvé', array(
+            $logger = RestaurantBooking_Logger::get_instance();
+            $logger->debug('Produit trouvé', array(
                 'product_id' => $product_id,
                 'name' => $product->name,
                 'category' => $category
@@ -2077,7 +2170,8 @@ class RestaurantBooking_Ajax_Handler_V3
         
         if ($product) {
             $price = (float) $product->price;
-            RestaurantBooking_Logger::debug('Prix de produit trouvé', array(
+            $logger = RestaurantBooking_Logger::get_instance();
+            $logger->debug('Prix de produit trouvé', array(
                 'product_id' => $product_id,
                 'price' => $price,
                 'category' => $category
@@ -2419,7 +2513,8 @@ class RestaurantBooking_Ajax_Handler_V3
         
         // Log pour tracer l'ID reçu
         if (class_exists('RestaurantBooking_Logger')) {
-            RestaurantBooking_Logger::debug("send_quote_email appelée avec ID: {$quote_id}");
+            $logger = RestaurantBooking_Logger::get_instance();
+            $logger->debug("send_quote_email appelée avec ID: {$quote_id}");
         }
         
         // Récupérer les données du devis
@@ -2558,9 +2653,12 @@ class RestaurantBooking_Ajax_Handler_V3
         
         // Log pour diagnostiquer les données produits
         if (class_exists('RestaurantBooking_Logger')) {
-            RestaurantBooking_Logger::debug("Données produits sauvegardées", [
+            $logger = RestaurantBooking_Logger::get_instance();
+            $logger->debug("Données produits sauvegardées", [
                 'selected_products' => $selected_products,
-                'form_data_keys' => array_keys($form_data)
+                'form_data_keys' => array_keys($form_data),
+                // ✅ DEBUG : Ajouter spécifiquement les champs sauce pour diagnostic
+                'sauce_fields' => array_filter($form_data, function($key) { return strpos($key, 'sauce_') === 0; }, ARRAY_FILTER_USE_KEY)
             ]);
         }
 
@@ -2863,6 +2961,11 @@ class RestaurantBooking_Ajax_Handler_V3
                 }
             }
             
+            // ✅ CORRECTION : S'assurer que les sauce_ sont vraiment exclus
+            if ($key === 'sauce_ketchup_qty' || $key === 'sauce_mayo_qty' || $key === 'sauce_moutarde_qty') {
+                $already_processed = true; // Forcer l'exclusion
+            }
+            
             // Si pas encore traitée et se termine par _qty, l'extraire
             if (!$already_processed && strpos($key, '_qty') !== false) {
                 $product_name = str_replace('_qty', '', $key);
@@ -2969,19 +3072,17 @@ class RestaurantBooking_Ajax_Handler_V3
         $options_table = $wpdb->prefix . 'restaurant_accompaniment_options';
         $suboptions_table = $wpdb->prefix . 'restaurant_accompaniment_suboptions';
         
-        // ✅ OPTIMISATION : Une seule requête avec JOIN pour récupérer tout
+        // ✅ CORRECTION : Les sous-options ont été supprimées - requête simplifiée
         $accompaniments = $wpdb->get_results($wpdb->prepare("
             SELECT DISTINCT 
                 p.id, p.name, p.description, p.price, p.image_id, p.display_order, p.is_active,
                 c.name as category_name,
-                o.id as option_id, o.option_name, o.option_price, o.display_order as option_order,
-                s.id as suboption_id, s.suboption_name, s.display_order as suboption_order
+                o.id as option_id, o.option_name, o.option_price, o.display_order as option_order
             FROM {$products_table} p 
             INNER JOIN {$categories_table} c ON p.category_id = c.id 
             LEFT JOIN {$options_table} o ON p.id = o.product_id AND o.is_active = 1
-            LEFT JOIN {$suboptions_table} s ON o.id = s.option_id AND s.is_active = 1
             WHERE c.type = %s AND p.is_active = 1
-            ORDER BY p.display_order ASC, p.name ASC, o.display_order ASC, o.option_name ASC, s.display_order ASC, s.suboption_name ASC
+            ORDER BY p.display_order ASC, p.name ASC, o.display_order ASC, o.option_name ASC
         ", 'accompagnement'));
         
         if (empty($accompaniments)) {
@@ -3022,11 +3123,8 @@ class RestaurantBooking_Ajax_Handler_V3
             
             // Ajouter la sous-option s'il y en a une
             if ($row->suboption_id && $row->option_id) {
-                $structured_accompaniments[$product_id]->options[$row->option_id]->suboptions[] = (object) [
-                    'id' => $row->suboption_id,
-                    'suboption_name' => $row->suboption_name,
-                    'display_order' => $row->suboption_order
-                ];
+                // ✅ CORRECTION : Les sous-options ont été supprimées
+                // Ne plus créer de structure suboptions[]
             }
         }
         
@@ -3122,31 +3220,24 @@ class RestaurantBooking_Ajax_Handler_V3
         
         $html = '<div class="rbf-v3-option-item" data-option-id="' . $option_id . '">';
         
-        // Si l'option a des sous-options, les afficher
-        if (!empty($option->suboptions)) {
-            $html .= '<div class="rbf-v3-option-header">';
-            $html .= '<span class="rbf-v3-option-name">' . $option_name . $price_text . '</span>';
-            $html .= '</div>';
-            
-            $html .= '<div class="rbf-v3-suboptions">';
-            foreach ($option->suboptions as $suboption) {
-                $html .= $this->generate_suboption_html($suboption, $option_id, $form_data, $max_total);
-            }
-            $html .= '</div>';
-        } else {
-            // Option simple sans sous-options
-            $field_name = $this->get_option_field_name($option_name);
-            $saved_quantity = intval($form_data[$field_name] ?? 0);
-            
-            $html .= '<div class="rbf-v3-option-simple">';
-            $html .= '<span class="rbf-v3-option-name">' . $option_name . $price_text . '</span>';
-            $html .= '<div class="rbf-v3-quantity-selector rbf-v3-qty-small">';
-            $html .= '<button type="button" class="rbf-v3-qty-btn rbf-v3-qty-minus" data-target="' . $field_name . '">-</button>';
-            $html .= '<input type="number" name="' . $field_name . '" value="' . $saved_quantity . '" min="0" max="' . $max_total . '" class="rbf-v3-qty-input rbf-v3-option-input">';
-            $html .= '<button type="button" class="rbf-v3-qty-btn rbf-v3-qty-plus" data-target="' . $field_name . '">+</button>';
-            $html .= '</div>';
-            $html .= '</div>';
-        }
+        // ✅ CORRECTION : Les sous-options ont été supprimées, toujours traiter comme une option simple
+        // Ancien code : if (!empty($option->suboptions)) {
+        // Maintenant : toujours traiter comme une option simple
+        
+        // Option simple sans sous-options (toujours le cas maintenant)
+        $field_name = $this->get_option_field_name($option_name);
+        $saved_quantity = intval($form_data[$field_name] ?? 0);
+        
+        $html .= '<div class="rbf-v3-option-simple">';
+        $html .= '<span class="rbf-v3-option-name">' . $option_name . $price_text . '</span>';
+        $html .= '<div class="rbf-v3-quantity-selector rbf-v3-qty-small">';
+        $html .= '<button type="button" class="rbf-v3-qty-btn rbf-v3-qty-minus" data-target="' . $field_name . '">-</button>';
+        $html .= '<input type="number" name="' . $field_name . '" value="' . $saved_quantity . '" min="0" max="' . $max_total . '" class="rbf-v3-qty-input rbf-v3-option-input">';
+        $html .= '<button type="button" class="rbf-v3-qty-btn rbf-v3-qty-plus" data-target="' . $field_name . '">+</button>';
+        $html .= '</div>';
+        $html .= '</div>';
+        
+        // TODO: Supprimer la partie suboption après test du fonctionnement des options simples
         
         $html .= '</div>';
         
@@ -3174,71 +3265,8 @@ class RestaurantBooking_Ajax_Handler_V3
         return $html;
     }
     
-    /**
-     * ✅ CORRECTION : Obtenir le nom de champ pour une option avec mapping explicite
-     */
-    private function get_option_field_name($option_name)
-    {
-        // Mapping explicite pour correspondre aux noms JavaScript
-        $option_mapping = [
-            'Enrobée sauce chimichurri' => 'enrobee_sauce_chimichurri_qty',
-            'Choix de la sauce' => 'choix_de_la_sauce_qty'
-        ];
-        
-        // Utiliser le mapping si disponible
-        if (isset($option_mapping[$option_name])) {
-            return $option_mapping[$option_name];
-        }
-        
-        // Fallback vers la logique dynamique
-        return $this->sanitize_field_name($option_name) . '_qty';
-    }
     
-    /**
-     * ✅ CORRECTION : Obtenir le nom de champ pour une sous-option avec mapping explicite
-     */
-    private function get_suboption_field_name($suboption_name)
-    {
-        // Mapping explicite pour correspondre exactement aux noms JavaScript
-        $suboption_mapping = [
-            'Ketchup' => 'sauce_ketchup_qty',
-            'Mayonnaise' => 'sauce_mayonnaise_qty',
-            'Moutarde' => 'sauce_moutarde_qty',
-            'Sauce BBQ' => 'sauce_sauce_bbq_qty'
-        ];
-        
-        // Utiliser le mapping si disponible
-        if (isset($suboption_mapping[$suboption_name])) {
-            return $suboption_mapping[$suboption_name];
-        }
-        
-        // Fallback vers la logique dynamique
-        return 'sauce_' . $this->sanitize_field_name($suboption_name) . '_qty';
-    }
     
-    /**
-     * ✅ NOUVEAU : Sanitizer un nom pour créer un nom de champ valide
-     */
-    private function sanitize_field_name($name)
-    {
-        // Convertir en minuscules et remplacer les caractères spéciaux
-        $sanitized = strtolower($name);
-        $sanitized = str_replace(['é', 'è', 'ê', 'ë'], 'e', $sanitized);
-        $sanitized = str_replace(['à', 'á', 'â', 'ä'], 'a', $sanitized);
-        $sanitized = str_replace(['ù', 'ú', 'û', 'ü'], 'u', $sanitized);
-        $sanitized = str_replace(['ì', 'í', 'î', 'ï'], 'i', $sanitized);
-        $sanitized = str_replace(['ò', 'ó', 'ô', 'ö'], 'o', $sanitized);
-        $sanitized = str_replace(['ç'], 'c', $sanitized);
-        
-        // Remplacer les espaces et caractères spéciaux par des underscores
-        $sanitized = preg_replace('/[^a-z0-9]/', '_', $sanitized);
-        
-        // Supprimer les underscores multiples et en début/fin
-        $sanitized = preg_replace('/_+/', '_', $sanitized);
-        $sanitized = trim($sanitized, '_');
-        
-        return $sanitized;
-    }
 
     // ❌ MÉTHODE SUPPRIMÉE : get_accompaniments_simple_html_DEPRECATED - Remplacée par get_accompaniments_with_options_html()
 
@@ -3832,7 +3860,7 @@ class RestaurantBooking_Ajax_Handler_V3
             $distance = $distance_result['distance_km'];
             
             // Log pour debug
-            RestaurantBooking_Logger::info('Vérification distance limite', array(
+            RestaurantBooking_Logger::get_instance()->info('Vérification distance limite', array(
                 'distance_calculee' => $distance,
                 'distance_max' => $this->options['max_distance_km'],
                 'methode_calcul' => $distance_result['method'] ?? 'unknown'
@@ -3873,7 +3901,7 @@ class RestaurantBooking_Ajax_Handler_V3
             // Si la zone dépasse la limite, ajouter le message d'erreur
             if ($is_over_limit) {
                 $response_data['over_limit_message'] = sprintf(__('Zone non couverte : l\'adresse de l\'événement dépasse %d km. Merci de nous contacter directement.', 'restaurant-booking'), $this->options['max_distance_km']);
-                RestaurantBooking_Logger::warning('Distance limite dépassée', array(
+                RestaurantBooking_Logger::get_instance()->warning('Distance limite dépassée', array(
                     'distance' => $distance,
                     'max_distance' => $this->options['max_distance_km']
                 ));
@@ -3908,7 +3936,7 @@ class RestaurantBooking_Ajax_Handler_V3
         }
         
         // Si Google Maps échoue, retourner une erreur claire
-        RestaurantBooking_Logger::error('Google Maps API failed', array(
+        RestaurantBooking_Logger::get_instance()->error('Google Maps API failed', array(
             'error' => $result->get_error_message(),
             'postal_code' => $postal_code
         ));
@@ -4240,10 +4268,10 @@ class RestaurantBooking_Ajax_Handler_V3
             $html .= '<span class="rbf-v3-supplement-name">' . esc_html($supplement->option_name) . '</span>';
             $html .= '<span class="rbf-v3-supplement-price">(+' . number_format($supplement->option_price, 2) . '€)</span>';
             $html .= '</div>';
-            $html .= '<div class="rbf-v3-supplement-controls">';
-            $html .= '<button type="button" class="rbf-v3-qty-btn rbf-v3-qty-minus supplement-qty" data-target="buffet_' . $buffet_type . '_' . $product_id . '_supplement_' . $supplement->id . '_qty">-</button>';
+            $html .= '<div class="rbf-v3-quantity-selector">';
+            $html .= '<button type="button" class="rbf-v3-qty-btn rbf-v3-qty-minus" data-target="buffet_' . $buffet_type . '_' . $product_id . '_supplement_' . $supplement->id . '_qty">-</button>';
             $html .= '<input type="number" name="buffet_' . $buffet_type . '_' . $product_id . '_supplement_' . $supplement->id . '_qty" value="' . $saved_qty . '" min="0" max="' . $max_quantity . '" class="rbf-v3-qty-input supplement-qty-input" data-max="' . $max_quantity . '">';
-            $html .= '<button type="button" class="rbf-v3-qty-btn rbf-v3-qty-plus supplement-qty" data-target="buffet_' . $buffet_type . '_' . $product_id . '_supplement_' . $supplement->id . '_qty">+</button>';
+            $html .= '<button type="button" class="rbf-v3-qty-btn rbf-v3-qty-plus" data-target="buffet_' . $buffet_type . '_' . $product_id . '_supplement_' . $supplement->id . '_qty">+</button>';
             $html .= '</div>';
             $html .= '</div>';
         }
@@ -4251,6 +4279,43 @@ class RestaurantBooking_Ajax_Handler_V3
         $html .= '</div>';
 
         return $html;
+    }
+
+    /**
+     * ✅ NOUVEAU : Obtenir les informations d'un supplément
+     */
+    private function get_supplement_info($supplement_id)
+    {
+        global $wpdb;
+        
+        // Validation de l'ID
+        if (!is_numeric($supplement_id) || $supplement_id <= 0) {
+            RestaurantBooking_Logger::warning('ID de supplément invalide', array(
+                'supplement_id' => $supplement_id
+            ));
+            return null;
+        }
+        
+        // Récupérer les infos du supplément depuis wp_restaurant_accompaniment_options
+        $supplement = $wpdb->get_row($wpdb->prepare("
+            SELECT id, option_name, option_price, product_id
+            FROM {$wpdb->prefix}restaurant_accompaniment_options 
+            WHERE id = %d AND is_active = 1
+        ", $supplement_id));
+        
+        if (!$supplement) {
+            RestaurantBooking_Logger::warning('Supplément non trouvé', array(
+                'supplement_id' => $supplement_id
+            ));
+            return null;
+        }
+        
+        return [
+            'id' => $supplement->id,
+            'name' => $supplement->option_name,
+            'price' => floatval($supplement->option_price),
+            'product_id' => $supplement->product_id
+        ];
     }
 }
 
