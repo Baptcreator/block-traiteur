@@ -36,7 +36,6 @@ class RestaurantBooking_Beverages_Kegs_Admin
                     <li><?php _e('✓ Différentes contenances par type de bière (10L, 20L)', 'restaurant-booking'); ?></li>
                     <li><?php _e('✓ Prix spécifiques par contenance', 'restaurant-booking'); ?></li>
                     <li><?php _e('✓ Images différentes par taille de fût', 'restaurant-booking'); ?></li>
-                    <li><?php _e('✓ Système de mise en avant par contenance', 'restaurant-booking'); ?></li>
                     <li><?php _e('✓ Exemple: IPA → 10L (30€) + 20L (50€)', 'restaurant-booking'); ?></li>
                 </ul>
             </div>
@@ -117,7 +116,6 @@ class RestaurantBooking_Beverages_Kegs_Admin
                             <th scope="col" class="manage-column column-type"><?php _e('Type', 'restaurant-booking'); ?></th>
                             <th scope="col" class="manage-column column-size"><?php _e('Contenance', 'restaurant-booking'); ?></th>
                             <th scope="col" class="manage-column column-price"><?php _e('Prix', 'restaurant-booking'); ?></th>
-                            <th scope="col" class="manage-column column-suggestion"><?php _e('Suggestion', 'restaurant-booking'); ?></th>
                             <th scope="col" class="manage-column column-order"><?php _e('Ordre', 'restaurant-booking'); ?></th>
                             <th scope="col" class="manage-column column-status"><?php _e('Statut', 'restaurant-booking'); ?></th>
                             <th scope="col" class="manage-column column-date"><?php _e('Date de création', 'restaurant-booking'); ?></th>
@@ -126,7 +124,7 @@ class RestaurantBooking_Beverages_Kegs_Admin
                     <tbody>
                         <?php if (empty($products)): ?>
                             <tr class="no-items">
-                                <td class="colspanchange" colspan="11">
+                                <td class="colspanchange" colspan="10">
                                     <?php _e('Aucun fût de bière trouvé.', 'restaurant-booking'); ?>
                                 </td>
                             </tr>
@@ -229,15 +227,6 @@ class RestaurantBooking_Beverages_Kegs_Admin
                                             <span style="color: #d63638;">—</span>
                                         <?php endif; ?>
                                     </td>
-                                    <td class="column-suggestion">
-                                        <?php if ($keg['suggested_beverage']): ?>
-                                            <span class="dashicons dashicons-star-filled" style="color: #ffb900;" title="<?php _e('En suggestion', 'restaurant-booking'); ?>"></span>
-                                            <small><?php _e('Oui', 'restaurant-booking'); ?></small>
-                                        <?php else: ?>
-                                            <span class="dashicons dashicons-star-empty" style="color: #ddd;"></span>
-                                            <small><?php _e('Non', 'restaurant-booking'); ?></small>
-                                        <?php endif; ?>
-                                    </td>
                                     <td class="column-order">
                                         <input type="number" class="small-text keg-order-input" 
                                                value="<?php echo $keg['display_order'] ?? 0; ?>" 
@@ -293,13 +282,6 @@ class RestaurantBooking_Beverages_Kegs_Admin
                                             </td>
                                             <td class="column-price">
                                                 <strong><?php echo number_format($size['price'], 0, ',', ' '); ?> €</strong>
-                                            </td>
-                                            <td class="column-suggestion">
-                                                <?php if ($size['is_featured']): ?>
-                                                    <span class="dashicons dashicons-star-filled" style="color: #ffb900;" title="<?php _e('Taille mise en avant', 'restaurant-booking'); ?>"></span>
-                                                <?php else: ?>
-                                                    <span class="dashicons dashicons-star-empty" style="color: #ddd;"></span>
-                                                <?php endif; ?>
                                             </td>
                                             <td class="column-order">
                                                 <small><?php echo $size['display_order']; ?></small>
@@ -403,7 +385,6 @@ class RestaurantBooking_Beverages_Kegs_Admin
         .column-price { width: 100px; text-align: center; }
         .column-type { width: 100px; }
         .column-size { width: 100px; }
-        .column-suggestion { width: 100px; }
         .column-order { width: 80px; }
         .column-status { width: 80px; }
         .column-date { width: 120px; }
@@ -651,9 +632,6 @@ class RestaurantBooking_Beverages_Kegs_Admin
                                                             <?php echo wp_get_attachment_image($size['image_id'], 'thumbnail'); ?>
                                                         </div>
                                                     <?php endif; ?>
-                                                    <?php if ($size['is_featured']): ?>
-                                                        <span class="featured-badge"><?php _e('Mise en avant', 'restaurant-booking'); ?></span>
-                                                    <?php endif; ?>
                                                 </div>
                                                 <div class="keg-size-actions">
                                                     <button type="button" class="button button-small delete-keg-size" data-size-id="<?php echo $index; ?>">
@@ -664,7 +642,6 @@ class RestaurantBooking_Beverages_Kegs_Admin
                                                 <input type="hidden" name="keg_sizes[<?php echo $index; ?>][liters]" value="<?php echo $size['liters']; ?>">
                                                 <input type="hidden" name="keg_sizes[<?php echo $index; ?>][price]" value="<?php echo $size['price']; ?>">
                                                 <input type="hidden" name="keg_sizes[<?php echo $index; ?>][image_id]" value="<?php echo $size['image_id']; ?>">
-                                                <input type="hidden" name="keg_sizes[<?php echo $index; ?>][is_featured]" value="<?php echo $size['is_featured'] ? '1' : '0'; ?>">
                                             </div>
                                         <?php 
                                             endforeach;
@@ -705,19 +682,6 @@ class RestaurantBooking_Beverages_Kegs_Admin
                         </td>
                     </tr>
 
-                    <tr>
-                        <th scope="row"><?php _e('Options', 'restaurant-booking'); ?></th>
-                        <td>
-                            <fieldset>
-                                <label>
-                                    <input type="checkbox" name="suggested_beverage" value="1" 
-                                           <?php checked($product['suggested_beverage'] ?? false); ?>>
-                                    <?php _e('Marquer comme "suggestion"', 'restaurant-booking'); ?>
-                                </label>
-                                <p class="description"><?php _e('Les suggestions apparaissent en premier dans la liste', 'restaurant-booking'); ?></p>
-                            </fieldset>
-                        </td>
-                    </tr>
                 </table>
 
                 <?php submit_button($action === 'edit' ? __('Mettre à jour le fût', 'restaurant-booking') : __('Ajouter le fût', 'restaurant-booking')); ?>
@@ -765,15 +729,6 @@ class RestaurantBooking_Beverages_Kegs_Admin
                                 <input type="hidden" id="keg_size_image_id" name="keg_size_image_id">
                                 <div id="keg_size_image_preview" style="margin-top: 10px;"></div>
                                 <p class="description"><?php _e('Image spécifique pour cette contenance', 'restaurant-booking'); ?></p>
-                            </td>
-                        </tr>
-                        <tr>
-                            <th><label for="keg_is_featured"><?php _e('Mise en avant', 'restaurant-booking'); ?></label></th>
-                            <td>
-                                <label>
-                                    <input type="checkbox" id="keg_is_featured" name="keg_is_featured" value="1">
-                                    <?php _e('Mettre en avant cette contenance', 'restaurant-booking'); ?>
-                                </label>
                             </td>
                         </tr>
                     </table>
@@ -899,7 +854,6 @@ class RestaurantBooking_Beverages_Kegs_Admin
                 var kegSizeLiters = $('#keg_size_liters').val();
                 var kegSizePrice = $('#keg_size_price').val();
                 var kegSizeImageId = $('#keg_size_image_id').val();
-                var kegIsFeatured = $('#keg_is_featured').is(':checked');
                 
                 if (!kegSizeLiters || !kegSizePrice) {
                     alert('<?php _e('Veuillez remplir tous les champs obligatoires.', 'restaurant-booking'); ?>');
@@ -931,9 +885,6 @@ class RestaurantBooking_Beverages_Kegs_Admin
                     kegSizeHtml += '</div>';
                 }
                 
-                if (kegIsFeatured) {
-                    kegSizeHtml += '<span class="featured-badge"><?php _e('Mise en avant', 'restaurant-booking'); ?></span>';
-                }
                 
                 kegSizeHtml += '</div>';
                 kegSizeHtml += '<div class="keg-size-actions">';
@@ -946,7 +897,6 @@ class RestaurantBooking_Beverages_Kegs_Admin
                 kegSizeHtml += '<input type="hidden" name="keg_sizes[' + kegSizeCounter + '][liters]" value="' + kegSizeLiters + '">';
                 kegSizeHtml += '<input type="hidden" name="keg_sizes[' + kegSizeCounter + '][price]" value="' + kegSizePrice + '">';
                 kegSizeHtml += '<input type="hidden" name="keg_sizes[' + kegSizeCounter + '][image_id]" value="' + kegSizeImageId + '">';
-                kegSizeHtml += '<input type="hidden" name="keg_sizes[' + kegSizeCounter + '][is_featured]" value="' + (kegIsFeatured ? '1' : '0') + '">';
                 
                 kegSizeHtml += '</div>';
                 
@@ -1112,14 +1062,6 @@ class RestaurantBooking_Beverages_Kegs_Admin
             display: flex;
             gap: 5px;
         }
-        .featured-badge {
-            background: #0073aa;
-            color: white;
-            padding: 2px 6px;
-            border-radius: 3px;
-            font-size: 11px;
-            margin-left: 10px;
-        }
         </style>
         
         <?php
@@ -1142,7 +1084,6 @@ class RestaurantBooking_Beverages_Kegs_Admin
         $beer_category = sanitize_text_field($_POST['beer_category']);
         $alcohol_degree = floatval($_POST['alcohol_degree']);
         $keg_image_id = intval($_POST['keg_image_id']);
-        $suggested_beverage = isset($_POST['suggested_beverage']) ? 1 : 0;
         $keg_sizes = isset($_POST['keg_sizes']) ? $_POST['keg_sizes'] : array();
 
         // Validation de base
@@ -1176,7 +1117,6 @@ class RestaurantBooking_Beverages_Kegs_Admin
             'alcohol_degree' => $alcohol_degree,
             'beer_category' => $beer_category,
             'image_id' => $keg_image_id ?: null,
-            'suggested_beverage' => $suggested_beverage,
             'has_multiple_sizes' => 1, // Activer le système multi-tailles
             'is_active' => 1
         );
@@ -1193,8 +1133,13 @@ class RestaurantBooking_Beverages_Kegs_Admin
         } else {
             // Création
             $result = RestaurantBooking_Product::create($product_data);
-            if ($result) {
-                $final_product_id = $result;
+            if (is_wp_error($result)) {
+                // Log l'erreur et rediriger
+                error_log('Erreur création produit fût: ' . $result->get_error_message());
+                wp_redirect(admin_url('admin.php?page=restaurant-booking-beverages-kegs&action=add&error=create_failed'));
+                exit;
+            } elseif ($result && is_numeric($result)) {
+                $final_product_id = intval($result);
             } else {
                 wp_redirect(admin_url('admin.php?page=restaurant-booking-beverages-kegs&action=add&error=create_failed'));
                 exit;
@@ -1233,7 +1178,6 @@ class RestaurantBooking_Beverages_Kegs_Admin
                 'liters' => intval($size_data['liters']),
                 'price' => floatval($size_data['price']),
                 'image_id' => !empty($size_data['image_id']) ? intval($size_data['image_id']) : null,
-                'is_featured' => !empty($size_data['is_featured']) ? 1 : 0,
                 'display_order' => 0,
                 'is_active' => 1
             );
@@ -1260,7 +1204,7 @@ class RestaurantBooking_Beverages_Kegs_Admin
             FROM {$wpdb->prefix}restaurant_products p
             INNER JOIN {$wpdb->prefix}restaurant_categories c ON p.category_id = c.id
             WHERE c.type = %s AND p.is_active = 1
-            ORDER BY p.suggested_beverage DESC, p.display_order ASC, p.name ASC
+            ORDER BY p.display_order ASC, p.name ASC
         ", 'fut'), ARRAY_A);
 
         foreach ($products as $product) {
@@ -1277,7 +1221,6 @@ class RestaurantBooking_Beverages_Kegs_Admin
                     'alcohol_degree' => (float) $product['alcohol_degree'],
                     'image_id' => $product['image_id'],
                     'image_url' => $product['image_id'] ? wp_get_attachment_image_url($product['image_id'], 'thumbnail') : '',
-                    'suggested_beverage' => (bool) $product['suggested_beverage'],
                     'is_active' => (bool) $product['is_active'],
                     'service_type' => $product['service_type'],
                     'has_multiple_sizes' => true,
@@ -1325,7 +1268,6 @@ class RestaurantBooking_Beverages_Kegs_Admin
                     'alcohol_degree' => (float) $product['alcohol_degree'],
                     'image_id' => $product['image_id'],
                     'image_url' => $product['image_id'] ? wp_get_attachment_image_url($product['image_id'], 'thumbnail') : '',
-                    'suggested_beverage' => (bool) $product['suggested_beverage'],
                     'is_active' => (bool) $product['is_active'],
                     'service_type' => $product['service_type'],
                     'has_multiple_sizes' => false,

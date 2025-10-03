@@ -316,6 +316,7 @@ class RestaurantBooking_Admin
             array($this, 'debug_email_page')
         );
         
+        
 
 
     }
@@ -1957,9 +1958,9 @@ class RestaurantBooking_Admin
                 
                 // Créer quelques logs de test
                 if (class_exists('RestaurantBooking_Logger')) {
-                    RestaurantBooking_Logger::info('Table des logs créée avec succès');
-                    RestaurantBooking_Logger::warning('Ceci est un exemple d\'avertissement');
-                    RestaurantBooking_Logger::error('Ceci est un exemple d\'erreur pour les tests');
+                    RestaurantBooking_Logger::get_instance()->info('Table des logs créée avec succès');
+                    RestaurantBooking_Logger::get_instance()->warning('Ceci est un exemple d\'avertissement');
+                    RestaurantBooking_Logger::get_instance()->error('Ceci est un exemple d\'erreur pour les tests');
                 }
             }
             
@@ -2828,6 +2829,7 @@ class RestaurantBooking_Admin
         </div>
         <?php
     }
+
 
 
 }

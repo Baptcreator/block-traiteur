@@ -40,6 +40,9 @@ $allowed_actions = [
 
 // Fonction de reponse
 function send_response($success, $data, $status_code = 200) {
+    // S'assurer que le Content-Type est toujours JSON même en cas d'erreur
+    header('Content-Type: application/json; charset=utf-8');
+    header('Cache-Control: no-cache, no-store, must-revalidate');
     http_response_code($status_code);
     echo json_encode(['success' => $success, 'data' => $data]);
     exit;

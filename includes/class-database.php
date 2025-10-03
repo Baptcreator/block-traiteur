@@ -250,6 +250,24 @@ class RestaurantBooking_Database
             UNIQUE KEY unique_slug (slug)
         ) $charset_collate;";
 
+        // Table des types de bières
+        $table_beer_types = $wpdb->prefix . 'restaurant_beer_types';
+        $sql_beer_types = "CREATE TABLE $table_beer_types (
+            id int(11) NOT NULL AUTO_INCREMENT,
+            name varchar(255) NOT NULL,
+            slug varchar(100) NOT NULL,
+            description text DEFAULT NULL,
+            display_order int(11) NOT NULL DEFAULT 0,
+            is_active tinyint(1) NOT NULL DEFAULT 1,
+            created_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            updated_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            PRIMARY KEY (id),
+            KEY slug (slug),
+            KEY is_active (is_active),
+            KEY display_order (display_order),
+            UNIQUE KEY unique_slug (slug)
+        ) $charset_collate;";
+
         require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
 
         // Exécuter les requêtes de création
@@ -261,6 +279,7 @@ class RestaurantBooking_Database
         dbDelta($sql_delivery_zones);
         dbDelta($sql_logs);
         dbDelta($sql_wine_types);
+        dbDelta($sql_beer_types);
 
         // Créer des données de test si c'est une nouvelle installation
         if (get_option('restaurant_booking_sample_data_created') !== 'yes') {
@@ -276,7 +295,8 @@ class RestaurantBooking_Database
 
         // Log de la création des tables
         if (class_exists('RestaurantBooking_Logger')) {
-            RestaurantBooking_Logger::log('Tables de base de données créées', 'info');
+            $logger = RestaurantBooking_Logger::get_instance();
+            $logger->info('Tables de base de données créées');
         }
     }
 
@@ -298,7 +318,8 @@ class RestaurantBooking_Database
         ");
         
         if (class_exists('RestaurantBooking_Logger')) {
-            RestaurantBooking_Logger::info('Données corrompues nettoyées');
+            $logger = RestaurantBooking_Logger::get_instance();
+            $logger->info('Données corrompues nettoyées');
         }
     }
 
@@ -359,10 +380,11 @@ class RestaurantBooking_Database
                 $result = $wpdb->query($sql);
                 
                 if (class_exists('RestaurantBooking_Logger')) {
+                    $logger = RestaurantBooking_Logger::get_instance();
                     if ($result !== false) {
-                        RestaurantBooking_Logger::log("Colonne créneaux ajoutée: $column dans $table_availability", 'info');
+                        $logger->info("Colonne créneaux ajoutée: $column dans $table_availability");
                     } else {
-                        RestaurantBooking_Logger::log("Erreur ajout colonne créneaux: $column - " . $wpdb->last_error, 'error');
+                        $logger->error("Erreur ajout colonne créneaux: $column - " . $wpdb->last_error);
                     }
                 }
             }
@@ -393,10 +415,11 @@ class RestaurantBooking_Database
                 }
                 
                 if (class_exists('RestaurantBooking_Logger')) {
+                    $logger = RestaurantBooking_Logger::get_instance();
                     if ($result !== false) {
-                        RestaurantBooking_Logger::log("Colonne ajoutée avec succès: $column dans $table_products", 'info');
+                        $logger->info("Colonne ajoutée avec succès: $column dans $table_products");
                     } else {
-                        RestaurantBooking_Logger::log("Erreur lors de l'ajout de la colonne: $column - " . $wpdb->last_error, 'error');
+                        $logger->error("Erreur lors de l'ajout de la colonne: $column - " . $wpdb->last_error);
                     }
                 }
             }
@@ -418,7 +441,8 @@ class RestaurantBooking_Database
             self::insert_default_data();
             
             if (class_exists('RestaurantBooking_Logger')) {
-                RestaurantBooking_Logger::log("Types de catégories mis à jour dans $table_categories", 'info');
+                $logger = RestaurantBooking_Logger::get_instance();
+                $logger->info("Types de catégories mis à jour dans $table_categories");
             }
         }
     }
@@ -438,7 +462,8 @@ class RestaurantBooking_Database
             $this->create_sample_data();
             
             if (class_exists('RestaurantBooking_Logger')) {
-                RestaurantBooking_Logger::log('Données d\'exemple créées car aucun produit n\'existait', 'info');
+                $logger = RestaurantBooking_Logger::get_instance();
+                $logger->info('Données d\'exemple créées car aucun produit n\'existait');
             }
         }
     }
@@ -617,7 +642,8 @@ class RestaurantBooking_Database
 
         // Log de l'insertion des données par défaut
         if (class_exists('RestaurantBooking_Logger')) {
-            RestaurantBooking_Logger::log('Données par défaut insérées', 'info');
+            $logger = RestaurantBooking_Logger::get_instance();
+            $logger->info('Données par défaut insérées');
         }
     }
 
@@ -630,7 +656,8 @@ class RestaurantBooking_Database
         $instance->update_database_schema();
         
         if (class_exists('RestaurantBooking_Logger')) {
-            RestaurantBooking_Logger::log('Schéma de base de données mis à jour manuellement', 'info');
+            $logger = RestaurantBooking_Logger::get_instance();
+            $logger->info('Schéma de base de données mis à jour manuellement');
         }
     }
 
@@ -644,7 +671,8 @@ class RestaurantBooking_Database
         $instance->create_sample_data();
         
         if (class_exists('RestaurantBooking_Logger')) {
-            RestaurantBooking_Logger::log('Données d\'exemple forcées à être recréées', 'info');
+            $logger = RestaurantBooking_Logger::get_instance();
+            $logger->info('Données d\'exemple forcées à être recréées');
         }
     }
 
@@ -824,7 +852,8 @@ class RestaurantBooking_Database
 
         // Log de la création des données de test
         if (class_exists('RestaurantBooking_Logger')) {
-            RestaurantBooking_Logger::log('Données de test créées', 'info');
+            $logger = RestaurantBooking_Logger::get_instance();
+            $logger->info('Données de test créées');
         }
     }
 

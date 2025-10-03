@@ -832,17 +832,30 @@ class RestaurantBooking_Categories_Manager {
      * Afficher les sous-catégories de vins
      */
     private function display_wine_subcategories() {
-        // Gérer les actions de gestion des types
+        // FORCE DEBUG : Système complet
+        error_log("🔍 🍷 display_wine_subcategories() ENTRÉE");
+        error_log("🔍 🍷 GET: " . print_r($_GET, true));
+        error_log("🔍 🍷 POST: " . print_r($_POST, true));
+        error_log("🔍 🍷 METHOD: " . ($_SERVER['REQUEST_METHOD'] ?? 'NON DÉFINI'));
+        
+        // Traitement des actions POST EN PRIORITÉ !
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            // DEBUG : Log des données POST reçues
+            error_log("🍷 POST reçu dans display_wine_subcategories - Data: " . print_r($_POST, true));
+            error_log("🍷 Method: " . $_SERVER['REQUEST_METHOD'] . " | CONTENT_TYPE: " . ($_SERVER['CONTENT_TYPE'] ?? 'non défini'));
+            
+            error_log("🔍 🍷 APPEL DE handle_wine_tine_action()");
+            $this->handle_wine_type_action();
+            // exit; REMOVED - handle_wine_type_action() fait déjà wp_redirect() et exit
+            return; // ⚠️ CRUCIAL ! Arrêter après traitement POST
+        }
+        
+        // Gérer les actions de gestion des types (UNIQUEMENT si PAS de POST)
         $action = isset($_GET['type_action']) ? sanitize_text_field($_GET['type_action']) : 'list';
         
         if ($action === 'add' || $action === 'edit') {
+            error_log("🔍 🍷 AFFICHAGE FORMULAIRE : action='" . $action . "'");
             $this->display_wine_type_form($action);
-            return;
-        }
-        
-        // Traitement des actions POST
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $this->handle_wine_type_action();
             return;
         }
         
@@ -851,6 +864,9 @@ class RestaurantBooking_Categories_Manager {
             $this->handle_wine_type_deletion();
             return;
         }
+        
+        // CORRECTION : Nettoyer le cache avant d'afficher les types
+        wp_cache_delete('wine_types_list', 'restaurant_booking');
         
         global $wpdb;
         
@@ -861,45 +877,26 @@ class RestaurantBooking_Categories_Manager {
         $table_exists = $wpdb->get_var("SHOW TABLES LIKE '$wine_types_table'");
         
         if ($table_exists) {
-            // DEBUG : Vérifier le contenu de la table
-            $debug_count = $wpdb->get_var("SELECT COUNT(*) FROM $wine_types_table WHERE is_active = 1");
-            
-            // CORRECTION : Utiliser DISTINCT et éviter les doublons
+            // CORRECTION : Requête optimisée pour récupérer tous les types de vins sans doublons
             $existing_types = $wpdb->get_results("
-                SELECT DISTINCT
+                SELECT 
                     wt.slug as type_key,
                     wt.name as type_name,
-                    0 as product_count
+                    COALESCE(product_count_query.count, 0) as product_count
                 FROM $wine_types_table wt
-                WHERE wt.is_active = 1
-                ORDER BY wt.display_order ASC, wt.name ASC
-            ");
-            
-            // Ensuite calculer les produits pour chaque type
-            foreach ($existing_types as &$type) {
-                $product_count = $wpdb->get_var($wpdb->prepare("
-                    SELECT COUNT(*) 
+                LEFT JOIN (
+                    SELECT 
+                        wine_category, 
+                        COUNT(*) as count
                     FROM {$wpdb->prefix}restaurant_products p
                     INNER JOIN {$wpdb->prefix}restaurant_categories c ON p.category_id = c.id
-                    WHERE c.id = 112 AND p.is_active = 1 AND p.wine_category = %s
-                ", $type->type_key));
-                $type->product_count = intval($product_count);
-            }
-            
-            // DEBUG : Afficher les erreurs SQL s'il y en a
-            if ($wpdb->last_error) {
-                echo '<div class="notice notice-error"><p>Erreur SQL : ' . $wpdb->last_error . '</p></div>';
-            }
-            
-            // DEBUG : Afficher le nombre de types trouvés
-            if (current_user_can('manage_options')) {
-                echo '<div class="notice notice-info"><p>DEBUG : ' . $debug_count . ' types dans la table, ' . count($existing_types) . ' types récupérés par la requête</p></div>';
-                
-                // Message de diagnostic si des problèmes sont détectés
-                if ($debug_count > count($existing_types)) {
-                    echo '<div class="notice notice-warning"><p>⚠️ PROBLÈME DÉTECTÉ: Il y a des doublons dans la table. <a href="' . admin_url('admin.php?page=fix-wine-types-migration') . '">Cliquez ici pour corriger automatiquement</a></p></div>';
-                }
-            }
+                    WHERE c.id = 112 AND p.is_active = 1 AND p.wine_category IS NOT NULL AND p.wine_category != ''
+                    GROUP BY wine_category
+                ) product_count_query ON wt.slug = product_count_query.wine_category
+                WHERE wt.is_active = 1
+                GROUP BY wt.id, wt.slug, wt.name
+                ORDER BY wt.display_order ASC, wt.name ASC
+            ");
         } else {
             // Fallback vers l'ancienne méthode si la nouvelle table n'existe pas encore
             $subcategories_table = $wpdb->prefix . 'restaurant_subcategories';
@@ -1058,17 +1055,23 @@ class RestaurantBooking_Categories_Manager {
      * Afficher les sous-catégories de bières
      */
     private function display_beer_subcategories() {
-        // Gérer les actions de gestion des types
+        // Traitement des actions POST EN PRIORITÉ !
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            // DEBUG : Log des données POST reçues
+            error_log("🍺 POST reçu dans display_beer_subcategories - Data: " . print_r($_POST, true));
+            error_log("🍺 Method: " . $_SERVER['REQUEST_METHOD'] . " | CONTENT_TYPE: " . ($_SERVER['CONTENT_TYPE'] ?? 'non défini'));
+            
+            error_log("🔍 🍺 APPEL DE handle_beer_type_action()");
+            $this->handle_beer_type_action();
+            // exit; REMOVED - handle_beer_type_action() fait déjà wp_redirect() et exit
+            return; // ⚠️ CRUCIAL ! Arrêter après traitement POST
+        }
+        
+        // Gérer les actions de gestion des types (UNIQUEMENT si PAS de POST)
         $action = isset($_GET['type_action']) ? sanitize_text_field($_GET['type_action']) : 'list';
         
         if ($action === 'add' || $action === 'edit') {
             $this->display_beer_type_form($action);
-            return;
-        }
-        
-        // Traitement des actions POST
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $this->handle_beer_type_action();
             return;
         }
         
@@ -1077,6 +1080,9 @@ class RestaurantBooking_Categories_Manager {
             $this->handle_beer_type_deletion();
             return;
         }
+        
+        // CORRECTION : Nettoyer le cache avant d'afficher les types
+        wp_cache_delete('beer_types_list', 'restaurant_booking');
         
         global $wpdb;
         
@@ -1090,41 +1096,30 @@ class RestaurantBooking_Categories_Manager {
             // DEBUG : Vérifier le contenu de la table
             $debug_count = $wpdb->get_var("SELECT COUNT(*) FROM $beer_types_table WHERE is_active = 1");
             
-            // CORRECTION : Simplifier la requête pour d'abord récupérer tous les types
+            // CORRECTION : Requête optimisée pour récupérer tous les types de bières sans doublons
             $existing_types = $wpdb->get_results("
                 SELECT 
                     bt.slug as type_key,
                     bt.name as type_name,
-                    0 as product_count,
-                    0 as bottle_count,
-                    0 as keg_count
+                    COALESCE(product_count_query.total_count, 0) as product_count,
+                    COALESCE(product_count_query.bottle_count, 0) as bottle_count,
+                    COALESCE(product_count_query.keg_count, 0) as keg_count
                 FROM $beer_types_table bt
+                LEFT JOIN (
+                    SELECT 
+                        beer_category,
+                        SUM(CASE WHEN c.id = 109 THEN 1 ELSE 0 END) as bottle_count,
+                        SUM(CASE WHEN c.id = 110 THEN 1 ELSE 0 END) as keg_count,
+                        COUNT(*) as total_count
+                    FROM {$wpdb->prefix}restaurant_products p
+                    INNER JOIN {$wpdb->prefix}restaurant_categories c ON p.category_id = c.id
+                    WHERE c.type IN ('biere_bouteille', 'fut') AND p.is_active = 1 AND p.beer_category IS NOT NULL AND p.beer_category != ''
+                    GROUP BY beer_category
+                ) product_count_query ON bt.slug = product_count_query.beer_category
                 WHERE bt.is_active = 1
+                GROUP BY bt.id, bt.slug, bt.name
                 ORDER BY bt.display_order ASC, bt.name ASC
             ");
-            
-            // Ensuite calculer les produits pour chaque type
-            foreach ($existing_types as &$type) {
-                // Compter les bières bouteilles
-                $bottle_count = $wpdb->get_var($wpdb->prepare("
-                    SELECT COUNT(*) 
-                    FROM {$wpdb->prefix}restaurant_products p
-                    INNER JOIN {$wpdb->prefix}restaurant_categories c ON p.category_id = c.id
-                    WHERE c.id = 109 AND p.is_active = 1 AND p.beer_category = %s
-                ", $type->type_key));
-                
-                // Compter les fûts
-                $keg_count = $wpdb->get_var($wpdb->prepare("
-                    SELECT COUNT(*) 
-                    FROM {$wpdb->prefix}restaurant_products p
-                    INNER JOIN {$wpdb->prefix}restaurant_categories c ON p.category_id = c.id
-                    WHERE c.id = 110 AND p.is_active = 1 AND p.beer_category = %s
-                ", $type->type_key));
-                
-                $type->bottle_count = intval($bottle_count);
-                $type->keg_count = intval($keg_count);
-                $type->product_count = $type->bottle_count + $type->keg_count;
-            }
             
             // DEBUG : Afficher les erreurs SQL s'il y en a
             if ($wpdb->last_error) {
@@ -1409,8 +1404,10 @@ class RestaurantBooking_Categories_Manager {
                     'slug' => $type_key,
                     'description' => '',
                     'display_order' => $display_order,
-                    'is_active' => 1
-                ));
+                    'is_active' => 1,
+                    'created_at' => current_time('mysql'),
+                    'updated_at' => current_time('mysql')
+                ), array('%s', '%s', '%s', '%d', '%d', '%s', '%s'));
                 
                 if ($inserted) {
                     wp_redirect(admin_url('admin.php?page=restaurant-booking-categories-manager&action=subcategories&category_id=beers_group&message=type_created&new_type=' . urlencode($type_key)));
@@ -1460,10 +1457,11 @@ class RestaurantBooking_Categories_Manager {
                     $beer_types_table,
                     array(
                         'name' => $type_name,
-                        'slug' => $type_key
+                        'slug' => $type_key,
+                        'updated_at' => current_time('mysql')
                     ),
                     array('slug' => $original_type_key),
-                    array('%s', '%s'),
+                    array('%s', '%s', '%s'),
                     array('%s')
                 );
                 
@@ -1585,8 +1583,14 @@ class RestaurantBooking_Categories_Manager {
      * Gérer les actions sur les types de vins (ajout/modification/suppression)
      */
     private function handle_wine_type_action() {
+        error_log("🍷 handle_wine_type_action() appelé avec POST: " . print_r($_POST, true));
+        
+        // S'assurer que les headers HTML sont corrects
+        header('Content-Type: text/html; charset=utf-8');
+        
         // Vérifier le nonce
         if (!wp_verify_nonce($_POST['wine_type_nonce'], 'save_wine_type')) {
+            error_log("❌ Erreur nonce invalide");
             wp_die(__('Erreur de sécurité', 'restaurant-booking'));
         }
         
@@ -1650,16 +1654,30 @@ class RestaurantBooking_Categories_Manager {
                     'slug' => $type_key,
                     'description' => '',
                     'display_order' => $display_order,
-                    'is_active' => 1
-                ));
+                    'is_active' => 1,
+                    'created_at' => current_time('mysql'),
+                    'updated_at' => current_time('mysql')
+                ), array('%s', '%s', '%s', '%d', '%d', '%s', '%s'));
                 
                 if ($inserted) {
                     // Nettoyer le cache pour éviter les problèmes d'affichage
-                    wp_cache_delete('wine_types_list', 'restaurant_booking');
+                    wp_cache_delete('wine_types_list');              
+                    error_log("✅ Type vin ajouté avec succès : " . $type_name . " (slug: " . $type_key . ", ID: " . $inserted . ")");
                     wp_redirect(admin_url('admin.php?page=restaurant-booking-categories-manager&action=subcategories&category_id=wines_group&message=type_created&new_type=' . urlencode($type_key)));
+                    exit; // 🚨 CRUCIAL ! Arrêter l'exécution après redirection
                 } else {
-                    error_log("Erreur insertion type vin : " . $wpdb->last_error);
-                    wp_redirect(admin_url('admin.php?page=restaurant-booking-categories-manager&action=subcategories&category_id=wines_group&type_action=add&error=save_failed&debug=' . urlencode($wpdb->last_error)));
+                    error_log("❌ Erreur insertion type vin : " . $wpdb->last_error);
+                    error_log("❌ Données tentées : " . print_r(array(
+                        'name' => $type_name,
+                        'slug' => $type_key,
+                        'description' => '',
+                        'display_order' => $display_order,
+                        'is_active' => 1,
+                        'created_at' => current_time('mysql'),
+                        'updated_at' => current_time('mysql')
+                    ), true));
+                    wp_redirect(admin_url('admin.php?page=restaurant-booking-categories_manager&action=subcategories&category_id=wines_group&type_action=add&error=save_failed&debug=' . urlencode($wpdb->last_error)));
+                    exit; // 🚨 CRUCIAL ! Arrêter l'exécution après redirection
                 }
             } else {
                 // Fallback vers l'ancienne méthode si la nouvelle table n'existe pas encore
@@ -1684,11 +1702,14 @@ class RestaurantBooking_Categories_Manager {
                     
                     if ($inserted) {
                         wp_redirect(admin_url('admin.php?page=restaurant-booking-categories-manager&action=subcategories&category_id=wines_group&message=type_created&new_type=' . urlencode($type_key)));
+                        exit; // 🚨 CRUCIAL ! Arrêter l'exécution après redirection
                     } else {
                         wp_redirect(admin_url('admin.php?page=restaurant-booking-categories-manager&action=subcategories&category_id=wines_group&type_action=add&error=save_failed'));
+                        exit; // 🚨 CRUCIAL ! Arrêter l'exécution après redirection
                     }
                 } else {
                     wp_redirect(admin_url('admin.php?page=restaurant-booking-categories-manager&action=subcategories&category_id=wines_group&type_action=add&error=no_category'));
+                    exit; // 🚨 CRUCIAL ! Arrêter l'exécution après redirection
                 }
             }
             exit;
@@ -1704,10 +1725,11 @@ class RestaurantBooking_Categories_Manager {
                     $wine_types_table,
                     array(
                         'name' => $type_name,
-                        'slug' => $type_key
+                        'slug' => $type_key,
+                        'updated_at' => current_time('mysql')
                     ),
                     array('slug' => $original_type_key),
-                    array('%s', '%s'),
+                    array('%s', '%s', '%s'),
                     array('%s')
                 );
                 
@@ -1861,9 +1883,16 @@ class RestaurantBooking_Categories_Manager {
         
         if ($table_exists) {
             // Utiliser la nouvelle table wp_restaurant_beer_types
-            $deleted = $wpdb->delete($beer_types_table, array(
-                'slug' => $type_key
+            // Supprimer TOUTES les entrées avec ce slug pour éviter les doublons
+            $deleted = $wpdb->query($wpdb->prepare(
+                "DELETE FROM $beer_types_table WHERE slug = %s",
+                $type_key
             ));
+            
+            // Nettoyer le cache après suppression
+            if ($deleted) {
+                wp_cache_delete('beer_types_list', 'restaurant_booking');
+            }
         } else {
             // Fallback vers l'ancienne méthode
             $subcategories_table = $wpdb->prefix . 'restaurant_subcategories';

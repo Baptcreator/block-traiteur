@@ -55,8 +55,17 @@ class RestaurantBooking_Product
         // Validation des données obligatoires
         $required_fields = array('category_id', 'name', 'price');
         foreach ($required_fields as $field) {
-            if (!isset($data[$field]) || empty($data[$field])) {
-                return new WP_Error('missing_field', sprintf(__('Le champ %s est obligatoire', 'restaurant-booking'), $field));
+            // Pour les produits avec contenances multiples, le prix peut être 0
+            if ($field === 'price' && isset($data['has_multiple_sizes']) && $data['has_multiple_sizes']) {
+                // Vérifier que le prix est défini (même si c'est 0)
+                if (!isset($data[$field])) {
+                    return new WP_Error('missing_field', sprintf(__('Le champ %s est obligatoire', 'restaurant-booking'), $field));
+                }
+            } else {
+                // Validation normale pour les autres champs
+                if (!isset($data[$field]) || empty($data[$field])) {
+                    return new WP_Error('missing_field', sprintf(__('Le champ %s est obligatoire', 'restaurant-booking'), $field));
+                }
             }
         }
 
@@ -106,20 +115,26 @@ class RestaurantBooking_Product
         );
 
         if ($result === false) {
-            RestaurantBooking_Logger::error('Erreur lors de la création du produit', array(
-                'data' => $data,
-                'error' => $wpdb->last_error
-            ));
+            if (class_exists('RestaurantBooking_Logger')) {
+                $logger = RestaurantBooking_Logger::get_instance();
+                $logger->error('Erreur lors de la création du produit', array(
+                    'data' => $data,
+                    'error' => $wpdb->last_error
+                ));
+            }
             return new WP_Error('db_error', __('Erreur lors de la création du produit', 'restaurant-booking'));
         }
 
         $product_id = $wpdb->insert_id;
 
         // Log de la création
-        RestaurantBooking_Logger::info("Nouveau produit créé: {$data['name']}", array(
-            'product_id' => $product_id,
-            'category_id' => $data['category_id']
-        ));
+        if (class_exists('RestaurantBooking_Logger')) {
+            $logger = RestaurantBooking_Logger::get_instance();
+            $logger->info("Nouveau produit créé: {$data['name']}", array(
+                'product_id' => $product_id,
+                'category_id' => $data['category_id']
+            ));
+        }
 
         return $product_id;
     }
@@ -259,19 +274,27 @@ class RestaurantBooking_Product
         );
 
         if ($result === false) {
-            RestaurantBooking_Logger::error('Erreur lors de la mise à jour du produit', array(
-                'product_id' => $product_id,
-                'data' => $data,
-                'error' => $wpdb->last_error
-            ));
+            if (class_exists('RestaurantBooking_Logger')) {
+                $logger = RestaurantBooking_Logger::get_instance();
+                $logger->error('Erreur lors de la mise à jour du produit', array(
+                    'product_id' => $product_id,
+                    'data' => $data,
+                    'error' => $wpdb->last_error
+                ));
+            }
             return new WP_Error('db_error', __('Erreur lors de la mise à jour', 'restaurant-booking'));
         }
 
+
+
         // Log de la mise à jour
-        RestaurantBooking_Logger::info("Produit mis à jour: {$existing_product['name']}", array(
-            'product_id' => $product_id,
-            'updated_fields' => array_keys($update_data)
-        ));
+        if (class_exists('RestaurantBooking_Logger')) {
+            $logger = RestaurantBooking_Logger::get_instance();
+            $logger->info("Produit mis à jour: {$existing_product['name']}", array(
+                'product_id' => $product_id,
+                'updated_fields' => array_keys($update_data)
+            ));
+        }
 
         return true;
     }
@@ -298,9 +321,12 @@ class RestaurantBooking_Product
             return new WP_Error('db_error', __('Erreur lors de la suppression', 'restaurant-booking'));
         }
 
-        RestaurantBooking_Logger::info("Produit supprimé: {$product['name']}", array(
-            'product_id' => $product_id
-        ));
+        if (class_exists('RestaurantBooking_Logger')) {
+            $logger = RestaurantBooking_Logger::get_instance();
+            $logger->info("Produit supprimé: {$product['name']}", array(
+                'product_id' => $product_id
+            ));
+        }
 
         return true;
     }
@@ -516,11 +542,14 @@ class RestaurantBooking_Product
 
         fclose($handle);
 
-        RestaurantBooking_Logger::info("Import CSV terminé", array(
-            'imported' => $imported,
-            'errors' => count($errors),
-            'file' => basename($file_path)
-        ));
+        if (class_exists('RestaurantBooking_Logger')) {
+            $logger = RestaurantBooking_Logger::get_instance();
+            $logger->info("Import CSV terminé", array(
+                'imported' => $imported,
+                'errors' => count($errors),
+                'file' => basename($file_path)
+            ));
+        }
 
         return array(
             'imported' => $imported,

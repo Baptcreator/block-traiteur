@@ -345,6 +345,18 @@ class RestaurantBooking_Products_BuffetSale_Admin
                                 
                                 <div id="supplements_list">
                                     <!-- Les suppléments seront ajoutés dynamiquement ici -->
+                                    <?php if ($product && !empty($product['supplements'])): ?>
+                                        <?php foreach ($product['supplements'] as $index => $supplement): ?>
+                                            <div class="supplement-item" data-supplement-id="<?php echo $index; ?>">
+                                                <h4><?php echo esc_html($supplement['name']); ?> (+<?php echo number_format($supplement['price'], 2); ?>€)</h4>
+                                                <input type="hidden" name="supplements[<?php echo $index; ?>][name]" value="<?php echo esc_attr($supplement['name']); ?>">
+                                                <input type="hidden" name="supplements[<?php echo $index; ?>][price]" value="<?php echo esc_attr($supplement['price']); ?>">
+                                                <button type="button" class="button button-small delete-supplement" data-supplement-id="<?php echo $index; ?>">
+                                                    <?php _e('Supprimer', 'restaurant-booking'); ?>
+                                                </button>
+                                            </div>
+                                        <?php endforeach; ?>
+                                    <?php endif; ?>
                                 </div>
                                 
                                 <button type="button" class="button button-secondary" id="add_supplement_button">
@@ -422,7 +434,8 @@ class RestaurantBooking_Products_BuffetSale_Admin
         <script>
         jQuery(document).ready(function($) {
             var mediaUploader;
-            var supplementCounter = 0;
+            // ✅ CORRECTION : Initialiser le compteur avec le nombre de suppléments existants
+            var supplementCounter = $('.supplement-item').length;
             
             // Sélecteur d'images WordPress
             $('#upload_image_button').click(function(e) {
@@ -454,24 +467,7 @@ class RestaurantBooking_Products_BuffetSale_Admin
             $('#add_supplement_button').click(function() {
                 $('#supplement_modal_title').text('<?php _e('Ajouter un supplément', 'restaurant-booking'); ?>');
                 $('#supplement_form')[0].reset();
-                $('#supplements_list').empty(); // ✅ NOUVEAU : Effacer les suppléments existants
-                
-                <?php if ($product && !empty($product['supplements'])): ?>
-                    // ✅ NOUVEAU : Charger les suppléments existants
-                    <?php foreach ($product['supplements'] as $supplement): ?>
-                        var supplementHtml = '<div class="supplement-item" data-supplement-id="' + supplementCounter + '">';
-                        supplementHtml += '<h4><?php echo esc_js($supplement['name']); ?> (+<?php echo number_format($supplement['price'], 2); ?>€)</h4>';
-                        supplementHtml += '<input type="hidden" name="supplements[' + supplementCounter + '][name]" value="<?php echo esc_js($supplement['name']); ?>">';
-                        supplementHtml += '<input type="hidden" name="supplements[' + supplementCounter + '][price]" value="<?php echo esc_js($supplement['price']); ?>">';
-                        supplementHtml += '<button type="button" class="button button-small delete-supplement" data-supplement-id="' + supplementCounter + '">';
-                        supplementHtml += '<?php _e('Supprimer', 'restaurant-booking'); ?>';
-                        supplementHtml += '</button>';
-                        supplementHtml += '</div>';
-                        
-                        $('#supplements_list').append(supplementHtml);
-                        supplementCounter++;
-                    <?php endforeach; ?>
-                <?php endif; ?>
+                // ✅ SUPPRIMÉ : Ne plus effacer les suppléments existants
                 
                 $('#supplement_modal').show();
             });

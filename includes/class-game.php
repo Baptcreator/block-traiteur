@@ -93,7 +93,7 @@ class RestaurantBooking_Game
         );
 
         if ($result === false) {
-            RestaurantBooking_Logger::error('Erreur lors de la création du jeu', array(
+            RestaurantBooking_Logger::get_instance()->error('Erreur lors de la création du jeu', array(
                 'data' => $data,
                 'error' => $wpdb->last_error
             ));
@@ -103,7 +103,7 @@ class RestaurantBooking_Game
         $game_id = $wpdb->insert_id;
 
         // Log de la création
-        RestaurantBooking_Logger::info("Nouveau jeu créé: {$data['name']}", array(
+        RestaurantBooking_Logger::get_instance()->info("Nouveau jeu créé: {$data['name']}", array(
             'game_id' => $game_id
         ));
 
@@ -216,7 +216,7 @@ class RestaurantBooking_Game
         );
 
         if ($result === false) {
-            RestaurantBooking_Logger::error('Erreur lors de la mise à jour du jeu', array(
+            RestaurantBooking_Logger::get_instance()->error('Erreur lors de la mise à jour du jeu', array(
                 'game_id' => $game_id,
                 'data' => $data,
                 'error' => $wpdb->last_error
@@ -225,7 +225,7 @@ class RestaurantBooking_Game
         }
 
         // Log de la mise à jour
-        RestaurantBooking_Logger::info("Jeu mis à jour: {$existing_game['name']}", array(
+        RestaurantBooking_Logger::get_instance()->info("Jeu mis à jour: {$existing_game['name']}", array(
             'game_id' => $game_id,
             'updated_fields' => array_keys($update_data)
         ));
@@ -255,7 +255,7 @@ class RestaurantBooking_Game
             return new WP_Error('db_error', __('Erreur lors de la suppression', 'restaurant-booking'));
         }
 
-        RestaurantBooking_Logger::info("Jeu supprimé: {$game['name']}", array(
+        RestaurantBooking_Logger::get_instance()->info("Jeu supprimé: {$game['name']}", array(
             'game_id' => $game_id
         ));
 
