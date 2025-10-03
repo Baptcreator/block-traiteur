@@ -1,376 +1,445 @@
 <?php
 /**
- * Classe de gestion des paramètres pour Block Traiteur
- * Singleton pour accès global aux settings de la base de données
+ * Classe de gestion des paramètres
  *
- * @package Block_Traiteur
- * @subpackage Includes
+ * @package RestaurantBooking
  * @since 1.0.0
  */
 
-// Empêcher l'accès direct
 if (!defined('ABSPATH')) {
     exit;
 }
 
-/**
- * Classe Block_Traiteur_Settings
- * 
- * Gère tous les paramètres configurables du plugin depuis la table restaurant_settings
- */
-class Block_Traiteur_Settings {
-    
+class RestaurantBooking_Settings
+{
     /**
-     * @var Block_Traiteur_Settings Instance unique (singleton)
+     * Instance unique
      */
     private static $instance = null;
-    
+
     /**
-     * @var array Cache des settings pour éviter les requêtes répétées
+     * Cache des paramètres
      */
-    private $cache = array();
-    
+    private static $settings_cache = array();
+
     /**
-     * @var bool Indique si le cache a été chargé
+     * Obtenir l'instance unique
      */
-    private $cache_loaded = false;
-    
-    /**
-     * Constructeur privé pour le singleton
-     */
-    private function __construct() {
-        // Constructeur privé
-    }
-    
-    /**
-     * Obtenir l'instance unique (singleton)
-     */
-    public static function get_instance() {
-        if (self::$instance === null) {
+    public static function get_instance()
+    {
+        if (null === self::$instance) {
             self::$instance = new self();
         }
         return self::$instance;
     }
-    
+
     /**
-     * Charger tous les settings en cache
+     * Constructeur
      */
-    private function load_cache() {
-        if ($this->cache_loaded) {
-            return;
-        }
-        
+    private function __construct()
+    {
+        // Charger les paramètres en cache
+        $this->load_settings_cache();
+    }
+
+    /**
+     * Charger tous les paramètres en cache
+     */
+    private function load_settings_cache()
+    {
         global $wpdb;
-        $table = $wpdb->prefix . 'restaurant_settings';
-        
-        // Vérifier que la table existe
-        if ($wpdb->get_var("SHOW TABLES LIKE '{$table}'") !== $table) {
-            error_log("Block Traiteur Settings: Table {$table} n'existe pas");
-            $this->cache_loaded = true;
-            return;
-        }
-        
+
         $settings = $wpdb->get_results(
-            "SELECT setting_key, setting_value, setting_type FROM {$table} WHERE is_active = 1",
+            "SELECT setting_key, setting_value, setting_type 
+             FROM {$wpdb->prefix}restaurant_settings 
+             WHERE is_active = 1",
             ARRAY_A
         );
-        
+
         foreach ($settings as $setting) {
-            $value = $setting['setting_value'];
-            
-            // Convertir selon le type
-            switch ($setting['setting_type']) {
-                case 'number':
-                    $value = is_numeric($value) ? (float)$value : 0;
-                    break;
-                case 'boolean':
-                    $value = in_array(strtolower($value), array('1', 'true', 'yes', 'on'));
-                    break;
-                case 'json':
-                    $value = json_decode($value, true);
-                    if (json_last_error() !== JSON_ERROR_NONE) {
-                        $value = array();
-                    }
-                    break;
-                case 'html':
-                case 'text':
-                default:
-                    // Garder comme string
-                    break;
-            }
-            
-            $this->cache[$setting['setting_key']] = $value;
+            self::$settings_cache[$setting['setting_key']] = $this->parse_setting_value(
+                $setting['setting_value'], 
+                $setting['setting_type']
+            );
         }
-        
-        $this->cache_loaded = true;
-        error_log("Block Traiteur Settings: " . count($settings) . " paramètres chargés en cache");
     }
-    
+
+    /**
+     * Parser la valeur selon son type
+     */
+    private function parse_setting_value($value, $type)
+    {
+        switch ($type) {
+            case 'number':
+                return is_numeric($value) ? (float) $value : 0;
+            case 'boolean':
+                return filter_var($value, FILTER_VALIDATE_BOOLEAN);
+            case 'json':
+                return json_decode($value, true) ?: array();
+            case 'html':
+            case 'text':
+            default:
+                return $value;
+        }
+    }
+
     /**
      * Obtenir un paramètre
-     * 
-     * @param string $key Clé du paramètre
-     * @param mixed $default Valeur par défaut si non trouvé
-     * @return mixed Valeur du paramètre
      */
-    public function get($key, $default = null) {
-        $this->load_cache();
-        
-        if (isset($this->cache[$key])) {
-            return $this->cache[$key];
+    public static function get($key, $default = null)
+    {
+        if (isset(self::$settings_cache[$key])) {
+            return self::$settings_cache[$key];
         }
-        
+
+        // Si pas en cache, chercher en base
+        global $wpdb;
+        $setting = $wpdb->get_row($wpdb->prepare(
+            "SELECT setting_value, setting_type 
+             FROM {$wpdb->prefix}restaurant_settings 
+             WHERE setting_key = %s AND is_active = 1",
+            $key
+        ));
+
+        if ($setting) {
+            $value = self::get_instance()->parse_setting_value($setting->setting_value, $setting->setting_type);
+            self::$settings_cache[$key] = $value;
+            return $value;
+        }
+
         return $default;
     }
-    
+
     /**
      * Définir un paramètre
-     * 
-     * @param string $key Clé du paramètre
-     * @param mixed $value Valeur à sauvegarder
-     * @param string $type Type de données ('text', 'number', 'boolean', 'json', 'html')
-     * @param string $group Groupe du paramètre
-     * @param string $description Description du paramètre
-     * @return bool Succès de l'opération
      */
-    public function set($key, $value, $type = 'text', $group = 'general', $description = '') {
+    public static function set($key, $value, $type = 'text')
+    {
         global $wpdb;
-        $table = $wpdb->prefix . 'restaurant_settings';
-        
+
         // Préparer la valeur selon le type
-        $db_value = $value;
-        switch ($type) {
-            case 'boolean':
-                $db_value = $value ? '1' : '0';
-                break;
-            case 'json':
-                $db_value = json_encode($value);
-                break;
-            case 'number':
-                $db_value = (string)$value;
-                break;
-            default:
-                $db_value = (string)$value;
-                break;
+        $setting_value = $value;
+        if ($type === 'json' && is_array($value)) {
+            $setting_value = json_encode($value, JSON_UNESCAPED_UNICODE);
+        } elseif ($type === 'boolean') {
+            $setting_value = $value ? '1' : '0';
         }
-        
-        // Insérer ou mettre à jour
-        $result = $wpdb->replace(
-            $table,
-            array(
-                'setting_key' => $key,
-                'setting_value' => $db_value,
-                'setting_type' => $type,
-                'setting_group' => $group,
-                'description' => $description,
-                'is_active' => 1
-            ),
-            array('%s', '%s', '%s', '%s', '%s', '%d')
-        );
-        
+
+        // Vérifier si le paramètre existe
+        $exists = $wpdb->get_var($wpdb->prepare(
+            "SELECT id FROM {$wpdb->prefix}restaurant_settings WHERE setting_key = %s",
+            $key
+        ));
+
+        if ($exists) {
+            // Mettre à jour
+            $result = $wpdb->update(
+                $wpdb->prefix . 'restaurant_settings',
+                array(
+                    'setting_value' => $setting_value,
+                    'setting_type' => $type,
+                    'updated_at' => current_time('mysql')
+                ),
+                array('setting_key' => $key),
+                array('%s', '%s', '%s'),
+                array('%s')
+            );
+        } else {
+            // Insérer
+            $result = $wpdb->insert(
+                $wpdb->prefix . 'restaurant_settings',
+                array(
+                    'setting_key' => $key,
+                    'setting_value' => $setting_value,
+                    'setting_type' => $type,
+                    'setting_group' => 'custom',
+                    'is_active' => 1
+                ),
+                array('%s', '%s', '%s', '%s', '%d')
+            );
+        }
+
         if ($result !== false) {
             // Mettre à jour le cache
-            $this->cache[$key] = $value;
+            self::$settings_cache[$key] = self::get_instance()->parse_setting_value($setting_value, $type);
             return true;
         }
-        
+
         return false;
     }
-    
-    /**
-     * Obtenir tous les paramètres d'un groupe
-     * 
-     * @param string $group Nom du groupe
-     * @return array Paramètres du groupe
-     */
-    public function get_group($group) {
-        global $wpdb;
-        $table = $wpdb->prefix . 'restaurant_settings';
-        
-        $settings = $wpdb->get_results($wpdb->prepare(
-            "SELECT setting_key, setting_value, setting_type FROM {$table} WHERE setting_group = %s AND is_active = 1",
-            $group
-        ), ARRAY_A);
-        
-        $result = array();
-        foreach ($settings as $setting) {
-            $value = $setting['setting_value'];
-            
-            // Convertir selon le type
-            switch ($setting['setting_type']) {
-                case 'number':
-                    $value = is_numeric($value) ? (float)$value : 0;
-                    break;
-                case 'boolean':
-                    $value = in_array(strtolower($value), array('1', 'true', 'yes', 'on'));
-                    break;
-                case 'json':
-                    $value = json_decode($value, true);
-                    if (json_last_error() !== JSON_ERROR_NONE) {
-                        $value = array();
-                    }
-                    break;
-            }
-            
-            $result[$setting['setting_key']] = $value;
-        }
-        
-        return $result;
-    }
-    
+
     /**
      * Supprimer un paramètre
-     * 
-     * @param string $key Clé du paramètre
-     * @return bool Succès de l'opération
      */
-    public function delete($key) {
+    public static function delete($key)
+    {
         global $wpdb;
-        $table = $wpdb->prefix . 'restaurant_settings';
-        
+
         $result = $wpdb->delete(
-            $table,
+            $wpdb->prefix . 'restaurant_settings',
             array('setting_key' => $key),
             array('%s')
         );
-        
+
         if ($result !== false) {
-            unset($this->cache[$key]);
+            unset(self::$settings_cache[$key]);
             return true;
         }
-        
+
         return false;
     }
-    
+
     /**
-     * Vider le cache
+     * Obtenir tous les paramètres d'un groupe
      */
-    public function clear_cache() {
-        $this->cache = array();
-        $this->cache_loaded = false;
+    public static function get_group($group)
+    {
+        global $wpdb;
+
+        $settings = $wpdb->get_results($wpdb->prepare(
+            "SELECT setting_key, setting_value, setting_type 
+             FROM {$wpdb->prefix}restaurant_settings 
+             WHERE setting_group = %s AND is_active = 1
+             ORDER BY setting_key",
+            $group
+        ), ARRAY_A);
+
+        $result = array();
+        foreach ($settings as $setting) {
+            $result[$setting['setting_key']] = self::get_instance()->parse_setting_value(
+                $setting['setting_value'], 
+                $setting['setting_type']
+            );
+        }
+
+        return $result;
     }
-    
+
+    /**
+     * Mettre à jour plusieurs paramètres d'un coup
+     */
+    public static function update_group($group, $settings)
+    {
+        global $wpdb;
+
+        $wpdb->query('START TRANSACTION');
+
+        try {
+            foreach ($settings as $key => $data) {
+                $value = isset($data['value']) ? $data['value'] : $data;
+                $type = isset($data['type']) ? $data['type'] : 'text';
+
+                if (!self::set($key, $value, $type)) {
+                    throw new Exception("Erreur lors de la mise à jour du paramètre: $key");
+                }
+            }
+
+            $wpdb->query('COMMIT');
+            
+            // Log de la mise à jour
+            RestaurantBooking_Logger::log("Paramètres du groupe '$group' mis à jour", 'info', array(
+                'group' => $group,
+                'count' => count($settings)
+            ));
+
+            return true;
+        } catch (Exception $e) {
+            $wpdb->query('ROLLBACK');
+            
+            RestaurantBooking_Logger::log("Erreur lors de la mise à jour du groupe '$group': " . $e->getMessage(), 'error');
+            
+            return false;
+        }
+    }
+
     /**
      * Obtenir les paramètres de tarification
-     * 
-     * @return array Paramètres de prix et contraintes
      */
-    public function get_pricing_settings() {
+    public static function get_pricing_settings()
+    {
         return array(
-            'restaurant_base_price' => $this->get('restaurant_base_price', 300),
-            'remorque_base_price' => $this->get('remorque_base_price', 350),
-            'restaurant_included_hours' => $this->get('restaurant_included_hours', 2),
-            'remorque_included_hours' => $this->get('remorque_included_hours', 2),
-            'hourly_supplement' => $this->get('hourly_supplement', 50),
-            'remorque_50_guests_supplement' => $this->get('remorque_50_guests_supplement', 150),
-            'restaurant_min_guests' => $this->get('restaurant_min_guests', 10),
-            'restaurant_max_guests' => $this->get('restaurant_max_guests', 30),
-            'remorque_min_guests' => $this->get('remorque_min_guests', 20),
-            'remorque_max_guests' => $this->get('remorque_max_guests', 100),
-            'restaurant_max_hours' => $this->get('restaurant_max_hours', 4),
-            'remorque_max_hours' => $this->get('remorque_max_hours', 5)
+            'restaurant_base_price' => self::get('restaurant_base_price', 300.00),
+            'remorque_base_price' => self::get('remorque_base_price', 350.00),
+            'restaurant_included_hours' => self::get('restaurant_included_hours', 2),
+            'remorque_included_hours' => self::get('remorque_included_hours', 2),
+            'hourly_supplement' => self::get('hourly_supplement', 50.00),
+            'remorque_50_guests_supplement' => self::get('remorque_50_guests_supplement', 150.00),
         );
     }
-    
+
     /**
-     * Obtenir les textes de l'interface
-     * 
-     * @return array Textes configurables
+     * Obtenir les contraintes
      */
-    public function get_interface_texts() {
+    public static function get_constraints()
+    {
         return array(
-            // Page d'accueil
-            'homepage_restaurant_title' => $this->get('homepage_restaurant_title', 'LE RESTAURANT'),
-            'homepage_restaurant_description' => $this->get('homepage_restaurant_description', 'Découvrez notre restaurant unique'),
-            'homepage_traiteur_title' => $this->get('homepage_traiteur_title', 'LE TRAITEUR ÉVÉNEMENTIEL'),
-            'homepage_button_privatiser' => $this->get('homepage_button_privatiser', 'Privatiser Block'),
-            
-            // Page traiteur
-            'traiteur_restaurant_title' => $this->get('traiteur_restaurant_title', 'Privatisation du restaurant'),
-            'traiteur_restaurant_subtitle' => $this->get('traiteur_restaurant_subtitle', 'De 10 à 30 personnes'),
-            'traiteur_restaurant_description' => $this->get('traiteur_restaurant_description', 'Privatisez notre restaurant'),
-            'traiteur_remorque_title' => $this->get('traiteur_remorque_title', 'Privatisation de la remorque Block'),
-            'traiteur_remorque_subtitle' => $this->get('traiteur_remorque_subtitle', 'À partir de 20 personnes'),
-            'traiteur_remorque_description' => $this->get('traiteur_remorque_description', 'Notre remorque mobile'),
-            
-            // Messages d'erreur
-            'error_date_unavailable' => $this->get('error_date_unavailable', 'Cette date n\'est pas disponible'),
-            'error_guests_min' => $this->get('error_guests_min', 'Nombre minimum de convives : {min}'),
-            'error_guests_max' => $this->get('error_guests_max', 'Nombre maximum de convives : {max}'),
-            'error_duration_max' => $this->get('error_duration_max', 'Durée maximum : {max} heures'),
-            'error_selection_required' => $this->get('error_selection_required', 'Sélection obligatoire')
+            'restaurant' => array(
+                'min_guests' => self::get('restaurant_min_guests', 10),
+                'max_guests' => self::get('restaurant_max_guests', 30),
+                'max_hours' => self::get('restaurant_max_hours', 4),
+            ),
+            'remorque' => array(
+                'min_guests' => self::get('remorque_min_guests', 20),
+                'max_guests' => self::get('remorque_max_guests', 100),
+                'max_hours' => self::get('remorque_max_hours', 5),
+                'max_delivery_distance' => self::get('remorque_max_delivery_distance', 150),
+            ),
         );
     }
-    
+
     /**
-     * Obtenir les paramètres des forfaits
-     * 
-     * @return array Descriptions et inclusions des forfaits
+     * Obtenir les textes d'interface
      */
-    public function get_package_settings() {
-        return array(
-            'restaurant_package_description' => $this->get('restaurant_package_description', '<h3>Forfait Restaurant - 300€</h3><p>Privatisation complète du restaurant pour 2 heures incluses.</p>'),
-            'restaurant_package_includes' => $this->get('restaurant_package_includes', array('Privatisation complète', 'Service 2 heures', 'Équipement son', 'Décoration de base')),
-            'remorque_package_description' => $this->get('remorque_package_description', '<h3>Forfait Remorque - 350€</h3><p>Remorque mobile avec équipement complet pour 2 heures.</p>'),
-            'remorque_package_includes' => $this->get('remorque_package_includes', array('Remorque équipée', 'Livraison/retour', 'Service 2 heures', 'Équipement complet'))
+    public static function get_interface_texts($section = null)
+    {
+        $all_texts = array(
+            'homepage' => array(
+                'restaurant_title' => self::get('homepage_restaurant_title', 'LE RESTAURANT'),
+                'restaurant_description' => self::get('homepage_restaurant_description', ''),
+                'button_menu' => self::get('homepage_button_menu', 'Voir le menu'),
+                'button_booking' => self::get('homepage_button_booking', 'Réserver à table'),
+                'traiteur_title' => self::get('homepage_traiteur_title', 'LE TRAITEUR ÉVÉNEMENTIEL'),
+                'button_privatiser' => self::get('homepage_button_privatiser', 'Privatiser Block'),
+                'button_infos' => self::get('homepage_button_infos', 'Infos'),
+            ),
+            'traiteur' => array(
+                'restaurant_title' => self::get('traiteur_restaurant_title', 'Privatisation du restaurant'),
+                'restaurant_subtitle' => self::get('traiteur_restaurant_subtitle', 'De 10 à 30 personnes'),
+                'restaurant_description' => self::get('traiteur_restaurant_description', ''),
+                'remorque_title' => self::get('traiteur_remorque_title', 'Privatisation de la remorque Block'),
+                'remorque_subtitle' => self::get('traiteur_remorque_subtitle', 'À partir de 20 personnes'),
+                'remorque_description' => self::get('traiteur_remorque_description', ''),
+            ),
+            'forms' => array(
+                'step1_title' => self::get('form_step1_title', 'Forfait de base'),
+                'step2_title' => self::get('form_step2_title', 'Choix des formules repas'),
+                'step3_title' => self::get('form_step3_title', 'Choix des boissons'),
+                'step4_title' => self::get('form_step4_title', 'Coordonnées / Contact'),
+                'date_label' => self::get('form_date_label', 'Date souhaitée événement'),
+                'guests_label' => self::get('form_guests_label', 'Nombre de convives'),
+                'duration_label' => self::get('form_duration_label', 'Durée souhaitée événement'),
+                'postal_label' => self::get('form_postal_label', 'Commune événement'),
+            ),
+            'messages' => array(
+                'date_unavailable' => self::get('error_date_unavailable', 'Cette date n\'est pas disponible'),
+                'guests_min' => self::get('error_guests_min', 'Nombre minimum de convives : {min}'),
+                'guests_max' => self::get('error_guests_max', 'Nombre maximum de convives : {max}'),
+                'duration_max' => self::get('error_duration_max', 'Durée maximum : {max} heures'),
+                'selection_required' => self::get('error_selection_required', 'Sélection obligatoire'),
+            ),
         );
+
+        return $section ? (isset($all_texts[$section]) ? $all_texts[$section] : array()) : $all_texts;
     }
-    
-    /**
-     * Obtenir les paramètres d'emails
-     * 
-     * @return array Templates et paramètres d'emails
-     */
-    public function get_email_settings() {
-        return array(
-            'email_quote_subject' => $this->get('email_quote_subject', 'Votre devis privatisation Block'),
-            'email_quote_header_html' => $this->get('email_quote_header_html', '<div style="text-align:center;"><h1>Block Street Food & Events</h1></div>'),
-            'email_quote_body_html' => $this->get('email_quote_body_html', '<p>Madame, Monsieur,</p><p>Veuillez trouver ci-joint votre devis personnalisé.</p>'),
-            'email_quote_footer_html' => $this->get('email_quote_footer_html', '<hr><p><small>Block Street Food & Events - SIRET: 123456789</small></p>')
-        );
-    }
-    
+
     /**
      * Remplacer les variables dans un texte
-     * 
-     * @param string $text Texte avec variables {variable}
-     * @param array $variables Variables à remplacer
-     * @return string Texte avec variables remplacées
      */
-    public function replace_variables($text, $variables = array()) {
+    public static function replace_variables($text, $variables = array())
+    {
         foreach ($variables as $key => $value) {
             $text = str_replace('{' . $key . '}', $value, $text);
         }
         return $text;
     }
-    
+
     /**
-     * Obtenir une liste de toutes les clés de paramètres disponibles
-     * 
-     * @return array Liste des clés organisées par groupe
+     * Vider le cache des paramètres
      */
-    public function get_available_settings() {
+    public static function clear_cache()
+    {
+        self::$settings_cache = array();
+        self::get_instance()->load_settings_cache();
+    }
+
+    /**
+     * Exporter la configuration
+     */
+    public static function export_settings()
+    {
         global $wpdb;
-        $table = $wpdb->prefix . 'restaurant_settings';
-        
+
         $settings = $wpdb->get_results(
-            "SELECT setting_key, setting_group, description, setting_type FROM {$table} WHERE is_active = 1 ORDER BY setting_group, setting_key",
+            "SELECT setting_key, setting_value, setting_type, setting_group, description 
+             FROM {$wpdb->prefix}restaurant_settings 
+             WHERE is_active = 1
+             ORDER BY setting_group, setting_key",
             ARRAY_A
         );
-        
-        $grouped = array();
-        foreach ($settings as $setting) {
-            $group = $setting['setting_group'] ?: 'general';
-            if (!isset($grouped[$group])) {
-                $grouped[$group] = array();
-            }
-            $grouped[$group][] = array(
-                'key' => $setting['setting_key'],
-                'description' => $setting['description'],
-                'type' => $setting['setting_type']
-            );
+
+        return array(
+            'version' => RESTAURANT_BOOKING_VERSION,
+            'export_date' => current_time('mysql'),
+            'settings' => $settings
+        );
+    }
+
+    /**
+     * Importer la configuration
+     */
+    public static function import_settings($data)
+    {
+        if (!isset($data['settings']) || !is_array($data['settings'])) {
+            return false;
         }
-        
-        return $grouped;
+
+        global $wpdb;
+        $wpdb->query('START TRANSACTION');
+
+        try {
+            foreach ($data['settings'] as $setting) {
+                if (!isset($setting['setting_key']) || !isset($setting['setting_value'])) {
+                    continue;
+                }
+
+                $exists = $wpdb->get_var($wpdb->prepare(
+                    "SELECT id FROM {$wpdb->prefix}restaurant_settings WHERE setting_key = %s",
+                    $setting['setting_key']
+                ));
+
+                if ($exists) {
+                    $wpdb->update(
+                        $wpdb->prefix . 'restaurant_settings',
+                        array(
+                            'setting_value' => $setting['setting_value'],
+                            'setting_type' => $setting['setting_type'],
+                            'setting_group' => $setting['setting_group'],
+                            'description' => $setting['description'],
+                            'updated_at' => current_time('mysql')
+                        ),
+                        array('setting_key' => $setting['setting_key'])
+                    );
+                } else {
+                    $wpdb->insert(
+                        $wpdb->prefix . 'restaurant_settings',
+                        array(
+                            'setting_key' => $setting['setting_key'],
+                            'setting_value' => $setting['setting_value'],
+                            'setting_type' => $setting['setting_type'],
+                            'setting_group' => $setting['setting_group'],
+                            'description' => $setting['description'],
+                            'is_active' => 1
+                        )
+                    );
+                }
+            }
+
+            $wpdb->query('COMMIT');
+            
+            // Vider le cache
+            self::clear_cache();
+            
+            RestaurantBooking_Logger::log('Configuration importée avec succès', 'info', array(
+                'settings_count' => count($data['settings'])
+            ));
+
+            return true;
+        } catch (Exception $e) {
+            $wpdb->query('ROLLBACK');
+            
+            RestaurantBooking_Logger::log('Erreur lors de l\'import: ' . $e->getMessage(), 'error');
+            
+            return false;
+        }
     }
 }
