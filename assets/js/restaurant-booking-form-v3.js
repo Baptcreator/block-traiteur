@@ -1268,7 +1268,8 @@
                 // Grouper les produits par catégorie
                 const productsByCategory = {};
                 this.priceData.products.forEach(product => {
-                    if (product.quantity > 0) {
+                    // ✅ CORRECTION : Afficher les produits qui ont une quantité > 0 OU qui ont des options
+                    if (product.quantity > 0 || (product.options && product.options.length > 0)) {
                         const category = product.category || 'Produits';
                         if (!productsByCategory[category]) {
                             productsByCategory[category] = [];
@@ -1280,9 +1281,13 @@
                 // Afficher chaque catégorie avec structure hiérarchique
                 Object.keys(productsByCategory).forEach(category => {
                     productsByCategory[category].forEach(product => {
+                        // ✅ CORRECTION : Ne pas afficher la quantité principale si elle est 0 mais qu'il y a des options
+                        const quantityDisplay = (product.quantity > 0) ? `${product.quantity}× ` : '';
+                        const totalDisplay = (product.quantity > 0) ? this.formatPrice(product.total) : '';
+                        
                         html += `<div class="rbf-v3-price-line rbf-v3-price-main">
-                            <span>${product.quantity}× ${product.name}</span>
-                            <span class="rbf-v3-price">${this.formatPrice(product.total)}</span>
+                            <span>${quantityDisplay}${product.name}</span>
+                            <span class="rbf-v3-price">${totalDisplay}</span>
                         </div>`;
                         
                         // ✅ DYNAMIQUE : Afficher les options en sous-lignes (toutes catégories)

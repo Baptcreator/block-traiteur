@@ -2146,7 +2146,26 @@ button.rbf-v3-subcategory-btn.active {
     margin-bottom: var(--rbf-v3-spacing-md);
 }
 
+/* Cartes dans les grilles (Mini Boss et produits signature) */
+.rbf-v3-mini-boss-grid .rbf-v3-product-card,
+.rbf-v3-signature-products-grid .rbf-v3-product-card {
+    background: var(--rbf-v3-white);
+    border: 2px solid var(--rbf-v3-beige);
+    border-radius: var(--rbf-v3-radius);
+    overflow: hidden;
+    transition: var(--rbf-v3-transition);
+    margin-bottom: 0; /* Pas de margin-bottom dans les grilles */
+}
+
 .rbf-v3-product-card-full:hover {
+    border-color: var(--rbf-v3-orange);
+    box-shadow: var(--rbf-v3-shadow-md);
+    transform: translateY(-2px);
+}
+
+/* Hover pour les cartes dans les grilles */
+.rbf-v3-mini-boss-grid .rbf-v3-product-card:hover,
+.rbf-v3-signature-products-grid .rbf-v3-product-card:hover {
     border-color: var(--rbf-v3-orange);
     box-shadow: var(--rbf-v3-shadow-md);
     transform: translateY(-2px);
@@ -2167,6 +2186,12 @@ button.rbf-v3-subcategory-btn.active {
 }
 
 .rbf-v3-product-card-full:hover .rbf-v3-product-image img {
+    transform: scale(1.05);
+}
+
+/* Hover pour les images dans les grilles */
+.rbf-v3-mini-boss-grid .rbf-v3-product-card:hover .rbf-v3-product-image img,
+.rbf-v3-signature-products-grid .rbf-v3-product-card:hover .rbf-v3-product-image img {
     transform: scale(1.05);
 }
 
@@ -2438,6 +2463,17 @@ button.rbf-v3-subcategory-btn.active {
     margin-right: auto;
 }
 
+/* Grille produits signature (DOG/CRAQ) */
+.rbf-v3-signature-products-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--rbf-v3-spacing-md);
+    margin-top: var(--rbf-v3-spacing-md);
+    max-width: 900px; /* Limiter la largeur maximale pour simuler 3 colonnes */
+    margin-left: auto;
+    margin-right: auto;
+}
+
 /* Responsive pour la grille Mini Boss */
 @media (max-width: 768px) {
     .rbf-v3-mini-boss-grid {
@@ -2448,6 +2484,21 @@ button.rbf-v3-subcategory-btn.active {
 
 @media (max-width: 480px) {
     .rbf-v3-mini-boss-grid {
+        grid-template-columns: 1fr;
+        max-width: none;
+    }
+}
+
+/* Responsive pour la grille produits signature */
+@media (max-width: 768px) {
+    .rbf-v3-signature-products-grid {
+        grid-template-columns: 1fr;
+        max-width: none;
+    }
+}
+
+@media (max-width: 480px) {
+    .rbf-v3-signature-products-grid {
         grid-template-columns: 1fr;
         max-width: none;
     }
@@ -2654,7 +2705,7 @@ button.rbf-v3-subcategory-btn.active {
 
 @media (min-width: 768px) {
     .rbf-v3-products-grid {
-        grid-template-columns: repeat(4, 1fr);
+        grid-template-columns: repeat(3, 1fr);
         gap: var(--rbf-v3-spacing-lg);
     }
 }
@@ -3589,9 +3640,9 @@ button.rbf-v3-subcategory-btn.active {
 /* Styles pour le conteneur des suppléments */
 .rbf-v3-buffet-supplements {
     margin-top: var(--rbf-v3-spacing-md);
-    padding: var(--rbf-v3-spacing-sm);
-    background: var(--rbf-v3-green-light);
-    border-radius: var(--rbf-v3-radius-sm);
+    padding: 0;
+    background: none;
+    border-radius: 0;
     border-top: 1px solid var(--rbf-v3-beige);
 }
 
@@ -3602,22 +3653,8 @@ button.rbf-v3-subcategory-btn.active {
     margin: 0 0 var(--rbf-v3-spacing-sm) 0;
 }
 
-.rbf-v3-supplement-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: var(--rbf-v3-spacing-sm);
-    padding: var(--rbf-v3-spacing-xs);
-    background: var(--rbf-v3-white);
-    border-radius: var(--rbf-v3-radius-sm);
-}
-
 .rbf-v3-supplement-item:last-child {
     margin-bottom: 0;
-}
-
-.rbf-v3-supplement-info {
-    flex: 1;
 }
 
 .rbf-v3-supplement-name {
@@ -3632,10 +3669,35 @@ button.rbf-v3-subcategory-btn.active {
     font-size: 0.9rem;
 }
 
+/* Styles pour les suppléments sur ordinateur - layout vertical */
+.rbf-v3-supplement-item {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    margin-bottom: var(--rbf-v3-spacing-sm);
+    padding: var(--rbf-v3-spacing-sm);
+    background: none;
+    border-radius: 0;
+    gap: var(--rbf-v3-spacing-xs);
+}
+
+.rbf-v3-supplement-info {
+    text-align: center;
+    width: 100%;
+}
+
+.rbf-v3-quantity-selector {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    gap: var(--rbf-v3-spacing-xs) !important;
+    flex-shrink: 0;
+}
+
 /* Responsive pour les suppléments */
 @media (max-width: 768px) {
     .rbf-v3-supplement-item {
-        flex-direction: column;
+        flex-direction: column !important;
         gap: var(--rbf-v3-spacing-xs);
         text-align: center;
     }
@@ -3643,10 +3705,12 @@ button.rbf-v3-subcategory-btn.active {
     .rbf-v3-supplement-info {
         order: 1;
         margin-bottom: var(--rbf-v3-spacing-xs);
+        text-align: center;
     }
     
     .rbf-v3-quantity-selector {
         order: 2;
         max-width: 160px;
+        flex-direction: row !important;
     }
 }

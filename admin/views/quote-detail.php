@@ -170,7 +170,10 @@ if (RESTAURANT_BOOKING_DEBUG) {
                                 // Afficher les produits calculés
                                 if (!empty($price_breakdown['products']) && is_array($price_breakdown['products'])) {
                                     foreach ($price_breakdown['products'] as $product) {
-                                        $products_displayed = true;
+                                        // ✅ CORRECTION : Afficher les produits qui ont une quantité > 0 OU qui ont des options
+                                        if ((isset($product['quantity']) && $product['quantity'] > 0) || 
+                                            (!empty($product['options']) && is_array($product['options']))) {
+                                            $products_displayed = true;
                                         ?>
                                         <tr>
                                             <td>
@@ -179,9 +182,9 @@ if (RESTAURANT_BOOKING_DEBUG) {
                                                     <br><small style="color: #666;"><?php echo esc_html($product['category']); ?></small>
                                                 <?php endif; ?>
                                             </td>
-                                            <td><?php echo intval($product['quantity'] ?? 0); ?></td>
-                                            <td><?php echo number_format(floatval($product['price'] ?? 0), 2, ',', ' '); ?> €</td>
-                                            <td><?php echo number_format(floatval($product['total'] ?? 0), 2, ',', ' '); ?> €</td>
+                                            <td><?php echo (intval($product['quantity'] ?? 0) > 0) ? intval($product['quantity']) : ''; ?></td>
+                                            <td><?php echo (intval($product['quantity'] ?? 0) > 0) ? number_format(floatval($product['price'] ?? 0), 2, ',', ' ') . ' €' : ''; ?></td>
+                                            <td><?php echo (intval($product['quantity'] ?? 0) > 0) ? number_format(floatval($product['total'] ?? 0), 2, ',', ' ') . ' €' : ''; ?></td>
                                         </tr>
                                         
                                         <!-- Options et sous-options hiérarchiques -->
@@ -207,6 +210,7 @@ if (RESTAURANT_BOOKING_DEBUG) {
                                             <?php endforeach; ?>
                                         <?php endif; ?>
                                         <?php
+                                        } // Fermer la condition if pour les produits avec quantité > 0 ou options
                                     }
                                 }
                                 
@@ -250,6 +254,25 @@ if (RESTAURANT_BOOKING_DEBUG) {
                                             <td><?php echo number_format(floatval($option['total'] ?? $option['price'] ?? 0), 2, ',', ' '); ?> €</td>
                                         </tr>
                                         <?php
+                                    }
+                                }
+                                
+                                // ✅ CORRECTION : Afficher les suppléments de livraison
+                                if (!empty($price_breakdown['supplements_detailed']) && is_array($price_breakdown['supplements_detailed'])) {
+                                    foreach ($price_breakdown['supplements_detailed'] as $supplement) {
+                                        if (isset($supplement['name']) && isset($supplement['price']) && $supplement['price'] > 0) {
+                                            $products_displayed = true;
+                                            ?>
+                                            <tr style="background-color: #f0f8ff;">
+                                                <td>
+                                                    <strong><?php echo esc_html($supplement['name']); ?></strong>
+                                                </td>
+                                                <td>1</td>
+                                                <td><?php echo number_format(floatval($supplement['price']), 2, ',', ' '); ?> €</td>
+                                                <td><?php echo number_format(floatval($supplement['price']), 2, ',', ' '); ?> €</td>
+                                            </tr>
+                                            <?php
+                                        }
                                     }
                                 }
                                 

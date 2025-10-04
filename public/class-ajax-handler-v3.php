@@ -684,14 +684,14 @@ class RestaurantBooking_Ajax_Handler_V3
                 <p class="rbf-v3-help-text"><em>Optionnel - Pour les plus petits</em></p>
                 
                 <label class="rbf-v3-checkbox-card">
-                    <input type="checkbox" name="mini_boss_enabled" value="1" data-action="toggle-mini-boss" data-initial-state="<?php echo (isset($form_data['mini_boss_enabled']) && $form_data['mini_boss_enabled']) ? 'enabled' : 'disabled'; ?>"<?php echo (isset($form_data['mini_boss_enabled']) && $form_data['mini_boss_enabled']) ? ' checked' : ''; ?>>
+                    <input type="checkbox" name="mini_boss_enabled" value="1" data-action="toggle-mini-boss" data-initial-state="disabled">
                     <div class="rbf-v3-checkbox-content">
                         <span class="rbf-v3-checkbox-title">Ajouter le menu Mini Boss</span>
                         <span class="rbf-v3-checkbox-subtitle">Menu spécialement conçu pour les enfants</span>
                     </div>
                 </label>
                 
-                <div class="rbf-v3-mini-boss-products" style="<?php echo (isset($form_data['mini_boss_enabled']) && $form_data['mini_boss_enabled']) ? '' : 'display: none;'; ?>" data-initial-state="<?php echo (isset($form_data['mini_boss_enabled']) && $form_data['mini_boss_enabled']) ? 'visible' : 'hidden'; ?>">
+                <div class="rbf-v3-mini-boss-products" style="display: none;" data-initial-state="hidden">
                     <?php echo $this->get_mini_boss_products_html(); ?>
                 </div>
             </div>
@@ -1539,6 +1539,9 @@ class RestaurantBooking_Ajax_Handler_V3
             'supplements' => $supplements_array,
             'products' => $products_array,
             'options' => $options_array, // ✅ CORRECTION : Inclure les options dans le retour
+            'supplements_total' => $supplements_total, // ✅ CORRECTION : Ajouter supplements_total
+            'products_total' => $products_total, // ✅ CORRECTION : Ajouter products_total
+            'options_total' => $options_total, // ✅ CORRECTION : Ajouter options_total
             'duration_supplement' => $supplements_total,
             'extra_hours' => $duration > $min_duration ? ($duration - $min_duration) : 0,
             'duration_rate' => $this->options[$service_type . '_extra_hour_price'],
@@ -1693,7 +1696,7 @@ class RestaurantBooking_Ajax_Handler_V3
             }
         }
         
-        // ✅ NOUVEAU : Calculer les suppléments buffet (salé et sucré) et les ajouter comme options
+        // ✅ CORRECTION : Calculer les suppléments buffet (salé et sucré) et les ajouter comme options
         foreach ($form_data as $key => $value) {
             if (preg_match('/^buffet_(sale|sucre)_(\d+)_supplement_(\d+)_qty$/', $key, $matches) && intval($value) > 0) {
                 $buffet_type = $matches[1];
@@ -1726,7 +1729,58 @@ class RestaurantBooking_Ajax_Handler_V3
                             'price' => $supplement_info['price'],
                             'total' => $quantity * $supplement_info['price']
                         ];
+                        
+                        // ✅ DEBUG : Logger pour diagnostiquer
+                        RestaurantBooking_Logger::info('Supplément buffet ajouté', array(
+                            'product_id' => $product_id,
+                            'supplement_name' => $supplement_info['name'],
+                            'quantity' => $quantity,
+                            'price' => $supplement_info['price'],
+                            'total' => $quantity * $supplement_info['price']
+                        ));
+                    } else {
+                        // ✅ CORRECTION : Si le produit parent n'est pas trouvé, créer un produit buffet temporaire
+                        // pour éviter que le supplément apparaisse comme "Produit sélectionné" à 0€
+                        $buffet_name = $this->get_product_name($product_id, 'buffet_' . $buffet_type);
+                        $buffet_price = $this->get_product_price($product_id, 'buffet_' . $buffet_type);
+                        
+                        // Créer un produit buffet temporaire avec le supplément comme option
+                        $temp_product = [
+                            'name' => $buffet_name,
+                            'quantity' => 0, // Quantité 0 car c'est juste pour afficher le supplément
+                            'price' => $buffet_price,
+                            'total' => 0,
+                            'category' => 'Buffet ' . ucfirst($buffet_type),
+                            'product_id' => $product_id,
+                            'product_type' => 'buffet_' . $buffet_type,
+                            'options' => [
+                                [
+                                    'name' => $supplement_info['name'],
+                                    'quantity' => $quantity,
+                                    'price' => $supplement_info['price'],
+                                    'total' => $quantity * $supplement_info['price']
+                                ]
+                            ]
+                        ];
+                        
+                        $products[] = $temp_product;
+                        
+                        // ✅ DEBUG : Logger pour diagnostiquer
+                        RestaurantBooking_Logger::info('Supplément buffet ajouté avec produit temporaire', array(
+                            'product_id' => $product_id,
+                            'supplement_name' => $supplement_info['name'],
+                            'quantity' => $quantity,
+                            'price' => $supplement_info['price'],
+                            'total' => $quantity * $supplement_info['price']
+                        ));
                     }
+                } else {
+                    // ✅ DEBUG : Logger si le supplément n'est pas trouvé
+                    RestaurantBooking_Logger::warning('Supplément buffet non trouvé', array(
+                        'supplement_id' => $supplement_id,
+                        'product_id' => $product_id,
+                        'buffet_type' => $buffet_type
+                    ));
                 }
             }
         }
@@ -2125,7 +2179,7 @@ class RestaurantBooking_Ajax_Handler_V3
             'action' => 'get_product_name'
         ));
         
-        // Retourner un nom plus informatif au lieu de données hardcodées
+        // ✅ CORRECTION : Retourner un nom plus informatif au lieu de données hardcodées
         return sprintf('Produit #%d (%s)', $product_id, $category);
     }
 
@@ -2441,6 +2495,7 @@ class RestaurantBooking_Ajax_Handler_V3
             <h3>📋 TOUS LES <?php echo strtoupper($category_label); ?></h3>
             <div class="rbf-v3-beverages-grid">
                 <?php foreach ($beverages as $beverage) : ?>
+                    <?php if (!$beverage['is_featured']) : ?>
                     <div class="rbf-v3-beverage-card" 
                          data-product-id="<?php echo esc_attr($beverage['id']); ?>" 
                          data-category="<?php echo esc_attr($beverage['category_type']); ?>"
@@ -2497,6 +2552,7 @@ class RestaurantBooking_Ajax_Handler_V3
                             <?php endif; ?>
                         </div>
                     </div>
+                    <?php endif; ?>
                 <?php endforeach; ?>
             </div>
         </div>
@@ -2662,6 +2718,11 @@ class RestaurantBooking_Ajax_Handler_V3
             ]);
         }
 
+        // ✅ CORRECTION : Inclure les suppléments détaillés dans le price_breakdown
+        $price_data['supplements_detailed'] = $supplements_array;
+        $price_data['delivery_supplement'] = $form_data['delivery_supplement'] ?? 0;
+        $price_data['delivery_zone'] = $form_data['delivery_zone'] ?? '';
+        
         $quote_data = [
             'quote_number' => $quote_number,
             'service_type' => $service_type,
@@ -3030,7 +3091,7 @@ class RestaurantBooking_Ajax_Handler_V3
         foreach ($products as $product) {
             $image_url = $product->image_url ? esc_url($product->image_url) : '';
             
-            $html .= '<div class="rbf-v3-product-card-full">';
+            $html .= '<div class="rbf-v3-product-card">';
             
             // Afficher le bloc image dans tous les cas (comme pour les autres sections)
             $html .= '<div class="rbf-v3-product-image">';
@@ -3321,7 +3382,7 @@ class RestaurantBooking_Ajax_Handler_V3
         foreach ($products as $product) {
             $image_url = $product->image_url ? esc_url($product->image_url) : '';
             
-            $html .= '<div class="rbf-v3-product-card-full">';
+            $html .= '<div class="rbf-v3-product-card">';
             // Afficher le bloc image dans tous les cas (comme pour Mini-Boss)
             $html .= '<div class="rbf-v3-product-image">';
             if ($image_url) {
@@ -4223,13 +4284,31 @@ class RestaurantBooking_Ajax_Handler_V3
         }
         
         // Fallback vers les catégories par défaut si aucune catégorie trouvée
+        // MAIS seulement si elles ont réellement des fûts disponibles
         if (empty($beer_categories)) {
-            $beer_categories = array(
+            $default_categories = array(
                 'blonde' => 'Blondes',
                 'blanche' => 'Blanches', 
                 'ipa' => 'IPA',
                 'ambree' => 'Ambrées'
             );
+            
+            // Vérifier la disponibilité réelle de chaque catégorie par défaut
+            foreach ($default_categories as $key => $name) {
+                $keg_count = $wpdb->get_var($wpdb->prepare("
+                    SELECT COUNT(p.id)
+                    FROM {$wpdb->prefix}restaurant_products p
+                    INNER JOIN {$wpdb->prefix}restaurant_categories c ON p.category_id = c.id
+                    WHERE c.id = 110
+                    AND p.beer_category = %s
+                    AND p.is_active = 1
+                ", $key));
+                
+                // Ne garder que les catégories qui ont des fûts disponibles
+                if ($keg_count > 0) {
+                    $beer_categories[$key] = $name;
+                }
+            }
         }
         
         return $beer_categories;

@@ -286,14 +286,22 @@ class RestaurantBooking_Beverages_Wines_Unified_Admin
                 border-radius: 3px;
                 font-size: 12px;
                 font-weight: bold;
-                color: white;
+                color: #333;
             }
-            .wine-type-blanc { background: #f1c40f; }
-            .wine-type-rouge { background: #e74c3c; }
-            .wine-type-rose { background: #ff69b4; }
-            .wine-type-champagne { background: #ffd700; }
+            .wine-type-blanc { background: #f1c40f; color: #333; }
+            .wine-type-rouge { background: #e74c3c; color: white; }
+            .wine-type-rose { background: #ff69b4; color: white; }
+            .wine-type-champagne { background: #ffd700; color: #333; }
+            .wine-type-alsace { background: #e8f5e8; color: #2e7d32; }
+            .wine-type-bordeaux { background: #ffebee; color: #c62828; }
+            .wine-type-bourgogne { background: #f3e5f5; color: #7b1fa2; }
+            .wine-type-loire { background: #e0f2f1; color: #00695c; }
+            .wine-type-rhone { background: #fff3e0; color: #ef6c00; }
+            .wine-type-provence { background: #fce4ec; color: #ad1457; }
+            .wine-type-languedoc { background: #e3f2fd; color: #1976d2; }
             .wine-type-badge:not([class*="wine-type-"]) { 
-                background: #95a5a6; 
+                background: #f5f5f5; 
+                color: #333;
             }
             .description {
                 font-size: 12px;

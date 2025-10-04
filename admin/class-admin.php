@@ -60,6 +60,10 @@ class RestaurantBooking_Admin
         // Action AJAX pour créer une nouvelle contenance
         add_action('wp_ajax_create_new_container', array($this, 'ajax_create_new_container'));
         
+        // Action AJAX pour afficher le devis PDF/HTML
+        add_action('wp_ajax_restaurant_booking_view_quote_pdf', array($this, 'ajax_view_quote_pdf'));
+        add_action('wp_ajax_restaurant_booking_preview_pdf', array($this, 'ajax_preview_pdf'));
+        
     }
 
     /**
@@ -2830,6 +2834,154 @@ class RestaurantBooking_Admin
         <?php
     }
 
+    /**
+     * Action AJAX: Afficher le devis PDF/HTML
+     */
+    public function ajax_view_quote_pdf()
+    {
+        // Vérifier le nonce
+        $quote_id = (int) $_GET['quote_id'];
+        if (!wp_verify_nonce($_GET['_wpnonce'], 'view_quote_pdf_' . $quote_id)) {
+            wp_die(__('Token de sécurité invalide', 'restaurant-booking'));
+        }
 
+        // Vérifier les permissions
+        if (!current_user_can('manage_restaurant_quotes')) {
+            wp_die(__('Permissions insuffisantes', 'restaurant-booking'));
+        }
+
+        // Récupérer le devis
+        $quote = RestaurantBooking_Quote::get($quote_id);
+        if (!$quote) {
+            wp_die(__('Devis introuvable', 'restaurant-booking'));
+        }
+
+        // Générer le PDF/HTML du devis
+        require_once RESTAURANT_BOOKING_PLUGIN_DIR . 'includes/class-pdf.php';
+        
+        // Générer le HTML du devis (même format que l'email)
+        $html_content = RestaurantBooking_PDF::generate_quote_pdf($quote_id);
+        
+        if (is_wp_error($html_content)) {
+            wp_die($html_content->get_error_message());
+        }
+        
+        // Si c'est un fichier HTML, lire son contenu
+        if (is_string($html_content) && file_exists($html_content)) {
+            $html_content = file_get_contents($html_content);
+        }
+
+        // Envoyer les headers appropriés
+        header('Content-Type: text/html; charset=UTF-8');
+        header('Content-Disposition: inline; filename="devis-block-' . $quote_id . '.html"');
+        
+        // Afficher le contenu HTML
+        echo $html_content;
+        exit;
+    }
+
+    /**
+     * Action AJAX: Prévisualiser un exemple de devis PDF
+     */
+    public function ajax_preview_pdf()
+    {
+        // Vérifier le nonce
+        if (!wp_verify_nonce($_GET['nonce'], 'preview_pdf')) {
+            wp_die(__('Token de sécurité invalide', 'restaurant-booking'));
+        }
+
+        // Vérifier les permissions
+        if (!current_user_can('manage_restaurant_quotes')) {
+            wp_die(__('Permissions insuffisantes', 'restaurant-booking'));
+        }
+
+        // Créer un objet devis fictif pour la prévisualisation
+        $fake_quote = (object) array(
+            'id' => 999999,
+            'quote_number' => 'PREVIEW-' . date('Y-m-d-His'),
+            'service_type' => 'restaurant',
+            'event_date' => date('Y-m-d', strtotime('+1 week')),
+            'event_duration' => 4,
+            'guest_count' => 25,
+            'postal_code' => '75001',
+            'total_price' => 1250.00,
+            'base_price' => 800.00,
+            'created_at' => date('Y-m-d H:i:s')
+        );
+
+        // Créer des données client fictives
+        $fake_customer_data = array(
+            'firstname' => 'Jean',
+            'name' => 'Dupont',
+            'email' => 'jean.dupont@example.com',
+            'phone' => '+33 1 23 45 67 89',
+            'message' => 'Exemple de demande pour la prévisualisation du devis.'
+        );
+
+        // Créer des données de prix fictives
+        $fake_price_data = array(
+            'base_price' => array(
+                'amount' => 800.00,
+                'details' => 'Forfait privatisation restaurant (10-30 personnes)'
+            ),
+            'products' => array(
+                array(
+                    'id' => 1,
+                    'name' => 'Menu Signature',
+                    'category' => 'Plats',
+                    'quantity' => 25,
+                    'price' => 35.00,
+                    'total' => 875.00
+                )
+            ),
+            'beverages_detailed' => array(
+                array(
+                    'name' => 'Vin rouge',
+                    'size' => 'Bouteille 75cl',
+                    'type' => 'Rouge',
+                    'quantity' => 3,
+                    'price' => 25.00,
+                    'total' => 75.00
+                )
+            ),
+            'supplements_detailed' => array(
+                array(
+                    'name' => 'Supplément livraison',
+                    'price' => 50.00,
+                    'total' => 50.00
+                )
+            )
+        );
+
+        // Créer des produits sélectionnés fictifs
+        $fake_selected_products = array(
+            'plats' => array(
+                array(
+                    'id' => 1,
+                    'name' => 'Menu Signature',
+                    'quantity' => 25,
+                    'price' => 35.00
+                )
+            )
+        );
+
+        // Générer le HTML de prévisualisation
+        require_once RESTAURANT_BOOKING_PLUGIN_DIR . 'includes/class-pdf.php';
+        
+        $html_content = RestaurantBooking_PDF::generate_direct_html(
+            $fake_quote, 
+            $fake_customer_data, 
+            $fake_price_data, 
+            $fake_selected_products
+        );
+
+        // Envoyer les headers appropriés
+        header('Content-Type: text/html; charset=UTF-8');
+        header('Content-Disposition: inline; filename="preview-devis-block.html"');
+        
+        // Afficher le contenu HTML
+        echo $html_content;
+        exit;
+    }
 
 }

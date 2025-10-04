@@ -278,6 +278,7 @@ class RestaurantBooking_Beverages_Wines_Admin
             border-radius: 3px;
             font-size: 11px;
             font-weight: 500;
+            border: 1px solid #b3e5fc;
         }
         .suggestion-yes { 
             color: #ff9800; 

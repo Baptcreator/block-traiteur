@@ -627,10 +627,10 @@ class RestaurantBooking_PDF
         $general_settings = get_option('restaurant_booking_general_settings', array());
         $company_name = isset($general_settings['company_name']) ? $general_settings['company_name'] : 'Restaurant Block';
         $company_address = isset($general_settings['company_address']) ? $general_settings['company_address'] : '123 Rue de la Gastronomie';
-        $company_postal_code = isset($general_settings['company_postal_code']) ? $general_settings['company_postal_code'] : '67000';
-        $company_city = isset($general_settings['company_city']) ? $general_settings['company_city'] : 'Strasbourg';
-        $company_phone = isset($general_settings['company_phone']) ? $general_settings['company_phone'] : '03 88 XX XX XX';
-        $company_email = isset($general_settings['company_email']) ? $general_settings['company_email'] : 'contact@restaurant-block.fr';
+        $company_postal_code = isset($general_settings['company_postal_code']) ? $general_settings['company_postal_code'] : '75001';
+        $company_city = isset($general_settings['company_city']) ? $general_settings['company_city'] : 'Paris';
+        $company_phone = isset($general_settings['company_phone']) ? $general_settings['company_phone'] : '+33 1 23 45 67 89';
+        $company_email = isset($general_settings['company_email']) ? $general_settings['company_email'] : 'contact@blockandco.fr';
         $company_siret = isset($general_settings['company_siret']) ? $general_settings['company_siret'] : '123 456 789 01234';
         
         // Récupérer les textes des conditions générales
@@ -901,8 +901,21 @@ class RestaurantBooking_PDF
         </thead>
         <tbody>';
         
-        // Forfait de base
-        $base_price = $price_data['base_price']['amount'] ?? 0;
+        // Forfait de base - CORRECTION : Utiliser la structure correcte des données
+        $base_price = 0;
+        if (isset($price_data['base_price'])) {
+            if (is_array($price_data['base_price']) && isset($price_data['base_price']['amount'])) {
+                $base_price = floatval($price_data['base_price']['amount']);
+            } elseif (is_numeric($price_data['base_price'])) {
+                $base_price = floatval($price_data['base_price']);
+            }
+        }
+        
+        // Si le prix de base est toujours 0, utiliser la valeur de la base de données
+        if ($base_price == 0) {
+            $base_price = floatval($quote->base_price ?? 0);
+        }
+        
         $html .= '
             <tr>
                 <td><strong>Forfait de base</strong><br><small>' . htmlspecialchars($price_data['base_price']['details'] ?? '') . '</small></td>
@@ -911,13 +924,30 @@ class RestaurantBooking_PDF
                 <td class="text-right">' . number_format($base_price, 2, ',', ' ') . ' €</td>
             </tr>';
             
+        // ✅ CORRECTION : Afficher les suppléments de livraison
+        if (!empty($price_data['supplements_detailed']) && is_array($price_data['supplements_detailed'])) {
+            foreach ($price_data['supplements_detailed'] as $supplement) {
+                if (isset($supplement['name']) && isset($supplement['price']) && $supplement['price'] > 0) {
+                    $html .= '
+            <tr>
+                <td><strong>' . htmlspecialchars($supplement['name']) . '</strong></td>
+                <td class="text-center">1</td>
+                <td class="text-right">' . number_format(floatval($supplement['price']), 2, ',', ' ') . ' €</td>
+                <td class="text-right">' . number_format(floatval($supplement['price']), 2, ',', ' ') . ' €</td>
+            </tr>';
+                }
+            }
+        }
+            
         // Produits sélectionnés - Utiliser price_data['products'] en priorité
         $products_displayed = false;
         
         // Essayer d'abord avec price_data['products'] (données calculées avec prix)
         if (!empty($price_data['products']) && is_array($price_data['products'])) {
             foreach ($price_data['products'] as $product) {
-                if (isset($product['quantity']) && $product['quantity'] > 0) {
+                // ✅ CORRECTION : Afficher les produits qui ont une quantité > 0 OU qui ont des options
+                if ((isset($product['quantity']) && $product['quantity'] > 0) || 
+                    (!empty($product['options']) && is_array($product['options']))) {
                     $products_displayed = true;
                     
                     // Récupérer le nom réel du produit depuis la base de données si nécessaire
@@ -946,9 +976,9 @@ class RestaurantBooking_PDF
                     }
                     
                     $html .= '</td>
-                <td class="text-center">' . $quantity . '</td>
-                <td class="text-right">' . number_format($price, 2, ',', ' ') . ' €</td>
-                <td class="text-right">' . number_format($total, 2, ',', ' ') . ' €</td>
+                <td class="text-center">' . ($quantity > 0 ? $quantity : '') . '</td>
+                <td class="text-right">' . ($quantity > 0 ? number_format($price, 2, ',', ' ') . ' €' : '') . '</td>
+                <td class="text-right">' . ($quantity > 0 ? number_format($total, 2, ',', ' ') . ' €' : '') . '</td>
             </tr>';
                     
                     // Afficher les options du produit si elles existent
