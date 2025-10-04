@@ -265,6 +265,15 @@ class RestaurantBooking_Admin
             array($this, 'beverages_kegs_page')
         );
 
+        // Sous-menu Jeux (repositionné après Fûts de Bière)
+        add_submenu_page(
+            'restaurant-booking',
+            __('Gestion des Jeux', 'restaurant-booking'),
+            __('🎮 Jeux', 'restaurant-booking'),
+            'manage_restaurant_quotes',
+            'restaurant-booking-games',
+            array($this, 'games_page')
+        );
 
         // === OPTIONS ===
 
@@ -289,16 +298,15 @@ class RestaurantBooking_Admin
             array($this, 'unified_calendar_page')
         );
 
-        // Sous-menu Jeux (repositionné avant Paramètres)
+        // Sous-menu Tuto
         add_submenu_page(
             'restaurant-booking',
-            __('Gestion des Jeux', 'restaurant-booking'),
-            __('🎮 Jeux', 'restaurant-booking'),
+            __('Tuto', 'restaurant-booking'),
+            __('📚 Tuto', 'restaurant-booking'),
             'manage_restaurant_quotes',
-            'restaurant-booking-games',
-            array($this, 'games_page')
+            'restaurant-booking-tuto',
+            array($this, 'tuto_page')
         );
-
 
         // Sous-menu Paramètres (avec sous-sections)
         add_submenu_page(
@@ -683,6 +691,293 @@ class RestaurantBooking_Admin
         include RESTAURANT_BOOKING_PLUGIN_DIR . 'admin/views/unified-calendar.php';
     }
 
+    /**
+     * Page du tutoriel
+     */
+    public function tuto_page()
+    {
+        ?>
+        <div class="wrap">
+            <h1>📚 <?php _e('Tutoriel Block&Co', 'restaurant-booking'); ?></h1>
+            
+            <div class="tutorial-container" style="max-width: 1200px; margin: 20px 0;">
+                
+                <!-- Introduction -->
+                <div class="tutorial-section" style="background: #f9f9f9; padding: 20px; border-radius: 8px; margin-bottom: 30px;">
+                    <h2 style="color: #2c3e50; margin-top: 0;">🎯 Bienvenue dans Block&Co</h2>
+                    <p style="font-size: 16px; line-height: 1.6;">
+                        Ce tutoriel vous guide pas à pas pour utiliser toutes les fonctionnalités de votre système de gestion de devis et de réservations.
+                        Vous apprendrez à gérer vos produits, vos devis, votre calendrier et bien plus encore.
+                    </p>
+                </div>
+
+                <!-- Table des matières -->
+                <div class="tutorial-toc" style="background: #fff; border: 1px solid #ddd; border-radius: 8px; padding: 20px; margin-bottom: 30px;">
+                    <h3 style="color: #2c3e50; margin-top: 0;">📋 Table des matières</h3>
+                    <ul style="columns: 2; column-gap: 40px; list-style: none; padding: 0;">
+                        <li><a href="#gestion-produits" style="text-decoration: none; color: #3498db;">🍽️ Gestion des produits</a></li>
+                        <li><a href="#gestion-devis" style="text-decoration: none; color: #3498db;">📋 Gestion des devis</a></li>
+                        <li><a href="#categories" style="text-decoration: none; color: #3498db;">📂 Catégories</a></li>
+                        <li><a href="#google-calendar" style="text-decoration: none; color: #3498db;">📅 Google Calendar</a></li>
+                        <li><a href="#options-config" style="text-decoration: none; color: #3498db;">⚙️ Options & Configuration</a></li>
+                        <li><a href="#parametres" style="text-decoration: none; color: #3498db;">🔧 Paramètres</a></li>
+                    </ul>
+                </div>
+
+                <!-- Section 1: Gestion des produits -->
+                <div id="gestion-produits" class="tutorial-section" style="background: #fff; border: 1px solid #ddd; border-radius: 8px; padding: 25px; margin-bottom: 30px;">
+                    <h2 style="color: #e74c3c; margin-top: 0;">🍽️ Gestion des produits</h2>
+                    
+                    <h3>📂 Accès aux produits</h3>
+                    <p>Pour gérer vos produits, utilisez le menu <strong>"Catégories & Produits"</strong> qui vous donne accès à tous vos produits de manière unifiée.</p>
+                    
+                    <h3>➕ Ajouter un nouveau produit</h3>
+                    <ol>
+                        <li>Allez dans <strong>"Catégories & Produits"</strong></li>
+                        <li>Cliquez sur <strong>"Ajouter un produit"</strong></li>
+                        <li>Remplissez les informations :
+                            <ul>
+                                <li><strong>Nom du produit</strong> : Le nom qui apparaîtra dans les devis</li>
+                                <li><strong>Catégorie</strong> : Choisissez la catégorie appropriée</li>
+                                <li><strong>Prix</strong> : Prix unitaire du produit</li>
+                                <li><strong>Description</strong> : Description détaillée (optionnelle)</li>
+                            </ul>
+                        </li>
+                        <li>Cliquez sur <strong>"Enregistrer"</strong></li>
+                    </ol>
+
+                    <h3>🍽️ Types de produits spécifiques</h3>
+                    
+                    <h4>Accompagnements</h4>
+                    <p>Pour créer un accompagnement avec des options :</p>
+                    <ol>
+                        <li>Allez dans <strong>"Accompagnements"</strong></li>
+                        <li>Créez votre accompagnement de base</li>
+                        <li>Ajoutez des options (ex: "Sauce tomate", "Sauce blanche")</li>
+                        <li>Définissez les prix supplémentaires pour chaque option</li>
+                    </ol>
+
+                    <h4>Buffet Salé</h4>
+                    <p>Pour créer un buffet salé avec options :</p>
+                    <ol>
+                        <li>Allez dans <strong>"Buffet Salé"</strong></li>
+                        <li>Créez votre buffet de base</li>
+                        <li>Ajoutez les plats disponibles</li>
+                        <li>Configurez les options (ex: "Service traiteur", "Service self")</li>
+                    </ol>
+
+                    <h4>Boissons</h4>
+                    <p>Pour ajouter de nouveaux types de bières ou vins :</p>
+                    <ol>
+                        <li>Allez dans <strong>"Vins"</strong> ou <strong>"Bières Bouteilles"</strong></li>
+                        <li>Créez une nouvelle catégorie (ex: "Vins rouges", "Bières artisanales")</li>
+                        <li>Ajoutez vos produits dans cette catégorie</li>
+                        <li>Configurez les contenances disponibles</li>
+                    </ol>
+                </div>
+
+                <!-- Section 2: Gestion des devis -->
+                <div id="gestion-devis" class="tutorial-section" style="background: #fff; border: 1px solid #ddd; border-radius: 8px; padding: 25px; margin-bottom: 30px;">
+                    <h2 style="color: #e74c3c; margin-top: 0;">📋 Gestion des devis</h2>
+                    
+                    <h3>📊 Tableau de bord</h3>
+                    <p>Le tableau de bord vous donne une vue d'ensemble de vos devis :</p>
+                    <ul>
+                        <li>Devis en attente</li>
+                        <li>Devis confirmés</li>
+                        <li>Chiffre d'affaires du mois</li>
+                        <li>Statistiques récentes</li>
+                    </ul>
+
+                    <h3>📝 Créer un nouveau devis</h3>
+                    <ol>
+                        <li>Allez dans <strong>"Gestion des devis"</strong></li>
+                        <li>Cliquez sur <strong>"Nouveau devis"</strong></li>
+                        <li>Remplissez les informations client</li>
+                        <li>Sélectionnez les produits et quantités</li>
+                        <li>Configurez les options et suppléments</li>
+                        <li>Générez le devis PDF</li>
+                    </ol>
+
+                    <h3>✏️ Modifier un devis existant</h3>
+                    <ol>
+                        <li>Dans la liste des devis, cliquez sur <strong>"Modifier"</strong></li>
+                        <li>Apportez vos modifications</li>
+                        <li>Sauvegardez les changements</li>
+                        <li>Le devis sera automatiquement mis à jour</li>
+                    </ol>
+                </div>
+
+                <!-- Section 3: Catégories -->
+                <div id="categories" class="tutorial-section" style="background: #fff; border: 1px solid #ddd; border-radius: 8px; padding: 25px; margin-bottom: 30px;">
+                    <h2 style="color: #e74c3c; margin-top: 0;">📂 Gestion des catégories</h2>
+                    
+                    <h3>➕ Créer une nouvelle catégorie</h3>
+                    <ol>
+                        <li>Allez dans <strong>"Catégories & Produits"</strong></li>
+                        <li>Cliquez sur l'onglet <strong>"Catégories"</strong></li>
+                        <li>Cliquez sur <strong>"Ajouter une catégorie"</strong></li>
+                        <li>Remplissez :
+                            <ul>
+                                <li><strong>Nom</strong> : Nom de la catégorie</li>
+                                <li><strong>Description</strong> : Description (optionnelle)</li>
+                                <li><strong>Ordre d'affichage</strong> : Position dans le menu</li>
+                            </ul>
+                        </li>
+                        <li>Cliquez sur <strong>"Enregistrer"</strong></li>
+                    </ol>
+
+                    <h3>🔄 Organiser les catégories</h3>
+                    <p>Vous pouvez réorganiser vos catégories en modifiant l'ordre d'affichage. 
+                    Les catégories avec un numéro plus petit apparaîtront en premier.</p>
+                </div>
+
+                <!-- Section 4: Google Calendar -->
+                <div id="google-calendar" class="tutorial-section" style="background: #fff; border: 1px solid #ddd; border-radius: 8px; padding: 25px; margin-bottom: 30px;">
+                    <h2 style="color: #e74c3c; margin-top: 0;">📅 Google Calendar</h2>
+                    
+                    <h3>🔗 Connexion à Google Calendar</h3>
+                    <ol>
+                        <li>Allez dans <strong>"Calendrier & Google Calendar"</strong></li>
+                        <li>Cliquez sur l'onglet <strong>"Configuration Google Calendar"</strong></li>
+                        <li>En bas de la page, dans la section <strong>"Autorisation"</strong></li>
+                        <li>Cliquez sur <strong>"Autoriser l'accès à Google Calendar"</strong></li>
+                        <li>Connectez-vous avec le compte Google qui gère votre calendrier</li>
+                        <li>Autorisez l'accès à votre calendrier</li>
+                    </ol>
+
+                    <h3>📖 Guide d'utilisation</h3>
+                    <p>Pour un guide détaillé sur l'utilisation de Google Calendar avec Block&Co, 
+                    consultez le <strong>Guide d'utilisation</strong> disponible dans l'onglet 
+                    <strong>"Calendrier & Google Calendar"</strong>.</p>
+                    
+                    <div style="background: #e8f4fd; border-left: 4px solid #3498db; padding: 15px; margin: 15px 0;">
+                        <strong>💡 Astuce :</strong> Une fois connecté, vos réservations seront automatiquement 
+                        synchronisées avec votre calendrier Google.
+                    </div>
+                </div>
+
+                <!-- Section 5: Options & Configuration -->
+                <div id="options-config" class="tutorial-section" style="background: #fff; border: 1px solid #ddd; border-radius: 8px; padding: 25px; margin-bottom: 30px;">
+                    <h2 style="color: #e74c3c; margin-top: 0;">⚙️ Options & Configuration</h2>
+                    
+                    <h3>📝 Personnaliser le formulaire de devis</h3>
+                    <p>Dans <strong>"Options de Configuration"</strong>, vous pouvez :</p>
+                    <ul>
+                        <li><strong>Modifier les textes</strong> : Personnalisez tous les textes du formulaire</li>
+                        <li><strong>Configurer les règles</strong> : Définissez les règles de calcul des prix</li>
+                        <li><strong>Gérer les options</strong> : Configurez les options disponibles</li>
+                        <li><strong>Paramétrer les suppléments</strong> : Définissez les suppléments possibles</li>
+                    </ul>
+
+                    <h3>🔧 Configuration avancée</h3>
+                    <ol>
+                        <li>Allez dans <strong>"Options de Configuration"</strong></li>
+                        <li>Explorez les différents onglets :
+                            <ul>
+                                <li><strong>Général</strong> : Paramètres de base</li>
+                                <li><strong>Produits</strong> : Configuration des produits</li>
+                                <li><strong>Devis</strong> : Paramètres des devis</li>
+                                <li><strong>Calculs</strong> : Règles de calcul</li>
+                            </ul>
+                        </li>
+                        <li>Modifiez les paramètres selon vos besoins</li>
+                        <li>Sauvegardez vos modifications</li>
+                    </ol>
+                </div>
+
+                <!-- Section 6: Paramètres -->
+                <div id="parametres" class="tutorial-section" style="background: #fff; border: 1px solid #ddd; border-radius: 8px; padding: 25px; margin-bottom: 30px;">
+                    <h2 style="color: #e74c3c; margin-top: 0;">🔧 Paramètres</h2>
+                    
+                    <h3>🏢 Informations de l'entreprise</h3>
+                    <p>Pour que vos informations apparaissent correctement dans les devis :</p>
+                    <ol>
+                        <li>Allez dans <strong>"Paramètres"</strong></li>
+                        <li>Cliquez sur l'onglet <strong>"Informations"</strong></li>
+                        <li>Remplissez :
+                            <ul>
+                                <li><strong>Nom de l'entreprise</strong></li>
+                                <li><strong>Adresse complète</strong></li>
+                                <li><strong>Téléphone</strong></li>
+                                <li><strong>Email</strong></li>
+                                <li><strong>SIRET</strong> (si applicable)</li>
+                            </ul>
+                        </li>
+                        <li>Sauvegardez les modifications</li>
+                    </ol>
+
+                    <h3>📧 Gestion des emails</h3>
+                    <p>Pour configurer les emails :</p>
+                    <ol>
+                        <li>Dans <strong>"Paramètres"</strong>, allez à l'onglet <strong>"Emails"</strong></li>
+                        <li>Configurez :
+                            <ul>
+                                <li><strong>Email d'envoi</strong> : Adresse qui envoie les devis</li>
+                                <li><strong>Email de notification</strong> : Adresse qui reçoit les notifications</li>
+                                <li><strong>Sujet des emails</strong> : Personnalisez le sujet</li>
+                            </ul>
+                        </li>
+                        <li>Ajoutez des administrateurs si nécessaire</li>
+                        <li>Testez l'envoi d'emails</li>
+                    </ol>
+
+                    <h3>📄 Conditions générales (PDF)</h3>
+                    <p>Pour modifier les textes des conditions générales :</p>
+                    <ol>
+                        <li>Dans <strong>"Paramètres"</strong>, allez à l'onglet <strong>"PDF"</strong></li>
+                        <li>Modifiez les textes des conditions générales</li>
+                        <li>Personnalisez l'en-tête et le pied de page</li>
+                        <li>Prévisualisez le PDF</li>
+                        <li>Sauvegardez vos modifications</li>
+                    </ol>
+                </div>
+
+                <!-- Section d'aide -->
+                <div class="tutorial-help" style="background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 8px; padding: 20px; margin-top: 30px;">
+                    <h3 style="color: #2c3e50; margin-top: 0;">🆘 Besoin d'aide ?</h3>
+                    <p>Si vous rencontrez des difficultés ou avez des questions :</p>
+                    <ul>
+                        <li>Consultez le <strong>Guide d'utilisation</strong> dans "Calendrier & Google Calendar"</li>
+                        <li>Vérifiez que vous avez les bonnes permissions d'accès</li>
+                        <li>Contactez votre administrateur système si nécessaire</li>
+                    </ul>
+                </div>
+
+            </div>
+        </div>
+
+        <style>
+        .tutorial-container a {
+            color: #3498db;
+            text-decoration: none;
+        }
+        .tutorial-container a:hover {
+            text-decoration: underline;
+        }
+        .tutorial-section h2 {
+            border-bottom: 2px solid #e74c3c;
+            padding-bottom: 10px;
+        }
+        .tutorial-section h3 {
+            color: #2c3e50;
+            margin-top: 25px;
+        }
+        .tutorial-section h4 {
+            color: #34495e;
+            margin-top: 20px;
+        }
+        .tutorial-section ol, .tutorial-section ul {
+            margin: 15px 0;
+            padding-left: 30px;
+        }
+        .tutorial-section li {
+            margin: 8px 0;
+            line-height: 1.6;
+        }
+        </style>
+        <?php
+    }
 
     /**
      * Page des jeux
