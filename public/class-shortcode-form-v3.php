@@ -193,7 +193,7 @@ class RestaurantBooking_Shortcode_Form_V3
                         <div class="rbf-v3-service-card" data-service="remorque">
                     <div class="rbf-v3-card-header">
                         <h3><?php echo esc_html($options['remorque_card_title'] ?? 'PRIVATISATION DE LA REMORQUE BLOCK'); ?></h3>
-                        <p class="rbf-v3-card-subtitle"><?php echo esc_html($options['remorque_card_subtitle'] ?? $options['remorque_display_text'] ?? 'À partir de 20 personnes'); ?></p>
+                        <p class="rbf-v3-card-subtitle"><?php echo esc_html($options['remorque_card_subtitle'] ?? 'À partir de 20 personnes'); ?></p>
                     </div>
                             <div class="rbf-v3-card-body">
                                 <p><?php echo esc_html($options['remorque_card_description'] ?? 'Notre remorque mobile se déplace pour vos événements extérieurs et grandes réceptions.'); ?></p>
@@ -329,6 +329,21 @@ class RestaurantBooking_Shortcode_Form_V3
      */
     private function build_restaurant_subtitle()
     {
+        // Essayer d'abord de récupérer le texte personnalisé depuis les options unifiées
+        if (class_exists('RestaurantBooking_Options_Unified_Admin')) {
+            try {
+                $options_admin = new RestaurantBooking_Options_Unified_Admin();
+                $options = $options_admin->get_options();
+                
+                if (isset($options['restaurant_card_subtitle']) && !empty($options['restaurant_card_subtitle'])) {
+                    return $options['restaurant_card_subtitle'];
+                }
+            } catch (Exception $e) {
+                // En cas d'erreur, continuer avec la logique par défaut
+            }
+        }
+        
+        // Fallback : générer le texte basé sur les paramètres DB
         $min_guests = (int) RestaurantBooking_Settings::get('restaurant_min_guests', 10);
         $max_guests = (int) RestaurantBooking_Settings::get('restaurant_max_guests', 30);
         
@@ -340,9 +355,30 @@ class RestaurantBooking_Shortcode_Form_V3
      */
     private function build_remorque_subtitle()
     {
-        $min_guests = (int) RestaurantBooking_Settings::get('remorque_min_guests', 20);
+        // Essayer d'abord de récupérer le texte personnalisé depuis les options unifiées
+        if (class_exists('RestaurantBooking_Options_Unified_Admin')) {
+            try {
+                $options_admin = new RestaurantBooking_Options_Unified_Admin();
+                $options = $options_admin->get_options();
+                
+                if (isset($options['remorque_card_subtitle']) && !empty($options['remorque_card_subtitle'])) {
+                    return $options['remorque_card_subtitle'];
+                }
+            } catch (Exception $e) {
+                // En cas d'erreur, continuer avec la logique par défaut
+            }
+        }
         
-        return sprintf('À partir de %d personnes', $min_guests);
+        // Fallback : générer le texte basé sur les paramètres DB
+        $min_guests = (int) RestaurantBooking_Settings::get('remorque_min_guests', 20);
+        $max_guests = (int) RestaurantBooking_Settings::get('remorque_max_guests', 100);
+        
+        // Si on a un maximum défini, utiliser "De X à Y personnes", sinon "À partir de X personnes"
+        if ($max_guests > 0 && $max_guests > $min_guests) {
+            return sprintf('De %d à %d personnes', $min_guests, $max_guests);
+        } else {
+            return sprintf('À partir de %d personnes', $min_guests);
+        }
     }
 }
 

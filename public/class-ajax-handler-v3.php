@@ -808,7 +808,7 @@ class RestaurantBooking_Ajax_Handler_V3
                                             </div>
                                             
                                             <!-- ✅ NOUVEAU : Suppléments pour ce produit -->
-                                            <?php echo $this->get_buffet_supplements_html($product->id, 'buffet_sale', $form_data, $saved_qty); ?>
+                                            <?php echo $this->get_buffet_supplements_html($product->id, 'sale', $form_data, $saved_qty); ?>
                                         </div>
                                     </div>
                                 <?php endforeach; ?>
@@ -857,7 +857,7 @@ class RestaurantBooking_Ajax_Handler_V3
                                             </div>
                                             
                                             <!-- ✅ NOUVEAU : Suppléments pour ce produit -->
-                                            <?php echo $this->get_buffet_supplements_html($product->id, 'buffet_sucre', $form_data, $saved_qty); ?>
+                                            <?php echo $this->get_buffet_supplements_html($product->id, 'sucre', $form_data, $saved_qty); ?>
                                         </div>
                                     </div>
                                 <?php endforeach; ?>
@@ -1472,6 +1472,15 @@ class RestaurantBooking_Ajax_Handler_V3
                 'name' => "Supplément {$hour_price}€×{$extra_hours} durée",
                 'price' => $duration_supplement
             ];
+            
+            // Debug pour vérifier que le supplément est bien ajouté
+            RestaurantBooking_Logger::info('Supplément durée ajouté', array(
+                'duration' => $duration,
+                'min_duration' => $min_duration,
+                'extra_hours' => $extra_hours,
+                'hour_price' => $hour_price,
+                'supplement_amount' => $duration_supplement
+            ));
         }
 
         // Suppléments convives (remorque)
@@ -1494,6 +1503,13 @@ class RestaurantBooking_Ajax_Handler_V3
                 'name' => 'Supplément livraison (' . $delivery_zone . ')',
                 'price' => $delivery_supplement
             ];
+            
+            // Debug pour vérifier que le supplément de livraison est bien ajouté
+            RestaurantBooking_Logger::info('Supplément livraison ajouté', array(
+                'delivery_supplement' => $delivery_supplement,
+                'delivery_zone' => $delivery_zone,
+                'postal_code' => $form_data['postal_code'] ?? 'non défini'
+            ));
         }
 
         // Prix des produits (calculer selon les sélections)
@@ -1641,20 +1657,20 @@ class RestaurantBooking_Ajax_Handler_V3
                     $product_name = $this->get_product_name($product_id, 'buffet_sale');
                     $product_price = $this->get_product_price($product_id, 'buffet_sale');
                     
-                    // Inclure tous les produits sélectionnés, même avec prix 0 pour diagnostic
-                    $products[] = [
-                        'name' => $product_name,
-                        'quantity' => $quantity,
-                        'price' => $product_price,
-                        'total' => $quantity * $product_price,
-                        'category' => 'Buffet salé',
-                        'product_id' => $product_id,
-                        'product_type' => 'buffet_sale'
-                    ];
-                    
-                    // Logger si le prix est 0 pour diagnostic
-                    if ($product_price <= 0) {
-                        RestaurantBooking_Logger::warning('Produit buffet salé avec prix 0', array(
+                    // ✅ CORRECTION : Ne pas ajouter les produits avec prix 0€
+                    if ($product_price > 0) {
+                        $products[] = [
+                            'name' => $product_name,
+                            'quantity' => $quantity,
+                            'price' => $product_price,
+                            'total' => $quantity * $product_price,
+                            'category' => 'Buffet salé',
+                            'product_id' => $product_id,
+                            'product_type' => 'buffet_sale'
+                        ];
+                    } else {
+                        // Logger si le prix est 0 pour diagnostic
+                        RestaurantBooking_Logger::warning('Produit buffet salé avec prix 0 ignoré', array(
                             'product_id' => $product_id,
                             'product_name' => $product_name,
                             'quantity' => $quantity
@@ -1673,20 +1689,20 @@ class RestaurantBooking_Ajax_Handler_V3
                     $product_name = $this->get_product_name($product_id, 'buffet_sucre');
                     $product_price = $this->get_product_price($product_id, 'buffet_sucre');
                     
-                    // Inclure tous les produits sélectionnés, même avec prix 0 pour diagnostic
-                    $products[] = [
-                        'name' => $product_name,
-                        'quantity' => $quantity,
-                        'price' => $product_price,
-                        'total' => $quantity * $product_price,
-                        'category' => 'Buffet sucré',
-                        'product_id' => $product_id,
-                        'product_type' => 'buffet_sucre'
-                    ];
-                    
-                    // Logger si le prix est 0 pour diagnostic
-                    if ($product_price <= 0) {
-                        RestaurantBooking_Logger::warning('Produit buffet sucré avec prix 0', array(
+                    // ✅ CORRECTION : Ne pas ajouter les produits avec prix 0€
+                    if ($product_price > 0) {
+                        $products[] = [
+                            'name' => $product_name,
+                            'quantity' => $quantity,
+                            'price' => $product_price,
+                            'total' => $quantity * $product_price,
+                            'category' => 'Buffet sucré',
+                            'product_id' => $product_id,
+                            'product_type' => 'buffet_sucre'
+                        ];
+                    } else {
+                        // Logger si le prix est 0 pour diagnostic
+                        RestaurantBooking_Logger::warning('Produit buffet sucré avec prix 0 ignoré', array(
                             'product_id' => $product_id,
                             'product_name' => $product_name,
                             'quantity' => $quantity
@@ -1706,12 +1722,23 @@ class RestaurantBooking_Ajax_Handler_V3
                 
                 // Récupérer les infos du supplément depuis la base de données
                 $supplement_info = $this->get_supplement_info($supplement_id);
+                
+                // ✅ DEBUG : Logger pour diagnostiquer
+                RestaurantBooking_Logger::info('Tentative de récupération du supplément', array(
+                    'supplement_id' => $supplement_id,
+                    'product_id' => $product_id,
+                    'buffet_type' => $buffet_type,
+                    'supplement_info' => $supplement_info
+                ));
+                
                 if ($supplement_info && $supplement_info['price'] > 0) {
                     // Trouver le produit parent dans la liste des produits
                     $parent_product_index = null;
                     foreach ($products as $index => $product) {
+                        // ✅ CORRECTION : Améliorer la recherche du produit parent
                         if (isset($product['product_id']) && $product['product_id'] == $product_id && 
-                            $product['product_type'] === 'buffet_' . $buffet_type) {
+                            (isset($product['product_type']) && $product['product_type'] === 'buffet_' . $buffet_type ||
+                             isset($product['category']) && strpos($product['category'], 'Buffet ' . ucfirst($buffet_type)) !== false)) {
                             $parent_product_index = $index;
                             break;
                         }
@@ -1740,30 +1767,43 @@ class RestaurantBooking_Ajax_Handler_V3
                         ));
                     } else {
                         // ✅ CORRECTION : Si le produit parent n'est pas trouvé, créer un produit buffet temporaire
-                        // pour éviter que le supplément apparaisse comme "Produit sélectionné" à 0€
+                        // seulement si le buffet a un prix > 0, sinon créer juste le supplément
                         $buffet_name = $this->get_product_name($product_id, 'buffet_' . $buffet_type);
                         $buffet_price = $this->get_product_price($product_id, 'buffet_' . $buffet_type);
                         
-                        // Créer un produit buffet temporaire avec le supplément comme option
-                        $temp_product = [
-                            'name' => $buffet_name,
-                            'quantity' => 0, // Quantité 0 car c'est juste pour afficher le supplément
-                            'price' => $buffet_price,
-                            'total' => 0,
-                            'category' => 'Buffet ' . ucfirst($buffet_type),
-                            'product_id' => $product_id,
-                            'product_type' => 'buffet_' . $buffet_type,
-                            'options' => [
-                                [
-                                    'name' => $supplement_info['name'],
-                                    'quantity' => $quantity,
-                                    'price' => $supplement_info['price'],
-                                    'total' => $quantity * $supplement_info['price']
+                        if ($buffet_price > 0) {
+                            // Créer un produit buffet temporaire avec le supplément comme option
+                            $temp_product = [
+                                'name' => $buffet_name,
+                                'quantity' => 1, // ✅ CORRECTION : Quantité 1 pour éviter l'affichage "0×"
+                                'price' => $buffet_price,
+                                'total' => $buffet_price, // ✅ CORRECTION : Total = prix du buffet
+                                'category' => 'Buffet ' . ucfirst($buffet_type),
+                                'product_id' => $product_id,
+                                'product_type' => 'buffet_' . $buffet_type,
+                                'options' => [
+                                    [
+                                        'name' => $supplement_info['name'],
+                                        'quantity' => $quantity,
+                                        'price' => $supplement_info['price'],
+                                        'total' => $quantity * $supplement_info['price']
+                                    ]
                                 ]
-                            ]
-                        ];
-                        
-                        $products[] = $temp_product;
+                            ];
+                            
+                            $products[] = $temp_product;
+                        } else {
+                            // ✅ CORRECTION : Si le buffet a un prix de 0€, créer juste le supplément comme produit indépendant
+                            $products[] = [
+                                'name' => $supplement_info['name'],
+                                'quantity' => $quantity,
+                                'price' => $supplement_info['price'],
+                                'total' => $quantity * $supplement_info['price'],
+                                'category' => 'Supplément buffet ' . ucfirst($buffet_type),
+                                'product_id' => $product_id,
+                                'product_type' => 'buffet_' . $buffet_type . '_supplement'
+                            ];
+                        }
                         
                         // ✅ DEBUG : Logger pour diagnostiquer
                         RestaurantBooking_Logger::info('Supplément buffet ajouté avec produit temporaire', array(
@@ -1771,7 +1811,8 @@ class RestaurantBooking_Ajax_Handler_V3
                             'supplement_name' => $supplement_info['name'],
                             'quantity' => $quantity,
                             'price' => $supplement_info['price'],
-                            'total' => $quantity * $supplement_info['price']
+                            'total' => $quantity * $supplement_info['price'],
+                            'buffet_price' => $buffet_price
                         ));
                     }
                 } else {
@@ -2722,6 +2763,14 @@ class RestaurantBooking_Ajax_Handler_V3
         $price_data['supplements_detailed'] = $supplements_array;
         $price_data['delivery_supplement'] = $form_data['delivery_supplement'] ?? 0;
         $price_data['delivery_zone'] = $form_data['delivery_zone'] ?? '';
+        
+        // Debug pour vérifier que les suppléments sont bien inclus
+        RestaurantBooking_Logger::info('Suppléments inclus dans price_data', array(
+            'supplements_count' => count($supplements_array),
+            'supplements_detailed' => $supplements_array,
+            'delivery_supplement' => $price_data['delivery_supplement'],
+            'delivery_zone' => $price_data['delivery_zone']
+        ));
         
         $quote_data = [
             'quote_number' => $quote_number,
@@ -4219,17 +4268,15 @@ class RestaurantBooking_Ajax_Handler_V3
         $beer_categories = array();
         
         if ($table_exists) {
-            // Utiliser la nouvelle table wp_restaurant_beer_types
+            // CORRECTION : Utiliser INNER JOIN pour ne récupérer que les types qui ont des fûts disponibles
             $types = $wpdb->get_results("
-                SELECT bt.slug, bt.name, COUNT(p.id) as keg_count
+                SELECT DISTINCT bt.slug, bt.name
                 FROM $beer_types_table bt
-                LEFT JOIN {$wpdb->prefix}restaurant_products p ON bt.slug = p.beer_category 
+                INNER JOIN {$wpdb->prefix}restaurant_products p ON bt.slug = p.beer_category 
                     AND p.is_active = 1
-                LEFT JOIN {$wpdb->prefix}restaurant_categories c ON p.category_id = c.id 
+                INNER JOIN {$wpdb->prefix}restaurant_categories c ON p.category_id = c.id 
                     AND c.id = 110
                 WHERE bt.is_active = 1
-                GROUP BY bt.id
-                HAVING keg_count > 0
                 ORDER BY bt.display_order ASC, bt.name ASC
             ");
             
@@ -4283,33 +4330,9 @@ class RestaurantBooking_Ajax_Handler_V3
             }
         }
         
-        // Fallback vers les catégories par défaut si aucune catégorie trouvée
-        // MAIS seulement si elles ont réellement des fûts disponibles
-        if (empty($beer_categories)) {
-            $default_categories = array(
-                'blonde' => 'Blondes',
-                'blanche' => 'Blanches', 
-                'ipa' => 'IPA',
-                'ambree' => 'Ambrées'
-            );
-            
-            // Vérifier la disponibilité réelle de chaque catégorie par défaut
-            foreach ($default_categories as $key => $name) {
-                $keg_count = $wpdb->get_var($wpdb->prepare("
-                    SELECT COUNT(p.id)
-                    FROM {$wpdb->prefix}restaurant_products p
-                    INNER JOIN {$wpdb->prefix}restaurant_categories c ON p.category_id = c.id
-                    WHERE c.id = 110
-                    AND p.beer_category = %s
-                    AND p.is_active = 1
-                ", $key));
-                
-                // Ne garder que les catégories qui ont des fûts disponibles
-                if ($keg_count > 0) {
-                    $beer_categories[$key] = $name;
-                }
-            }
-        }
+        // CORRECTION : Supprimer le fallback vers les catégories par défaut
+        // car cela pourrait afficher des types sans fûts disponibles
+        // Les catégories par défaut ne doivent être utilisées que si elles ont réellement des fûts
         
         return $beer_categories;
     }

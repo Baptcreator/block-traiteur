@@ -926,6 +926,14 @@ class RestaurantBooking_PDF
             
         // ✅ CORRECTION : Afficher les suppléments de livraison
         if (!empty($price_data['supplements_detailed']) && is_array($price_data['supplements_detailed'])) {
+            // Debug pour vérifier les suppléments
+            if (class_exists('RestaurantBooking_Logger')) {
+                RestaurantBooking_Logger::info('Affichage suppléments dans PDF', array(
+                    'supplements_count' => count($price_data['supplements_detailed']),
+                    'supplements_data' => $price_data['supplements_detailed']
+                ));
+            }
+            
             foreach ($price_data['supplements_detailed'] as $supplement) {
                 if (isset($supplement['name']) && isset($supplement['price']) && $supplement['price'] > 0) {
                     $html .= '
@@ -935,6 +943,25 @@ class RestaurantBooking_PDF
                 <td class="text-right">' . number_format(floatval($supplement['price']), 2, ',', ' ') . ' €</td>
                 <td class="text-right">' . number_format(floatval($supplement['price']), 2, ',', ' ') . ' €</td>
             </tr>';
+                }
+            }
+        }
+        
+        // ✅ CORRECTION : Afficher aussi les suppléments depuis le breakdown si supplements_detailed est vide
+        if (empty($price_data['supplements_detailed']) && !empty($price_data['breakdown']) && is_array($price_data['breakdown'])) {
+            foreach ($price_data['breakdown'] as $item) {
+                // Afficher seulement les suppléments (pas le forfait de base ni les produits)
+                if (isset($item['label']) && isset($item['amount']) && $item['amount'] > 0) {
+                    $label = $item['label'];
+                    if (strpos($label, 'Supplément') !== false || strpos($label, 'livraison') !== false || strpos($label, 'durée') !== false || strpos($label, 'convives') !== false) {
+                        $html .= '
+            <tr>
+                <td><strong>' . htmlspecialchars($label) . '</strong></td>
+                <td class="text-center">1</td>
+                <td class="text-right">' . number_format(floatval($item['amount']), 2, ',', ' ') . ' €</td>
+                <td class="text-right">' . number_format(floatval($item['amount']), 2, ',', ' ') . ' €</td>
+            </tr>';
+                    }
                 }
             }
         }

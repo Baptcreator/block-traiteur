@@ -3650,7 +3650,7 @@ button.rbf-v3-subcategory-btn.active {
     font-size: 1rem;
     font-weight: 600;
     color: var(--rbf-v3-green);
-    margin: 0 0 var(--rbf-v3-spacing-sm) 0;
+    margin: var(--rbf-v3-spacing-sm) 0 var(--rbf-v3-spacing-sm) 0;
 }
 
 .rbf-v3-supplement-item:last-child {
