@@ -696,8 +696,8 @@ button.rbf-v3-subcategory-btn.active {
 
 .rbf-v3-acc-image {
     flex-shrink: 0;
-    width: 120px;
-    height: 120px;
+    width: 140px;
+    height: 140px;
     border-radius: var(--rbf-v3-radius-sm);
     overflow: hidden;
     background-color: var(--rbf-v3-beige);
@@ -824,11 +824,38 @@ button.rbf-v3-subcategory-btn.active {
     
     .rbf-v3-acc-image {
         align-self: center;
+        width: 160px;
+        height: 160px;
+    }
+    
+    .rbf-v3-acc-info {
+        text-align: center;
+        width: 100%;
+    }
+    
+    .rbf-v3-acc-title {
+        text-align: center;
+        font-size: 1.125rem;
+    }
+    
+    .rbf-v3-acc-description {
+        text-align: center;
+        font-size: 0.85rem;
     }
     
     .rbf-v3-acc-price-qty {
         flex-direction: column;
+        align-items: center;
         gap: var(--rbf-v3-spacing-sm);
+    }
+    
+    .rbf-v3-acc-price {
+        font-size: 1.25rem;
+        margin-bottom: var(--rbf-v3-spacing-xs);
+    }
+    
+    .rbf-v3-quantity-selector {
+        align-self: center;
     }
     
     .rbf-v3-option-simple,
@@ -844,6 +871,25 @@ button.rbf-v3-subcategory-btn.active {
         padding-left: 0;
         border-top: 1px solid var(--rbf-v3-beige);
         padding-top: var(--rbf-v3-spacing-sm);
+    }
+}
+
+@media (max-width: 480px) {
+    .rbf-v3-acc-image {
+        width: 150px;
+        height: 150px;
+    }
+    
+    .rbf-v3-acc-title {
+        font-size: 1rem;
+    }
+    
+    .rbf-v3-acc-description {
+        font-size: 0.8rem;
+    }
+    
+    .rbf-v3-acc-price {
+        font-size: 1.125rem;
     }
 }
 
@@ -1804,6 +1850,8 @@ button.rbf-v3-subcategory-btn.active {
     font-weight: 600;
     font-size: 0.875rem;
     flex-shrink: 0;
+    line-height: 1;
+    text-align: center;
 }
 
 .rbf-v3-step-text {
@@ -1814,6 +1862,83 @@ button.rbf-v3-subcategory-btn.active {
 .rbf-v3-explanation-card .rbf-v3-card-footer {
     padding: var(--rbf-v3-spacing-lg);
     background: var(--rbf-v3-beige);
+}
+
+/* ========================================
+   RESPONSIVE CARD EXPLICATIVE ÉTAPE 1
+   ======================================== */
+
+@media (max-width: 768px) {
+    .rbf-v3-explanation-card {
+        margin: var(--rbf-v3-spacing-sm);
+        max-width: none;
+    }
+    
+    .rbf-v3-explanation-card .rbf-v3-card-header {
+        padding: var(--rbf-v3-spacing-md);
+    }
+    
+    .rbf-v3-explanation-card .rbf-v3-card-header h3 {
+        font-size: 1.25rem;
+    }
+    
+    .rbf-v3-steps-list {
+        padding: var(--rbf-v3-spacing-md);
+    }
+    
+    .rbf-v3-step-item {
+        gap: var(--rbf-v3-spacing-sm);
+        padding: var(--rbf-v3-spacing-xs) 0;
+    }
+    
+    .rbf-v3-step-number {
+        width: 28px;
+        height: 28px;
+        font-size: 0.8rem;
+        line-height: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+    }
+}
+
+@media (max-width: 480px) {
+    .rbf-v3-explanation-card {
+        margin: var(--rbf-v3-spacing-xs);
+    }
+    
+    .rbf-v3-explanation-card .rbf-v3-card-header {
+        padding: var(--rbf-v3-spacing-sm);
+    }
+    
+    .rbf-v3-explanation-card .rbf-v3-card-header h3 {
+        font-size: 1.1rem;
+    }
+    
+    .rbf-v3-steps-list {
+        padding: var(--rbf-v3-spacing-sm);
+    }
+    
+    .rbf-v3-step-item {
+        gap: var(--rbf-v3-spacing-xs);
+        padding: var(--rbf-v3-spacing-xs) 0;
+    }
+    
+    .rbf-v3-step-number {
+        width: 26px;
+        height: 26px;
+        font-size: 0.75rem;
+        line-height: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+    }
+    
+    .rbf-v3-step-text {
+        font-size: 0.9rem;
+    }
 }
 
 /* ========================================
@@ -2480,12 +2605,42 @@ button.rbf-v3-subcategory-btn.active {
         grid-template-columns: 1fr;
         max-width: none;
     }
+    
+    .rbf-v3-mini-boss-grid .rbf-v3-product-price-qty {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--rbf-v3-spacing-sm);
+    }
+    
+    .rbf-v3-mini-boss-grid .rbf-v3-product-price {
+        font-size: 1.25rem;
+        margin-bottom: var(--rbf-v3-spacing-xs);
+    }
+    
+    .rbf-v3-mini-boss-grid .rbf-v3-quantity-selector {
+        align-self: flex-start;
+    }
 }
 
 @media (max-width: 480px) {
     .rbf-v3-mini-boss-grid {
         grid-template-columns: 1fr;
         max-width: none;
+    }
+    
+    .rbf-v3-mini-boss-grid .rbf-v3-product-price-qty {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--rbf-v3-spacing-xs);
+    }
+    
+    .rbf-v3-mini-boss-grid .rbf-v3-product-price {
+        font-size: 1.125rem;
+        margin-bottom: var(--rbf-v3-spacing-xs);
+    }
+    
+    .rbf-v3-mini-boss-grid .rbf-v3-quantity-selector {
+        align-self: flex-start;
     }
 }
 
@@ -2611,6 +2766,9 @@ button.rbf-v3-subcategory-btn.active {
     color: var(--rbf-v3-green);
     margin: 0 0 var(--rbf-v3-spacing-md) 0;
     text-transform: uppercase;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    hyphens: auto;
 }
 
 .rbf-v3-recap-content {
@@ -2655,6 +2813,47 @@ button.rbf-v3-subcategory-btn.active {
     font-size: 1.125rem;
     line-height: 1.6;
     margin: 0;
+}
+
+/* ========================================
+   RESPONSIVE RÉCAPITULATIF
+   ======================================== */
+
+@media (max-width: 768px) {
+    .rbf-v3-recap-card {
+        padding: var(--rbf-v3-spacing-md);
+        margin-top: var(--rbf-v3-spacing-md);
+    }
+    
+    .rbf-v3-recap-card h3 {
+        font-size: 1rem;
+        line-height: 1.3;
+        text-align: center;
+    }
+}
+
+@media (max-width: 480px) {
+    .rbf-v3-recap-card {
+        padding: var(--rbf-v3-spacing-sm);
+        margin-top: var(--rbf-v3-spacing-sm);
+    }
+    
+    .rbf-v3-recap-card h3 {
+        font-size: 0.9rem;
+        line-height: 1.2;
+    }
+    
+    .rbf-v3-recap-line {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--rbf-v3-spacing-xs);
+        text-align: left;
+    }
+    
+    .rbf-v3-recap-line span {
+        font-weight: bold;
+        color: var(--rbf-v3-green);
+    }
 }
 
 /* ========================================

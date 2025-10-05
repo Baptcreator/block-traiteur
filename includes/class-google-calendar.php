@@ -193,7 +193,9 @@ class RestaurantBooking_Google_Calendar
             // Vérifier les mots-clés de blocage
             if (strpos(strtolower($summary), 'block') !== false || 
                 strpos(strtolower($summary), 'restaurant') !== false ||
-                strpos(strtolower($summary), 'remorque') !== false) {
+                strpos(strtolower($summary), 'remorque') !== false ||
+                strpos(strtolower($summary), 'fermeture') !== false ||
+                strpos(strtolower($summary), 'vacances') !== false) {
                 $is_busy_event = true;
             }
             
@@ -301,6 +303,10 @@ class RestaurantBooking_Google_Calendar
             return 'restaurant';
         } elseif (strpos($summary_lower, 'remorque') !== false) {
             return 'remorque';
+        } elseif (strpos($summary_lower, 'fermeture') !== false || 
+                  strpos($summary_lower, 'vacances') !== false ||
+                  strpos($summary_lower, 'block') !== false) {
+            return 'both';
         } else {
             return 'both';
         }

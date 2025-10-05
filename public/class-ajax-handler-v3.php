@@ -206,12 +206,14 @@ class RestaurantBooking_Ajax_Handler_V3
 
         if (empty($service_type)) {
             $this->send_json_response(false, ['message' => 'Type de service manquant']);
+            return; // ✅ CORRECTION : Ajouter le return manquant
         }
 
         try {
             $html = $this->generate_step_html($step, $service_type, $form_data);
             if (empty($html)) {
                 $this->send_json_response(false, ['message' => 'Contenu HTML généré vide']);
+                return; // ✅ CORRECTION : Ajouter le return manquant
             }
             $this->send_json_response(true, ['html' => $html]);
         } catch (Exception $e) {
@@ -304,6 +306,7 @@ class RestaurantBooking_Ajax_Handler_V3
 
         if (empty($service_type)) {
             $this->send_json_response(false, ['message' => 'Type de service manquant']);
+            return; // ✅ CORRECTION : Ajouter le return manquant
         }
 
         try {
@@ -480,10 +483,10 @@ class RestaurantBooking_Ajax_Handler_V3
                     </label>
                     
                     <?php 
-                    // Nouveau calendrier toujours activé
-                    $use_new_calendar = true;
+                    // Récupérer le paramètre du calendrier depuis les options
+                    $use_calendar_widget = get_option('restaurant_booking_use_calendar_widget', false);
                     
-                    if ($use_new_calendar) : ?>
+                    if ($use_calendar_widget) : ?>
                         <!-- Champ de sélection de date avec calendrier -->
                         <div class="rbf-v3-date-selector">
                             <input 
@@ -2759,6 +2762,9 @@ class RestaurantBooking_Ajax_Handler_V3
             ]);
         }
 
+        // ✅ CORRECTION : Récupérer les suppléments depuis price_data au lieu d'une variable non définie
+        $supplements_array = $price_data['supplements'] ?? [];
+        
         // ✅ CORRECTION : Inclure les suppléments détaillés dans le price_breakdown
         $price_data['supplements_detailed'] = $supplements_array;
         $price_data['delivery_supplement'] = $form_data['delivery_supplement'] ?? 0;
@@ -3839,6 +3845,7 @@ class RestaurantBooking_Ajax_Handler_V3
             // ✅ CORRECTION : Vérifier le nonce avec le même format que les autres actions
             if (!wp_verify_nonce($_POST['nonce'] ?? '', 'restaurant_booking_form_v3')) {
                 $this->send_json_response(false, ['message' => 'Erreur de sécurité (nonce invalide)']);
+                return; // ✅ CORRECTION : Ajouter le return manquant
             }
 
             $start_date = sanitize_text_field($_POST['start_date'] ?? '');

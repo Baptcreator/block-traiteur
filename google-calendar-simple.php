@@ -255,7 +255,9 @@ class RestaurantBooking_Google_Calendar_Simple
             // Vérifier si c'est un événement de blocage
             if (strpos($summary, 'block') !== false || 
                 strpos($summary, 'restaurant') !== false ||
-                strpos($summary, 'remorque') !== false) {
+                strpos($summary, 'remorque') !== false ||
+                strpos($summary, 'fermeture') !== false ||
+                strpos($summary, 'vacances') !== false) {
                 
                 $start = $event['start'];
                 $end = $event['end'];
@@ -361,6 +363,10 @@ class RestaurantBooking_Google_Calendar_Simple
             return 'restaurant';
         } elseif (strpos($summary_lower, 'remorque') !== false) {
             return 'remorque';
+        } elseif (strpos($summary_lower, 'fermeture') !== false || 
+                  strpos($summary_lower, 'vacances') !== false ||
+                  strpos($summary_lower, 'block') !== false) {
+            return 'both';
         } else {
             return 'both';
         }
