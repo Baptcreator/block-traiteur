@@ -76,8 +76,6 @@ class RestaurantBooking_Dashboard
                 } else {
                     echo '<div class="notice notice-error is-dismissible"><p>' . __('Classe de création de catégories non trouvée', 'restaurant-booking') . '</p></div>';
                 }
-            } elseif ($_POST['action'] === 'run_all_migrations' && wp_verify_nonce($_POST['all_migrations_nonce'], 'run_all_migrations')) {
-                $this->execute_all_migrations();
             }
         }
 
@@ -229,18 +227,6 @@ class RestaurantBooking_Dashboard
                             
                         </div>
                         
-                        <!-- Section Migrations -->
-                        <div class="restaurant-booking-migrations-section" style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #ddd;">
-                            <h3 style="margin: 0 0 10px 0; font-size: 14px; color: #666;"><?php _e('🔧 Maintenance', 'restaurant-booking'); ?></h3>
-                            <form method="post" style="display: inline-block;">
-                                <?php wp_nonce_field('run_all_migrations', 'all_migrations_nonce'); ?>
-                                <input type="hidden" name="action" value="run_all_migrations">
-                                <button type="submit" class="button button-primary button-large" 
-                                        onclick="return confirm('<?php _e('Êtes-vous sûr de vouloir exécuter toutes les migrations ? Cette opération peut prendre quelques minutes.', 'restaurant-booking'); ?>')">
-                                    🚀 <?php _e('Exécuter toutes les migrations', 'restaurant-booking'); ?>
-                                </button>
-                            </form>
-                        </div>
                     </div>
 
                     <!-- Événements à venir -->
@@ -704,143 +690,5 @@ class RestaurantBooking_Dashboard
         </div>
         
         <?php
-    }
-
-    /**
-     * Exécuter toutes les migrations nécessaires
-     */
-    private function execute_all_migrations()
-    {
-        $results = array();
-        $total_success = 0;
-        $total_errors = 0;
-
-        echo '<div class="notice notice-info"><p><strong>🚀 ' . __('Exécution de toutes les migrations...', 'restaurant-booking') . '</strong></p></div>';
-
-        // Migration V3
-        if (class_exists('RestaurantBooking_Migration_V3') && RestaurantBooking_Migration_V3::needs_migration()) {
-            try {
-                $result = RestaurantBooking_Migration_V3::force_migrate();
-                if ($result) {
-                    echo '<div class="notice notice-success"><p>✅ ' . __('Migration V3 exécutée avec succès', 'restaurant-booking') . '</p></div>';
-                    $total_success++;
-                } else {
-                    echo '<div class="notice notice-error"><p>❌ ' . __('Erreur lors de la migration V3', 'restaurant-booking') . '</p></div>';
-                    $total_errors++;
-                }
-            } catch (Exception $e) {
-                echo '<div class="notice notice-error"><p>❌ Migration V3 : ' . $e->getMessage() . '</p></div>';
-                $total_errors++;
-            }
-        } else {
-            echo '<div class="notice notice-info"><p>ℹ️ ' . __('Migration V3 déjà exécutée', 'restaurant-booking') . '</p></div>';
-        }
-
-        // Migration V4 Cleanup
-        if (class_exists('RestaurantBooking_Migration_V4_Cleanup') && RestaurantBooking_Migration_V4_Cleanup::needs_migration()) {
-            try {
-                RestaurantBooking_Migration_V4_Cleanup::run();
-                echo '<div class="notice notice-success"><p>✅ ' . __('Migration V4 Cleanup exécutée avec succès', 'restaurant-booking') . '</p></div>';
-                $total_success++;
-            } catch (Exception $e) {
-                echo '<div class="notice notice-error"><p>❌ Migration V4 Cleanup : ' . $e->getMessage() . '</p></div>';
-                $total_errors++;
-            }
-        } else {
-            echo '<div class="notice notice-info"><p>ℹ️ ' . __('Migration V4 Cleanup déjà exécutée', 'restaurant-booking') . '</p></div>';
-        }
-
-        // Migration Fix Hardcoded Issues
-        if (class_exists('RestaurantBooking_Migration_Fix_Hardcoded_Issues') && RestaurantBooking_Migration_Fix_Hardcoded_Issues::is_migration_needed()) {
-            try {
-                RestaurantBooking_Migration_Fix_Hardcoded_Issues::migrate();
-                echo '<div class="notice notice-success"><p>✅ ' . __('Migration Fix Hardcoded Issues exécutée avec succès', 'restaurant-booking') . '</p></div>';
-                $total_success++;
-            } catch (Exception $e) {
-                echo '<div class="notice notice-error"><p>❌ Migration Fix Hardcoded Issues : ' . $e->getMessage() . '</p></div>';
-                $total_errors++;
-            }
-        } else {
-            echo '<div class="notice notice-info"><p>ℹ️ ' . __('Migration Fix Hardcoded Issues déjà exécutée', 'restaurant-booking') . '</p></div>';
-        }
-
-        // Migration Beer Types
-        if (class_exists('RestaurantBooking_Migration_Beer_Types') && RestaurantBooking_Migration_Beer_Types::is_migration_needed()) {
-            try {
-                RestaurantBooking_Migration_Beer_Types::migrate();
-                echo '<div class="notice notice-success"><p>✅ ' . __('Migration Beer Types exécutée avec succès', 'restaurant-booking') . '</p></div>';
-                $total_success++;
-            } catch (Exception $e) {
-                echo '<div class="notice notice-error"><p>❌ Migration Beer Types : ' . $e->getMessage() . '</p></div>';
-                $total_errors++;
-            }
-        } else {
-            echo '<div class="notice notice-info"><p>ℹ️ ' . __('Migration Beer Types déjà exécutée', 'restaurant-booking') . '</p></div>';
-        }
-
-        // Migration Add Games
-        if (class_exists('RestaurantBooking_Migration_Add_Games') && RestaurantBooking_Migration_Add_Games::is_migration_needed()) {
-            try {
-                RestaurantBooking_Migration_Add_Games::migrate();
-                echo '<div class="notice notice-success"><p>✅ ' . __('Migration Add Games exécutée avec succès', 'restaurant-booking') . '</p></div>';
-                $total_success++;
-            } catch (Exception $e) {
-                echo '<div class="notice notice-error"><p>❌ Migration Add Games : ' . $e->getMessage() . '</p></div>';
-                $total_errors++;
-            }
-        } else {
-            echo '<div class="notice notice-info"><p>ℹ️ ' . __('Migration Add Games déjà exécutée', 'restaurant-booking') . '</p></div>';
-        }
-
-        // Migration Fix Keg Categories
-        if (class_exists('RestaurantBooking_Migration_Fix_Keg_Categories') && RestaurantBooking_Migration_Fix_Keg_Categories::is_migration_needed()) {
-            try {
-                RestaurantBooking_Migration_Fix_Keg_Categories::migrate();
-                echo '<div class="notice notice-success"><p>✅ ' . __('Migration Fix Keg Categories exécutée avec succès', 'restaurant-booking') . '</p></div>';
-                $total_success++;
-            } catch (Exception $e) {
-                echo '<div class="notice notice-error"><p>❌ Migration Fix Keg Categories : ' . $e->getMessage() . '</p></div>';
-                $total_errors++;
-            }
-        } else {
-            echo '<div class="notice notice-info"><p>ℹ️ ' . __('Migration Fix Keg Categories déjà exécutée', 'restaurant-booking') . '</p></div>';
-        }
-
-        // Migration Create Subcategories
-        if (class_exists('RestaurantBooking_Migration_Create_Subcategories') && RestaurantBooking_Migration_Create_Subcategories::is_migration_needed()) {
-            try {
-                RestaurantBooking_Migration_Create_Subcategories::migrate();
-                echo '<div class="notice notice-success"><p>✅ ' . __('Migration Create Subcategories exécutée avec succès', 'restaurant-booking') . '</p></div>';
-                $total_success++;
-            } catch (Exception $e) {
-                echo '<div class="notice notice-error"><p>❌ Migration Create Subcategories : ' . $e->getMessage() . '</p></div>';
-                $total_errors++;
-            }
-        } else {
-            echo '<div class="notice notice-info"><p>ℹ️ ' . __('Migration Create Subcategories déjà exécutée', 'restaurant-booking') . '</p></div>';
-        }
-
-        // Migration Restructure Wine Categories
-        if (class_exists('RestaurantBooking_Migration_Restructure_Wine_Categories') && RestaurantBooking_Migration_Restructure_Wine_Categories::is_migration_needed()) {
-            try {
-                RestaurantBooking_Migration_Restructure_Wine_Categories::migrate();
-                echo '<div class="notice notice-success"><p>✅ ' . __('Migration Restructure Wine Categories exécutée avec succès', 'restaurant-booking') . '</p></div>';
-                $total_success++;
-            } catch (Exception $e) {
-                echo '<div class="notice notice-error"><p>❌ Migration Restructure Wine Categories : ' . $e->getMessage() . '</p></div>';
-                $total_errors++;
-            }
-        } else {
-            echo '<div class="notice notice-info"><p>ℹ️ ' . __('Migration Restructure Wine Categories déjà exécutée', 'restaurant-booking') . '</p></div>';
-        }
-
-        // Résumé final
-        if ($total_success > 0 || $total_errors > 0) {
-            echo '<div class="notice notice-' . ($total_errors > 0 ? 'warning' : 'success') . '"><p><strong>';
-            echo sprintf(__('🎉 Migrations terminées : %d réussies, %d erreurs', 'restaurant-booking'), $total_success, $total_errors);
-            echo '</strong></p></div>';
-        } else {
-            echo '<div class="notice notice-info"><p><strong>✨ ' . __('Toutes les migrations sont déjà à jour !', 'restaurant-booking') . '</strong></p></div>';
-        }
     }
 }
