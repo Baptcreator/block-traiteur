@@ -614,6 +614,15 @@
         skipCurrentStep() {
             this.log('Passage de l\'étape', this.currentStep);
             
+            // ✅ CORRECTION : Nettoyer les données de boissons si on passe l'étape des boissons (étape 5)
+            if (this.currentStep === 5) {
+                this.log('Nettoyage des données de boissons car étape passée');
+                this.formData.beverages = {};
+                this.beveragesDetails = [];
+                // Recalculer le prix sans les boissons
+                this.calculatePrice();
+            }
+            
             if (this.currentStep < this.totalSteps) {
                 this.currentStep++;
                 this.loadStep(this.currentStep);
@@ -1702,7 +1711,7 @@
             
             if (this.formData.beverages) {
                 Object.values(this.formData.beverages).forEach(beverage => {
-                    if (beverage.quantity > 0) {
+                    if (beverage.quantity > 0 && beverage.price > 0) { // ✅ CORRECTION : Ne pas inclure les boissons avec prix 0
                         const total = beverage.quantity * beverage.price;
                         beveragesTotal += total;
                         

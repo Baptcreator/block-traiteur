@@ -1092,23 +1092,26 @@ class RestaurantBooking_PDF
         // Afficher les boissons calculées
         if (!empty($price_data['beverages_detailed']) && is_array($price_data['beverages_detailed'])) {
             foreach ($price_data['beverages_detailed'] as $beverage) {
-                $html .= '
+                // ✅ CORRECTION : Ne pas afficher les boissons avec prix 0 ou nom générique
+                if (floatval($beverage['price'] ?? 0) > 0 && ($beverage['name'] ?? '') !== 'Produit sélectionné') {
+                    $html .= '
             <tr>
                 <td><strong>' . htmlspecialchars($beverage['name'] ?? 'Boisson') . '</strong>';
-                
-                if (!empty($beverage['size'])) {
-                    $html .= ' <small>(' . htmlspecialchars($beverage['size']) . ')</small>';
-                }
-                
-                if (!empty($beverage['type'])) {
-                    $html .= '<br><small style="color: #666;">' . htmlspecialchars($beverage['type']) . '</small>';
-                }
-                
-                $html .= '</td>
+                    
+                    if (!empty($beverage['size'])) {
+                        $html .= ' <small>(' . htmlspecialchars($beverage['size']) . ')</small>';
+                    }
+                    
+                    if (!empty($beverage['type'])) {
+                        $html .= '<br><small style="color: #666;">' . htmlspecialchars($beverage['type']) . '</small>';
+                    }
+                    
+                    $html .= '</td>
                 <td class="text-center">' . intval($beverage['quantity'] ?? 0) . '</td>
                 <td class="text-right">' . number_format(floatval($beverage['price'] ?? 0), 2, ',', ' ') . ' €</td>
                 <td class="text-right">' . number_format(floatval($beverage['total'] ?? 0), 2, ',', ' ') . ' €</td>
             </tr>';
+                }
             }
         }
         

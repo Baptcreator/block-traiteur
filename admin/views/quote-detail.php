@@ -134,18 +134,6 @@ if (RESTAURANT_BOOKING_DEBUG) {
             </div>
             <?php endif; ?>
 
-            <!-- DEBUG: Afficher la structure des données -->
-            <?php if (defined('RESTAURANT_BOOKING_DEBUG') && RESTAURANT_BOOKING_DEBUG): ?>
-                <div class="postbox">
-                    <h2 class="hndle"><span>🐛 DEBUG - Données disponibles</span></h2>
-                    <div class="inside">
-                        <h4>price_breakdown:</h4>
-                        <pre style="font-size: 11px; max-height: 200px; overflow: auto; background: #f9f9f9; padding: 10px;"><?php echo esc_html(print_r($price_breakdown, true)); ?></pre>
-                        <h4>selected_products:</h4>
-                        <pre style="font-size: 11px; max-height: 200px; overflow: auto; background: #f9f9f9; padding: 10px;"><?php echo esc_html(print_r($selected_products, true)); ?></pre>
-                    </div>
-                </div>
-            <?php endif; ?>
 
             <!-- Produits sélectionnés -->
             <?php if (!empty($price_breakdown['products']) || !empty($price_breakdown['beverages_detailed']) || !empty($price_breakdown['options']) || !empty($selected_products)): ?>
@@ -217,6 +205,8 @@ if (RESTAURANT_BOOKING_DEBUG) {
                                 // Afficher les boissons calculées
                                 if (!empty($price_breakdown['beverages_detailed']) && is_array($price_breakdown['beverages_detailed'])) {
                                     foreach ($price_breakdown['beverages_detailed'] as $beverage) {
+                                        // ✅ CORRECTION : Ne pas afficher les boissons avec prix 0 ou nom générique
+                                        if (floatval($beverage['price'] ?? 0) > 0 && ($beverage['name'] ?? '') !== 'Produit sélectionné') {
                                         $products_displayed = true;
                                         ?>
                                         <tr>
@@ -234,6 +224,7 @@ if (RESTAURANT_BOOKING_DEBUG) {
                                             <td><?php echo number_format(floatval($beverage['total'] ?? 0), 2, ',', ' '); ?> €</td>
                                         </tr>
                                         <?php
+                                        } // Fin de la condition pour éviter les boissons avec prix 0
                                     }
                                 }
                                 

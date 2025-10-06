@@ -1840,7 +1840,8 @@ class RestaurantBooking_Ajax_Handler_V3
                 $product_name = $this->get_product_name($product_id, 'boissons');
                 $product_price = $this->get_product_price($product_id, 'boissons');
                 
-                if ($product_price > 0) {
+                // ✅ CORRECTION : Ne pas inclure les boissons avec prix 0 ou nom générique
+                if ($product_price > 0 && $product_name !== 'Produit sélectionné') {
                     $products[] = [
                         'name' => $product_name,
                         'quantity' => $quantity,
@@ -1857,7 +1858,7 @@ class RestaurantBooking_Ajax_Handler_V3
                 
                 // Récupérer les infos de la taille depuis la base de données
                 $size_info = $this->get_beverage_size_info($size_id);
-                if ($size_info && $size_info['price'] > 0) {
+                if ($size_info && $size_info['price'] > 0 && $size_info['product_name'] !== 'Produit sélectionné') {
                     $products[] = [
                         'name' => $size_info['product_name'] . ' (' . $size_info['size_label'] . ')',
                         'quantity' => $quantity,
