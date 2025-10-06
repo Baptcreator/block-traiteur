@@ -270,13 +270,13 @@ class RestaurantBooking_Google_Calendar
             $existing_events = $this->service->events->listEvents($calendar_id, array(
                 'timeMin' => $blocked->date . 'T00:00:00Z',
                 'timeMax' => $blocked->date . 'T23:59:59Z',
-                'q' => 'Block & Co - ' . $blocked->service_type
+                'q' => 'Block Street Food & Events - ' . $blocked->service_type
             ));
 
             if (count($existing_events->getItems()) == 0) {
                 // Créer un nouvel événement
                 $event = new Google_Service_Calendar_Event();
-                $event->setSummary('Block & Co - ' . ucfirst($blocked->service_type) . ' indisponible');
+                $event->setSummary('Block Street Food & Events - ' . ucfirst($blocked->service_type) . ' indisponible');
                 $event->setDescription($blocked->notes . "\n\nSynchronisé depuis WordPress");
 
                 $start = new Google_Service_Calendar_EventDateTime();

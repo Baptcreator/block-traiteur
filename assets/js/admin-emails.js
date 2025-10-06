@@ -1,6 +1,6 @@
 /**
  * JavaScript pour la page "Emails"
- * Block & Co - Restaurant Booking Plugin
+ * Block Street Food & Events - Restaurant Booking Plugin
  */
 
 jQuery(document).ready(function($) {

@@ -54,7 +54,7 @@ class RestaurantBooking_Options_Unified_Admin
         'remorque_max_duration' => 5,
         'remorque_extra_hour_price' => 50,
         
-        // Distance/Déplacement
+        // Distance/Déplacement (utilisé par Google Maps)
         'free_radius_km' => 30,
         'price_30_50km' => 20,
         'price_50_100km' => 70,
@@ -65,13 +65,29 @@ class RestaurantBooking_Options_Unified_Admin
         'tireuse_price' => 50,
         'games_price' => 70,
         
-        // Prix accompagnements
-        'accompaniment_base_price' => 4,
-        'chimichurri_price' => 1,
-        
         // Textes d'interface
         'final_message' => 'Votre devis est d\'ores et déjà disponible dans votre boîte mail, la suite ? Block va prendre contact avec vous afin d\'affiner celui-ci et de créer avec vous toute l\'expérience dont vous rêvez',
         'comment_section_text' => '1 question, 1 souhait, n\'hésitez pas de nous en fait part, on en parle, on....',
+        
+        // Textes du formulaire de devis - Étape 1
+        'step1_title_restaurant' => 'Pourquoi privatiser notre restaurant ?',
+        'step1_title_remorque' => 'Pourquoi privatiser notre remorque Block ?',
+        'step1_card_title' => 'Comment ça fonctionne ?',
+        'restaurant_steps_list' => 'Forfait de base|Choix du formule repas (personnalisable)|Choix des boissons (optionnel)|Coordonnées / Contact',
+        'remorque_steps_list' => 'Forfait de base|Choix du formule repas (personnalisable)|Choix des boissons (optionnel)|Choix des options (optionnel)|Coordonnées/Contact',
+        
+        // Textes du formulaire de devis - Étape 2
+        'step2_title' => 'Forfait de base',
+        'restaurant_forfait_card_title' => 'FORFAIT DE BASE PRIVATISATION RESTO',
+        'remorque_forfait_card_title' => 'FORFAIT DE BASE PRIVATISATION REMORQUE BLOCK',
+        
+        // Textes du formulaire de devis - Étape 3 (Règles produits)
+        'signature_dish_text' => 'exactement 1 plat par personne',
+        'accompaniment_text' => 'exactement 1/personne',
+        'buffet_sale_text' => 'min 1/personne et min 2 recettes différents',
+        'buffet_sucre_text' => 'min 1/personne et min 1 plat',
+        'mini_boss_text' => 'Optionnel - Pour les plus petits',
+        'mini_boss_description' => 'Menu spécialement conçu pour les enfants',
         
         // Textes du widget/shortcode
         'widget_title' => 'Demande de Devis Privatisation',
@@ -200,20 +216,6 @@ class RestaurantBooking_Options_Unified_Admin
                                     </td>
                                 </tr>
                                 <tr>
-                                    <th scope="row"><?php _e('Prix de base', 'restaurant-booking'); ?></th>
-                                    <td>
-                                        <input type="number" name="accompaniment_base_price" value="<?php echo esc_attr($options['accompaniment_base_price']); ?>" min="0" step="0.01" class="small-text" />
-                                        <span>€</span>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <th scope="row"><?php _e('Prix option chimichurri', 'restaurant-booking'); ?></th>
-                                    <td>
-                                        <input type="number" name="chimichurri_price" value="<?php echo esc_attr($options['chimichurri_price']); ?>" min="0" step="0.01" class="small-text" />
-                                        <span>€</span>
-                                    </td>
-                                </tr>
-                                <tr>
                                     <th scope="row"><?php _e('Texte d\'explication', 'restaurant-booking'); ?></th>
                                     <td>
                                         <input type="text" name="accompaniment_text" value="<?php echo esc_attr($options['accompaniment_text']); ?>" class="regular-text" />
@@ -241,7 +243,116 @@ class RestaurantBooking_Options_Unified_Admin
                         </div>
                     </div>
 
-                    <!-- Section 2: Privatisation Restaurant -->
+                    <!-- Section 2: Textes du Formulaire de Devis -->
+                    <div class="options-section">
+                        <h2>📝 <?php _e('Textes du Formulaire de Devis', 'restaurant-booking'); ?></h2>
+                        
+                        <div class="options-group">
+                            <h3><?php _e('Étape 1 - Introduction', 'restaurant-booking'); ?></h3>
+                            <table class="form-table">
+                                <tr>
+                                    <th scope="row"><?php _e('Titre Restaurant', 'restaurant-booking'); ?></th>
+                                    <td>
+                                        <input type="text" name="step1_title_restaurant" value="<?php echo esc_attr($options['step1_title_restaurant']); ?>" class="large-text" />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><?php _e('Titre Remorque', 'restaurant-booking'); ?></th>
+                                    <td>
+                                        <input type="text" name="step1_title_remorque" value="<?php echo esc_attr($options['step1_title_remorque']); ?>" class="large-text" />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><?php _e('Titre carte "Comment ça fonctionne"', 'restaurant-booking'); ?></th>
+                                    <td>
+                                        <input type="text" name="step1_card_title" value="<?php echo esc_attr($options['step1_card_title']); ?>" class="regular-text" />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><?php _e('Étapes Restaurant', 'restaurant-booking'); ?></th>
+                                    <td>
+                                        <textarea name="restaurant_steps_list" rows="4" class="large-text"><?php echo esc_textarea($options['restaurant_steps_list']); ?></textarea>
+                                        <p class="description"><?php _e('Séparez chaque étape par un pipe (|)', 'restaurant-booking'); ?></p>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><?php _e('Étapes Remorque', 'restaurant-booking'); ?></th>
+                                    <td>
+                                        <textarea name="remorque_steps_list" rows="4" class="large-text"><?php echo esc_textarea($options['remorque_steps_list']); ?></textarea>
+                                        <p class="description"><?php _e('Séparez chaque étape par un pipe (|)', 'restaurant-booking'); ?></p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+
+                        <div class="options-group">
+                            <h3><?php _e('Étape 2 - Forfait de base', 'restaurant-booking'); ?></h3>
+                            <table class="form-table">
+                                <tr>
+                                    <th scope="row"><?php _e('Titre étape 2', 'restaurant-booking'); ?></th>
+                                    <td>
+                                        <input type="text" name="step2_title" value="<?php echo esc_attr($options['step2_title']); ?>" class="regular-text" />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><?php _e('Titre carte Restaurant', 'restaurant-booking'); ?></th>
+                                    <td>
+                                        <input type="text" name="restaurant_forfait_card_title" value="<?php echo esc_attr($options['restaurant_forfait_card_title']); ?>" class="large-text" />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><?php _e('Titre carte Remorque', 'restaurant-booking'); ?></th>
+                                    <td>
+                                        <input type="text" name="remorque_forfait_card_title" value="<?php echo esc_attr($options['remorque_forfait_card_title']); ?>" class="large-text" />
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+
+                        <div class="options-group">
+                            <h3><?php _e('Étape 3 - Règles des produits', 'restaurant-booking'); ?></h3>
+                            <table class="form-table">
+                                <tr>
+                                    <th scope="row"><?php _e('Texte Plats Signature', 'restaurant-booking'); ?></th>
+                                    <td>
+                                        <input type="text" name="signature_dish_text" value="<?php echo esc_attr($options['signature_dish_text']); ?>" class="regular-text" />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><?php _e('Texte Accompagnements', 'restaurant-booking'); ?></th>
+                                    <td>
+                                        <input type="text" name="accompaniment_text" value="<?php echo esc_attr($options['accompaniment_text']); ?>" class="regular-text" />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><?php _e('Texte Buffet Salé', 'restaurant-booking'); ?></th>
+                                    <td>
+                                        <input type="text" name="buffet_sale_text" value="<?php echo esc_attr($options['buffet_sale_text']); ?>" class="regular-text" />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><?php _e('Texte Buffet Sucré', 'restaurant-booking'); ?></th>
+                                    <td>
+                                        <input type="text" name="buffet_sucre_text" value="<?php echo esc_attr($options['buffet_sucre_text']); ?>" class="regular-text" />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><?php _e('Texte Menu Mini Boss', 'restaurant-booking'); ?></th>
+                                    <td>
+                                        <input type="text" name="mini_boss_text" value="<?php echo esc_attr($options['mini_boss_text']); ?>" class="regular-text" />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><?php _e('Description Menu Mini Boss', 'restaurant-booking'); ?></th>
+                                    <td>
+                                        <input type="text" name="mini_boss_description" value="<?php echo esc_attr($options['mini_boss_description']); ?>" class="regular-text" />
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Section 3: Privatisation Restaurant -->
                     <div class="options-section">
                         <h2>🏪 <?php _e('Privatisation Restaurant', 'restaurant-booking'); ?></h2>
                         

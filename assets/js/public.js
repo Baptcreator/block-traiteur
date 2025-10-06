@@ -1,5 +1,5 @@
 /**
- * JavaScript public - Plugin Restaurant Block & Co
+ * JavaScript public - Plugin Restaurant Block Street Food & Events
  * Gestion des formulaires selon le cahier des charges
  */
 

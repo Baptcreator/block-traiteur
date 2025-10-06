@@ -1,6 +1,6 @@
 /**
  * Styles globaux pour l'administration
- * Block & Co - Restaurant Booking Plugin
+ * Block Street Food & Events - Restaurant Booking Plugin
  */
 
 /* Variables CSS pour la cohérence */
@@ -17,7 +17,7 @@
     --restaurant-info: #0073aa;
 }
 
-/* Conteneurs principaux des pages Block & Co */
+/* Conteneurs principaux des pages Block Street Food & Events */
 .restaurant-booking-admin {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     max-width: 1200px;

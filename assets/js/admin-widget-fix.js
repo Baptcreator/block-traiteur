@@ -1,6 +1,6 @@
 /**
  * Script pour forcer la correction des widgets qui débordent
- * Block & Co - Restaurant Booking Plugin
+ * Block Street Food & Events - Restaurant Booking Plugin
  */
 
 jQuery(document).ready(function($) {

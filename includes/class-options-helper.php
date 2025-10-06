@@ -75,13 +75,29 @@ class RestaurantBooking_Options_Helper
         'tireuse_price' => 50,
         'games_price' => 70,
         
-        // Prix accompagnements
-        'accompaniment_base_price' => 4,
-        'chimichurri_price' => 1,
-        
         // Textes d'interface
         'final_message' => 'Votre devis est d\'ores et déjà disponible dans votre boîte mail, la suite ? Block va prendre contact avec vous afin d\'affiner celui-ci et de créer avec vous toute l\'expérience dont vous rêvez',
         'comment_section_text' => '1 question, 1 souhait, n\'hésitez pas de nous en fait part, on en parle, on....',
+        
+        // Textes du formulaire de devis - Étape 1
+        'step1_title_restaurant' => 'Pourquoi privatiser notre restaurant ?',
+        'step1_title_remorque' => 'Pourquoi privatiser notre remorque Block ?',
+        'step1_card_title' => 'Comment ça fonctionne ?',
+        'restaurant_steps_list' => 'Forfait de base|Choix du formule repas (personnalisable)|Choix des boissons (optionnel)|Coordonnées / Contact',
+        'remorque_steps_list' => 'Forfait de base|Choix du formule repas (personnalisable)|Choix des boissons (optionnel)|Choix des options (optionnel)|Coordonnées/Contact',
+        
+        // Textes du formulaire de devis - Étape 2
+        'step2_title' => 'Forfait de base',
+        'restaurant_forfait_card_title' => 'FORFAIT DE BASE PRIVATISATION RESTO',
+        'remorque_forfait_card_title' => 'FORFAIT DE BASE PRIVATISATION REMORQUE BLOCK',
+        
+        // Textes du formulaire de devis - Étape 3 (Règles produits)
+        'signature_dish_text' => 'exactement 1 plat par personne',
+        'accompaniment_text' => 'exactement 1/personne',
+        'buffet_sale_text' => 'min 1/personne et min 2 recettes différents',
+        'buffet_sucre_text' => 'min 1/personne et min 1 plat',
+        'mini_boss_text' => 'Optionnel - Pour les plus petits',
+        'mini_boss_description' => 'Menu spécialement conçu pour les enfants',
         
         // Descriptions forfaits
         'restaurant_forfait_description' => 'Mise à disposition des murs de Block|Notre équipe salle + cuisine assurant la prestation|Présentation + mise en place buffets, selon vos choix|Mise à disposition vaisselle + verrerie|Entretien + nettoyage',
@@ -186,8 +202,6 @@ class RestaurantBooking_Options_Helper
     {
         return array(
             'min_per_person' => $this->get_option('accompaniment_min_per_person'),
-            'base_price' => $this->get_option('accompaniment_base_price'),
-            'chimichurri_price' => $this->get_option('chimichurri_price'),
             'text' => $this->get_option('accompaniment_text')
         );
     }
@@ -456,6 +470,43 @@ class RestaurantBooking_Options_Helper
         }
         
         return $errors;
+    }
+
+    /**
+     * Obtenir les textes du formulaire de devis
+     */
+    public function get_form_texts()
+    {
+        return array(
+            'step1_title_restaurant' => $this->get_option('step1_title_restaurant'),
+            'step1_title_remorque' => $this->get_option('step1_title_remorque'),
+            'step1_card_title' => $this->get_option('step1_card_title'),
+            'restaurant_steps_list' => $this->get_option('restaurant_steps_list'),
+            'remorque_steps_list' => $this->get_option('remorque_steps_list'),
+            'step2_title' => $this->get_option('step2_title'),
+            'restaurant_forfait_card_title' => $this->get_option('restaurant_forfait_card_title'),
+            'remorque_forfait_card_title' => $this->get_option('remorque_forfait_card_title'),
+            'signature_dish_text' => $this->get_option('signature_dish_text'),
+            'accompaniment_text' => $this->get_option('accompaniment_text'),
+            'buffet_sale_text' => $this->get_option('buffet_sale_text'),
+            'buffet_sucre_text' => $this->get_option('buffet_sucre_text'),
+            'mini_boss_text' => $this->get_option('mini_boss_text'),
+            'mini_boss_description' => $this->get_option('mini_boss_description')
+        );
+    }
+
+    /**
+     * Obtenir les prix des zones de livraison
+     */
+    public function get_delivery_zone_prices()
+    {
+        return array(
+            'free_radius_km' => $this->get_option('free_radius_km'),
+            'price_30_50km' => $this->get_option('price_30_50km'),
+            'price_50_100km' => $this->get_option('price_50_100km'),
+            'price_100_150km' => $this->get_option('price_100_150km'),
+            'max_distance_km' => $this->get_option('max_distance_km')
+        );
     }
 }
 

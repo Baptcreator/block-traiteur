@@ -336,7 +336,7 @@ class RestaurantBooking_Google_Calendar_Simple
         }
 
         foreach ($blocked_dates as $blocked) {
-            $title = 'Block & Co - ' . ucfirst($blocked->service_type) . ' indisponible';
+            $title = 'Block Street Food & Events - ' . ucfirst($blocked->service_type) . ' indisponible';
             $description = $blocked->notes . "\n\nSynchronisé depuis WordPress";
             
             $result = $this->create_event($title, $blocked->date, $description);

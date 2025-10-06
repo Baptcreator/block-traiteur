@@ -189,7 +189,7 @@ $sync_frequency = get_option('restaurant_booking_google_sync_frequency', 'hourly
                             <ul>
                                 <li><?php _e('Les blocages de dates créent des événements dans Google Calendar', 'restaurant-booking'); ?></li>
                                 <li><?php _e('Les devis confirmés peuvent créer des événements', 'restaurant-booking'); ?></li>
-                                <li><?php _e('Titre automatique : "Block & Co - [Service] indisponible"', 'restaurant-booking'); ?></li>
+                                <li><?php _e('Titre automatique : "Block Street Food & Events - [Service] indisponible"', 'restaurant-booking'); ?></li>
                             </ul>
                         </div>
                     </div>

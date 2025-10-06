@@ -86,7 +86,7 @@ class RestaurantBooking_Dashboard
         
         ?>
         <div class="wrap">
-            <h1><?php _e('Tableau de bord - Block & Co', 'restaurant-booking'); ?></h1>
+            <h1><?php _e('Tableau de bord - Block Street Food & Events', 'restaurant-booking'); ?></h1>
             
             <!-- Statistiques rapides -->
             <div class="restaurant-booking-dashboard-stats">

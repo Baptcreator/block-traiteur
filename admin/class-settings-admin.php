@@ -36,7 +36,7 @@ class RestaurantBooking_Settings_Admin
 
         ?>
         <div class="wrap">
-            <h1><?php _e('Paramètres Block & Co', 'restaurant-booking'); ?></h1>
+            <h1><?php _e('Paramètres Block Street Food & Events', 'restaurant-booking'); ?></h1>
             
             <!-- Navigation par onglets -->
             <nav class="nav-tab-wrapper wp-clearfix">
@@ -175,7 +175,7 @@ class RestaurantBooking_Settings_Admin
     {
         // Récupérer les valeurs existantes
         $settings = get_option('restaurant_booking_general_settings', array());
-        $company_name = isset($settings['company_name']) ? $settings['company_name'] : 'Block & Co';
+        $company_name = isset($settings['company_name']) ? $settings['company_name'] : 'Block Street Food & Events';
         $company_address = isset($settings['company_address']) ? $settings['company_address'] : '123 Rue de la Gastronomie';
         $company_postal_code = isset($settings['company_postal_code']) ? $settings['company_postal_code'] : '75001';
         $company_city = isset($settings['company_city']) ? $settings['company_city'] : 'Paris';
@@ -272,7 +272,7 @@ class RestaurantBooking_Settings_Admin
 
         <div class="settings-section">
             <h3>ℹ️ <?php _e('Informations système', 'restaurant-booking'); ?></h3>
-            <p class="description"><?php _e('Block & Co propose automatiquement les services Restaurant et Remorque selon les besoins du client.', 'restaurant-booking'); ?></p>
+            <p class="description"><?php _e('Block Street Food & Events propose automatiquement les services Restaurant et Remorque selon les besoins du client.', 'restaurant-booking'); ?></p>
             
             <div class="setting-row">
                 <div class="setting-label">
@@ -339,14 +339,14 @@ class RestaurantBooking_Settings_Admin
         // Récupérer les valeurs existantes
         $settings = get_option('restaurant_booking_email_settings', array());
         $sender_email = isset($settings['sender_email']) ? $settings['sender_email'] : 'noreply@blockandco.fr';
-        $sender_name = isset($settings['sender_name']) ? $settings['sender_name'] : 'Block & Co';
-        $quote_subject = isset($settings['quote_subject']) ? $settings['quote_subject'] : 'Votre devis Block & Co';
+        $sender_name = isset($settings['sender_name']) ? $settings['sender_name'] : 'Block Street Food & Events';
+        $quote_subject = isset($settings['quote_subject']) ? $settings['quote_subject'] : 'Votre devis Block Street Food & Events';
         $admin_email = isset($settings['admin_email']) ? $settings['admin_email'] : get_option('admin_email');
         
         // Nouvelles options pour les notifications admin
         $admin_notification_enabled = isset($settings['admin_notification_enabled']) ? $settings['admin_notification_enabled'] : '1';
         $admin_notification_emails = isset($settings['admin_notification_emails']) ? $settings['admin_notification_emails'] : array(get_option('admin_email'));
-        $admin_notification_subject = isset($settings['admin_notification_subject']) ? $settings['admin_notification_subject'] : 'Nouveau devis reçu - Block & Co';
+        $admin_notification_subject = isset($settings['admin_notification_subject']) ? $settings['admin_notification_subject'] : 'Nouveau devis reçu - Block Street Food & Events';
         
         // Vérifier le statut SMTP
         $smtp_status = $this->check_smtp_status();
@@ -828,7 +828,7 @@ class RestaurantBooking_Settings_Admin
         $logo_id = isset($settings['logo_id']) ? $settings['logo_id'] : '';
         $primary_color = isset($settings['primary_color']) ? $settings['primary_color'] : '#FFB404';
         $secondary_color = isset($settings['secondary_color']) ? $settings['secondary_color'] : '#243127';
-        $footer_text = isset($settings['footer_text']) ? $settings['footer_text'] : 'Block & Co - 123 Rue de la Gastronomie, 67000 Strasbourg';
+        $footer_text = isset($settings['footer_text']) ? $settings['footer_text'] : 'Block Street Food & Events - 123 Rue de la Gastronomie, 67000 Strasbourg';
         $quote_validity = isset($settings['quote_validity']) ? $settings['quote_validity'] : 'Ce devis est valable 30 jours à compter de sa date d\'émission.';
         $payment_terms = isset($settings['payment_terms']) ? $settings['payment_terms'] : '- Acompte de 30% à la confirmation de commande\n- Solde le jour de la prestation';
         $cancellation_terms = isset($settings['cancellation_terms']) ? $settings['cancellation_terms'] : '- Annulation gratuite jusqu\'à 48h avant l\'événement\n- Annulation entre 48h et 24h : 50% du montant total\n- Annulation moins de 24h : 100% du montant total';
@@ -912,7 +912,7 @@ class RestaurantBooking_Settings_Admin
                     <label for="footer_text"><?php _e('Pied de page', 'restaurant-booking'); ?></label>
                 </div>
                 <div class="setting-input">
-                    <textarea id="footer_text" name="footer_text" rows="3" class="large-text" placeholder="Block & Co - Adresse complète"><?php echo esc_textarea($footer_text); ?></textarea>
+                    <textarea id="footer_text" name="footer_text" rows="3" class="large-text" placeholder="Block Street Food & Events - Adresse complète"><?php echo esc_textarea($footer_text); ?></textarea>
                     <div class="setting-description"><?php _e('Texte qui apparaîtra en bas de chaque devis', 'restaurant-booking'); ?></div>
                 </div>
             </div>
@@ -2759,7 +2759,7 @@ class RestaurantBooking_Settings_Admin
 
         <script>
         // JavaScript pour les widgets Elementor (si nécessaire dans le futur)
-        console.log('Block & Co - Widgets Elementor disponibles');
+        console.log('Block Street Food & Events - Widgets Elementor disponibles');
         </script>
         <?php
     }
@@ -2775,13 +2775,13 @@ class RestaurantBooking_Settings_Admin
         // Sauvegarder les paramètres dans le format unifié
         $email_settings = array(
             'sender_email' => sanitize_email($data['sender_email'] ?? 'noreply@blockandco.fr'),
-            'sender_name' => sanitize_text_field($data['sender_name'] ?? 'Block & Co'),
-            'quote_subject' => sanitize_text_field($data['quote_subject'] ?? 'Votre devis Block & Co'),
+            'sender_name' => sanitize_text_field($data['sender_name'] ?? 'Block Street Food & Events'),
+            'quote_subject' => sanitize_text_field($data['quote_subject'] ?? 'Votre devis Block Street Food & Events'),
             'admin_email' => sanitize_email($data['admin_email'] ?? get_option('admin_email')),
             
             // Nouveaux paramètres de notification admin
             'admin_notification_enabled' => isset($data['admin_notification_enabled']) ? '1' : '0',
-            'admin_notification_subject' => sanitize_text_field($data['admin_notification_subject'] ?? 'Nouveau devis reçu - Block & Co'),
+            'admin_notification_subject' => sanitize_text_field($data['admin_notification_subject'] ?? 'Nouveau devis reçu - Block Street Food & Events'),
             'admin_notification_emails' => array_filter(array_map('sanitize_email', $data['admin_notification_emails'] ?? array())),
             
             // Anciens paramètres pour compatibilité

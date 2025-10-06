@@ -251,16 +251,16 @@ class RestaurantBooking_Quote_Calculator_V2
             
             $distance_km = $distance_result['distance_km'];
             
-            // Calculer le supplément selon les zones configurées en base de données
-            $zone_info = $this->get_delivery_zone_for_distance($distance_km);
+            // Calculer le supplément selon les zones configurées dans les options unifiées
+            $zone_info = $this->get_delivery_zone_from_options($distance_km);
             if ($zone_info) {
                 return [
                     'amount' => (float) $zone_info['delivery_price'],
-                    'zone_name' => $zone_info['zone_name'] . ' (' . $zone_info['distance_min'] . '-' . $zone_info['distance_max'] . 'km)'
+                    'zone_name' => $zone_info['zone_name']
                 ];
             } else {
                 // Aucune zone trouvée = distance trop importante
-                $max_distance = $this->get_max_delivery_distance();
+                $max_distance = $this->get_max_delivery_distance_from_options();
                 throw new Exception(sprintf('Distance trop importante (max %dkm)', $max_distance));
             }
             
@@ -636,7 +636,62 @@ class RestaurantBooking_Quote_Calculator_V2
     }
 
     /**
-     * Obtenir la zone de livraison pour une distance donnée
+     * Obtenir la zone de livraison pour une distance donnée depuis les options unifiées
+     */
+    private function get_delivery_zone_from_options($distance_km)
+    {
+        $options_helper = RestaurantBooking_Options_Helper::get_instance();
+        $zone_prices = $options_helper->get_delivery_zone_prices();
+        
+        // Zone gratuite
+        if ($distance_km <= $zone_prices['free_radius_km']) {
+            return [
+                'delivery_price' => 0,
+                'zone_name' => 'Zone locale (0-' . $zone_prices['free_radius_km'] . 'km)'
+            ];
+        }
+        
+        // Zone 30-50km
+        if ($distance_km <= 50) {
+            return [
+                'delivery_price' => $zone_prices['price_30_50km'],
+                'zone_name' => 'Zone 30-50km'
+            ];
+        }
+        
+        // Zone 50-100km
+        if ($distance_km <= 100) {
+            return [
+                'delivery_price' => $zone_prices['price_50_100km'],
+                'zone_name' => 'Zone 50-100km'
+            ];
+        }
+        
+        // Zone 100-150km
+        if ($distance_km <= $zone_prices['max_distance_km']) {
+            return [
+                'delivery_price' => $zone_prices['price_100_150km'],
+                'zone_name' => 'Zone 100-150km'
+            ];
+        }
+        
+        // Distance trop importante
+        return null;
+    }
+
+    /**
+     * Obtenir la distance maximale de livraison depuis les options unifiées
+     */
+    private function get_max_delivery_distance_from_options()
+    {
+        $options_helper = RestaurantBooking_Options_Helper::get_instance();
+        $zone_prices = $options_helper->get_delivery_zone_prices();
+        
+        return $zone_prices['max_distance_km'];
+    }
+
+    /**
+     * Obtenir la zone de livraison pour une distance donnée (ANCIENNE MÉTHODE - BASE DE DONNÉES)
      */
     private function get_delivery_zone_for_distance($distance_km)
     {

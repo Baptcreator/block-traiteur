@@ -1,9 +1,9 @@
 /**
- * Corrections de mise en page pour l'interface admin Block & Co
+ * Corrections de mise en page pour l'interface admin Block Street Food & Events
  * Suppression des animations et correction des marges/largeurs
  */
 
-/* Force la largeur complète pour toutes les pages Block & Co */
+/* Force la largeur complète pour toutes les pages Block Street Food & Events */
 .wrap {
     max-width: none !important;
     width: 100% !important;

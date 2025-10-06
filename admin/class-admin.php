@@ -82,7 +82,7 @@ class RestaurantBooking_Admin
         }
         
 
-        // Charger les styles globaux pour toutes les pages Block & Co
+        // Charger les styles globaux pour toutes les pages Block Street Food & Events
         add_action('admin_enqueue_scripts', array($this, 'enqueue_admin_assets'));
 
         // Traiter les actions POST
@@ -96,7 +96,7 @@ class RestaurantBooking_Admin
      */
     public function enqueue_admin_assets($hook)
     {
-        // Charger seulement sur les pages Block & Co
+        // Charger seulement sur les pages Block Street Food & Events
         if (strpos($hook, 'restaurant-booking') !== false) {
             // Charger la médiathèque WordPress pour le sélecteur de logo
             wp_enqueue_media();
@@ -122,10 +122,10 @@ class RestaurantBooking_Admin
      */
     public function add_admin_menus()
     {
-        // Menu principal Block & Co
+        // Menu principal Block Street Food & Events
         add_menu_page(
-            __('Block & Co', 'restaurant-booking'),
-            __('Block & Co', 'restaurant-booking'),
+            __('Block Street Food & Events', 'restaurant-booking'),
+            __('Block Street Food & Events', 'restaurant-booking'),
             'manage_restaurant_quotes',
             'restaurant-booking',
             array($this, 'dashboard_page'),
@@ -2478,11 +2478,11 @@ class RestaurantBooking_Admin
         try {
             // Paramètres email
             $general_settings = get_option('restaurant_booking_general_settings', array());
-            $company_name = $general_settings['company_name'] ?? 'Block & Co';
+            $company_name = $general_settings['company_name'] ?? 'Block Street Food & Events';
 
             $subject = __('Test email - ', 'restaurant-booking') . $company_name;
             $message = '<h2>' . __('Test de configuration email', 'restaurant-booking') . '</h2>';
-            $message .= '<p>' . __('Ceci est un email de test envoyé depuis votre plugin Block & Co.', 'restaurant-booking') . '</p>';
+            $message .= '<p>' . __('Ceci est un email de test envoyé depuis votre plugin Block Street Food & Events.', 'restaurant-booking') . '</p>';
             $message .= '<p>' . sprintf(__('Si vous recevez cet email, la configuration fonctionne correctement.', 'restaurant-booking')) . '</p>';
             $message .= '<p><strong>' . __('Informations techniques :', 'restaurant-booking') . '</strong></p>';
             $message .= '<ul>';
@@ -2567,7 +2567,7 @@ class RestaurantBooking_Admin
             // Sujet personnalisable
             $subject = isset($email_settings['admin_notification_subject']) ? 
                        $email_settings['admin_notification_subject'] : 
-                       'Nouveau devis reçu - Block & Co';
+                       'Nouveau devis reçu - Block Street Food & Events';
             
             $subject = '[TEST] ' . str_replace('{quote_number}', $test_quote['quote_number'], $subject);
 
@@ -2585,7 +2585,7 @@ class RestaurantBooking_Admin
                    "• Nombre de convives : %d\n" .
                    "• Montant total : %.2f€\n\n" .
                    "🔗 Voir le devis complet :\n%s\n\n" .
-                   "📧 Cet email de test a été envoyé depuis votre configuration Block & Co.", 
+                   "📧 Cet email de test a été envoyé depuis votre configuration Block Street Food & Events.", 
                    'restaurant-booking'),
                 $test_quote['quote_number'],
                 '🍽️ Restaurant (TEST)',
@@ -2601,7 +2601,7 @@ class RestaurantBooking_Admin
             // Headers
             $headers = array(
                 'Content-Type: text/plain; charset=UTF-8',
-                'From: ' . ($email_settings['sender_name'] ?? 'Block & Co') . ' <' . ($email_settings['sender_email'] ?? get_option('admin_email')) . '>'
+                'From: ' . ($email_settings['sender_name'] ?? 'Block Street Food & Events') . ' <' . ($email_settings['sender_email'] ?? get_option('admin_email')) . '>'
             );
 
             $success_count = 0;

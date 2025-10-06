@@ -426,26 +426,34 @@ class RestaurantBooking_Ajax_Handler_V3
      */
     private function generate_step_1_html($service_type, $form_data)
     {
-        $service_name = ($service_type === 'restaurant') ? 'restaurant' : 'remorque Block';
-        $steps_list = ($service_type === 'restaurant') 
-            ? ['Forfait de base', 'Choix du formule repas (personnalisable)', 'Choix des boissons (optionnel)', 'Coordonnées / Contact']
-            : ['Forfait de base', 'Choix du formule repas (personnalisable)', 'Choix des boissons (optionnel)', 'Choix des options (optionnel)', 'Coordonnées/Contact'];
+        // Récupérer les textes configurables
+        $form_texts = RestaurantBooking_Options_Helper::get_instance()->get_form_texts();
+        
+        $step1_title = ($service_type === 'restaurant') 
+            ? $form_texts['step1_title_restaurant']
+            : $form_texts['step1_title_remorque'];
+            
+        $steps_list_string = ($service_type === 'restaurant') 
+            ? $form_texts['restaurant_steps_list']
+            : $form_texts['remorque_steps_list'];
+            
+        $steps_list = explode('|', $steps_list_string);
 
         ob_start();
         ?>
         <div class="rbf-v3-step-content active" data-step="1">
-            <h2 class="rbf-v3-step-title">Pourquoi privatiser notre <?php echo esc_html($service_name); ?> ?</h2>
+            <h2 class="rbf-v3-step-title"><?php echo esc_html($step1_title); ?></h2>
             
             <div class="rbf-v3-explanation-card">
                 <div class="rbf-v3-card-header">
-                    <h3>Comment ça fonctionne ?</h3>
+                    <h3><?php echo esc_html($form_texts['step1_card_title']); ?></h3>
                 </div>
                 <div class="rbf-v3-card-body">
                     <div class="rbf-v3-steps-list">
                         <?php foreach ($steps_list as $index => $step) : ?>
                             <div class="rbf-v3-step-item">
                                 <span class="rbf-v3-step-number"><?php echo ($index + 1); ?>.</span>
-                                <span class="rbf-v3-step-text"><?php echo esc_html($step); ?></span>
+                                <span class="rbf-v3-step-text"><?php echo esc_html(trim($step)); ?></span>
                             </div>
                         <?php endforeach; ?>
                     </div>
@@ -466,6 +474,9 @@ class RestaurantBooking_Ajax_Handler_V3
      */
     private function generate_step_2_html($service_type, $form_data)
     {
+        // Récupérer les textes configurables
+        $form_texts = RestaurantBooking_Options_Helper::get_instance()->get_form_texts();
+        
         $min_guests = $this->options[$service_type . '_min_guests'];
         $max_guests = $this->options[$service_type . '_max_guests'];
         $min_duration = $this->options[$service_type . '_min_duration'];
@@ -474,7 +485,7 @@ class RestaurantBooking_Ajax_Handler_V3
         ob_start();
         ?>
         <div class="rbf-v3-step-content active" data-step="2">
-            <h2 class="rbf-v3-step-title">Forfait de base</h2>
+            <h2 class="rbf-v3-step-title"><?php echo esc_html($form_texts['step2_title']); ?></h2>
             
             <div class="rbf-v3-form-grid">
                 <div class="rbf-v3-form-group">
@@ -602,8 +613,8 @@ class RestaurantBooking_Ajax_Handler_V3
                 <div class="rbf-v3-card-header">
                     <h3>
                         <?php echo ($service_type === 'restaurant') 
-                            ? 'FORFAIT DE BASE PRIVATISATION RESTO' 
-                            : 'FORFAIT DE BASE PRIVATISATION REMORQUE BLOCK'; ?>
+                            ? esc_html($form_texts['restaurant_forfait_card_title'])
+                            : esc_html($form_texts['remorque_forfait_card_title']); ?>
                     </h3>
                 </div>
                 <div class="rbf-v3-card-body">
@@ -645,7 +656,7 @@ class RestaurantBooking_Ajax_Handler_V3
             <div class="rbf-v3-product-section">
                 <h3>🍽️ Choix du plat signature</h3>
                 <p class="rbf-v3-help-text">
-                    <em><?php echo esc_html($this->options['signature_dish_text'] ?? 'minimum 1 plat par personne'); ?></em>
+                    <em><?php echo esc_html($form_texts['signature_dish_text']); ?></em>
                 </p>
                 
                 <div class="rbf-v3-signature-selector">
@@ -684,13 +695,13 @@ class RestaurantBooking_Ajax_Handler_V3
             <!-- Menu Mini Boss -->
             <div class="rbf-v3-product-section">
                 <h3>👑 Menu Mini Boss</h3>
-                <p class="rbf-v3-help-text"><em>Optionnel - Pour les plus petits</em></p>
+                <p class="rbf-v3-help-text"><em><?php echo esc_html($form_texts['mini_boss_text']); ?></em></p>
                 
                 <label class="rbf-v3-checkbox-card">
                     <input type="checkbox" name="mini_boss_enabled" value="1" data-action="toggle-mini-boss" data-initial-state="disabled">
                     <div class="rbf-v3-checkbox-content">
                         <span class="rbf-v3-checkbox-title">Ajouter le menu Mini Boss</span>
-                        <span class="rbf-v3-checkbox-subtitle">Menu spécialement conçu pour les enfants</span>
+                        <span class="rbf-v3-checkbox-subtitle"><?php echo esc_html($form_texts['mini_boss_description']); ?></span>
                     </div>
                 </label>
                 
@@ -703,7 +714,7 @@ class RestaurantBooking_Ajax_Handler_V3
             <div class="rbf-v3-product-section">
                 <h3>🥗 Accompagnements</h3>
                 <p class="rbf-v3-help-text">
-                    <em><?php echo esc_html($this->options['accompaniment_text'] ?? 'mini 1/personne'); ?></em>
+                    <em><?php echo esc_html($form_texts['accompaniment_text']); ?></em>
                 </p>
                 
                 <div class="rbf-v3-accompaniments-vertical">
@@ -720,6 +731,9 @@ class RestaurantBooking_Ajax_Handler_V3
      */
     private function generate_step_4_html($service_type, $form_data)
     {
+        // Récupérer les textes configurables
+        $form_texts = RestaurantBooking_Options_Helper::get_instance()->get_form_texts();
+        
         // Récupérer les buffets depuis la base de données
         $buffet_sale_products = $this->get_products_by_category('buffet_sale');
         $buffet_sucre_products = $this->get_products_by_category('buffet_sucre');
@@ -778,7 +792,7 @@ class RestaurantBooking_Ajax_Handler_V3
                     <div class="rbf-v3-product-section">
                         <h3>🥗 BUFFET SALÉ</h3>
                         <p class="rbf-v3-help-text">
-                            <em>min 1/personne et min 2 recettes différentes</em>
+                            <em><?php echo esc_html($form_texts['buffet_sale_text']); ?></em>
                         </p>
                         
                         <div class="rbf-v3-products-grid">
@@ -827,7 +841,7 @@ class RestaurantBooking_Ajax_Handler_V3
                     <div class="rbf-v3-product-section">
                         <h3>🍰 BUFFET SUCRÉ</h3>
                         <p class="rbf-v3-help-text">
-                            <em>min 1/personne et min 1 plat</em>
+                            <em><?php echo esc_html($form_texts['buffet_sucre_text']); ?></em>
                         </p>
                         
                         <div class="rbf-v3-products-grid">
@@ -1307,7 +1321,7 @@ class RestaurantBooking_Ajax_Handler_V3
                                                 <p class="rbf-v3-game-description"><?php echo esc_html($game->description); ?></p>
                                             <?php endif; ?>
                                             <div class="rbf-v3-game-price">
-                                                <span><?php echo number_format($game->price, 0); ?>€</span>
+                                                <span><?php echo number_format($game->price, 2); ?>€</span>
                                                 <label class="rbf-v3-checkbox-label">
                                                     <input type="checkbox" name="game_<?php echo $game->id; ?>" value="1">
                                                     <span class="rbf-v3-checkmark"></span>
@@ -2675,13 +2689,13 @@ class RestaurantBooking_Ajax_Handler_V3
         }
         
         $message .= "Nous vous recontacterons dans les plus brefs délais pour finaliser votre réservation.\n\n";
-        $message .= "Cordialement,\nL'équipe Block\n\n";
+        $message .= "Cordialement,\nL'équipe Block Street Food & Events\n\n";
         $message .= "---\n";
         $message .= "Ceci est un email automatique, merci de ne pas y répondre.";
         
         $headers = [
             'Content-Type: text/plain; charset=UTF-8',
-            'From: Block <noreply@block-restaurant.fr>'
+            'From: Block Street Food & Events <noreply@block-restaurant.fr>'
         ];
         
         $sent = wp_mail($to, $subject, $message, $headers);

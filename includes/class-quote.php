@@ -548,22 +548,35 @@ class RestaurantBooking_Quote
     }
 
     /**
-     * Obtenir le coût de livraison selon la distance
+     * Obtenir le coût de livraison selon la distance (utilise les options unifiées)
      */
     private static function get_delivery_cost($distance)
     {
-        global $wpdb;
-
-        $zone = $wpdb->get_row($wpdb->prepare(
-            "SELECT delivery_price FROM {$wpdb->prefix}restaurant_delivery_zones 
-             WHERE distance_min <= %d AND distance_max >= %d AND is_active = 1
-             ORDER BY distance_min ASC
-             LIMIT 1",
-            $distance,
-            $distance
-        ));
-
-        return $zone ? (float) $zone->delivery_price : 0;
+        $options_helper = RestaurantBooking_Options_Helper::get_instance();
+        $zone_prices = $options_helper->get_delivery_zone_prices();
+        
+        // Zone gratuite
+        if ($distance <= $zone_prices['free_radius_km']) {
+            return 0;
+        }
+        
+        // Zone 30-50km
+        if ($distance <= 50) {
+            return $zone_prices['price_30_50km'];
+        }
+        
+        // Zone 50-100km
+        if ($distance <= 100) {
+            return $zone_prices['price_50_100km'];
+        }
+        
+        // Zone 100-150km
+        if ($distance <= $zone_prices['max_distance_km']) {
+            return $zone_prices['price_100_150km'];
+        }
+        
+        // Distance trop importante
+        return 0;
     }
 
     /**

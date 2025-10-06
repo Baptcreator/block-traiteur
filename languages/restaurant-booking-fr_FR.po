@@ -16,7 +16,7 @@ msgstr ""
 "X-Generator: Poedit 3.0\n"
 
 msgid "Block & Co"
-msgstr "Block & Co"
+msgstr "Block Street Food & Events"
 
 msgid "Tableau de bord"
 msgstr "Tableau de bord"

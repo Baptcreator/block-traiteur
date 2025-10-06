@@ -474,7 +474,7 @@ class RestaurantBooking_PDF
         try {
             $pdf = new TCPDF(PDF_PAGE_ORIENTATION, PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8', false);
             $pdf->SetCreator('Restaurant Booking Plugin');
-            $pdf->SetTitle('Devis Block & Co');
+            $pdf->SetTitle('Devis Block Street Food & Events');
             $pdf->setPrintHeader(false);
             $pdf->setPrintFooter(false);
             $pdf->AddPage();
@@ -500,7 +500,7 @@ class RestaurantBooking_PDF
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>Devis Block & Co</title>
+    <title>Devis Block Street Food & Events</title>
     <style>
         @media print {
             body { margin: 0; }
@@ -619,7 +619,7 @@ class RestaurantBooking_PDF
         $settings = get_option('restaurant_booking_pdf_settings', array());
         $primary_color = isset($settings['primary_color']) ? $settings['primary_color'] : '#FFB404';
         $secondary_color = isset($settings['secondary_color']) ? $settings['secondary_color'] : '#243127';
-        $footer_text = isset($settings['footer_text']) ? $settings['footer_text'] : 'Block & Co - 123 Rue de la Gastronomie, 67000 Strasbourg';
+        $footer_text = isset($settings['footer_text']) ? $settings['footer_text'] : 'Block Street Food & Events - 123 Rue de la Gastronomie, 67000 Strasbourg';
         $logo_id = isset($settings['logo_id']) ? $settings['logo_id'] : '';
         $logo_url = $logo_id ? wp_get_attachment_image_url($logo_id, 'medium') : '';
         

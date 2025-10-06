@@ -221,7 +221,7 @@ class RestaurantBooking_Email
         
         $headers = [
             'Content-Type: text/html; charset=UTF-8',
-            'From: Block & Co <noreply@block-streetfood.fr>'
+            'From: Block Street Food & Events <noreply@block-streetfood.fr>'
         ];
         
         // Envoyer l'email avec gestion d'erreur améliorée
@@ -375,7 +375,7 @@ class RestaurantBooking_Email
         <body>
             <div class="container">
                 <div class="header">
-                    <h1>🍽️ Block & Co</h1>
+                    <h1>🍽️ Block Street Food & Events</h1>
                     <p>Votre devis de privatisation</p>
                 </div>
                 
@@ -440,11 +440,11 @@ class RestaurantBooking_Email
                     <p>Si vous avez des questions, n\'hésitez pas à nous contacter.</p>
                     
                     <p>Cordialement,<br>
-                    L\'équipe Block & Co</p>
+                    L\'équipe Block Street Food & Events</p>
                 </div>
                 
                 <div class="footer">
-                    <p>Block & Co - Restaurant & Remorque</p>
+                    <p>Block Street Food & Events - Restaurant & Remorque</p>
                     <p>Ceci est un email automatique, merci de ne pas y répondre directement.</p>
                 </div>
             </div>
@@ -531,7 +531,7 @@ class RestaurantBooking_Email
         // Sujet personnalisable
         $subject = isset($email_settings['admin_notification_subject']) ? 
                    $email_settings['admin_notification_subject'] : 
-                   'Nouvelle demande de devis - Block & Co';
+                   'Nouvelle demande de devis - Block Street Food & Events';
         
         // Remplacer les variables dans le sujet
         $subject = str_replace('{quote_number}', $quote['quote_number'] ?? $quote_id, $subject);
@@ -589,7 +589,7 @@ class RestaurantBooking_Email
         // Ajouter le lien et la signature
         $message .= sprintf(
             __("\n\n🔗 Voir le devis complet :\n%s\n\n" .
-               "📧 Cet email a été envoyé automatiquement depuis votre site Block & Co.", 
+               "📧 Cet email a été envoyé automatiquement depuis votre site Block Street Food & Events.", 
                'restaurant-booking'),
             admin_url('admin.php?page=restaurant-booking-quotes&action=view&quote_id=' . $quote_id)
         );
@@ -597,7 +597,7 @@ class RestaurantBooking_Email
         // Headers pour un meilleur affichage
         $headers = array(
             'Content-Type: text/plain; charset=UTF-8',
-            'From: ' . ($email_settings['sender_name'] ?? 'Block & Co') . ' <' . ($email_settings['sender_email'] ?? get_option('admin_email')) . '>'
+            'From: ' . ($email_settings['sender_name'] ?? 'Block Street Food & Events') . ' <' . ($email_settings['sender_email'] ?? get_option('admin_email')) . '>'
         );
 
         $success_count = 0;
@@ -690,7 +690,7 @@ class RestaurantBooking_Email
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>Devis Block & Co</title>
+    <title>Devis Block Street Food & Events</title>
     <style>
         body { font-family: Arial, sans-serif; margin: 20px; }
         .header { border-bottom: 3px solid #FFB404; padding-bottom: 20px; margin-bottom: 30px; }
