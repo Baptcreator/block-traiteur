@@ -442,8 +442,6 @@ class RestaurantBooking_Ajax_Handler_V3
         ob_start();
         ?>
         <div class="rbf-v3-step-content active" data-step="1">
-            <h2 class="rbf-v3-step-title"><?php echo esc_html($step1_title); ?></h2>
-            
             <div class="rbf-v3-explanation-card">
                 <div class="rbf-v3-card-header">
                     <h3><?php echo esc_html($form_texts['step1_card_title']); ?></h3>
@@ -452,7 +450,7 @@ class RestaurantBooking_Ajax_Handler_V3
                     <div class="rbf-v3-steps-list">
                         <?php foreach ($steps_list as $index => $step) : ?>
                             <div class="rbf-v3-step-item">
-                                <span class="rbf-v3-step-number"><?php echo ($index + 1); ?>.</span>
+                                <span class="rbf-v3-step-number"><?php echo ($index + 1); ?></span>
                                 <span class="rbf-v3-step-text"><?php echo esc_html(trim($step)); ?></span>
                             </div>
                         <?php endforeach; ?>
@@ -1321,7 +1319,9 @@ class RestaurantBooking_Ajax_Handler_V3
                                                 <p class="rbf-v3-game-description"><?php echo esc_html($game->description); ?></p>
                                             <?php endif; ?>
                                             <div class="rbf-v3-game-price">
-                                                <span><?php echo number_format($game->price, 2); ?>€</span>
+                                                <?php if ($game->price > 0) : ?>
+                                                    <span><?php echo number_format($game->price, 2); ?>€</span>
+                                                <?php endif; ?>
                                                 <label class="rbf-v3-checkbox-label">
                                                     <input type="checkbox" name="game_<?php echo $game->id; ?>" value="1">
                                                     <span class="rbf-v3-checkmark"></span>

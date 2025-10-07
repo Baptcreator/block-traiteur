@@ -1849,14 +1849,35 @@ button.rbf-v3-subcategory-btn.active {
     justify-content: center;
     font-weight: 600;
     font-size: 0.875rem;
-    flex-shrink: 0;
     line-height: 1;
     text-align: center;
+    flex-shrink: 0;
+    padding: 0;
+    box-sizing: border-box;
+    margin: 0;
+    vertical-align: middle;
+    text-indent: 0;
+    letter-spacing: 0;
 }
 
 .rbf-v3-step-text {
     color: var(--rbf-v3-green);
     font-weight: 500;
+}
+
+/* Force le centrage parfait des numéros dans les cercles de l'étape 1 */
+.rbf-v3-steps-list .rbf-v3-step-number {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    text-align: center !important;
+    line-height: 1 !important;
+    vertical-align: middle !important;
+    text-indent: 0 !important;
+    letter-spacing: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    box-sizing: border-box !important;
 }
 
 .rbf-v3-explanation-card .rbf-v3-card-footer {
@@ -1900,6 +1921,13 @@ button.rbf-v3-subcategory-btn.active {
         align-items: center;
         justify-content: center;
         text-align: center;
+        flex-shrink: 0;
+        padding: 0;
+        box-sizing: border-box;
+        margin: 0;
+        vertical-align: middle;
+        text-indent: 0;
+        letter-spacing: 0;
     }
 }
 
@@ -1934,6 +1962,13 @@ button.rbf-v3-subcategory-btn.active {
         align-items: center;
         justify-content: center;
         text-align: center;
+        flex-shrink: 0;
+        padding: 0;
+        box-sizing: border-box;
+        margin: 0;
+        vertical-align: middle;
+        text-indent: 0;
+        letter-spacing: 0;
     }
     
     .rbf-v3-step-text {

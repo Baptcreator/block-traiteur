@@ -1784,7 +1784,7 @@
                                 <div class="rbf-v3-success-details">
                                     <p><strong>Service :</strong> ${serviceName}</p>
                                     <p><strong>📧 Email de confirmation :</strong> envoyé à <code>${this.formData.client_email}</code></p>
-                                    <p><strong>📞 Contact :</strong> ${this.formData.client_firstname} ${this.formData.client_name}</p>
+                                    <p><strong>📞 Contact :</strong> ${this.formData.client_phone || 'Non renseigné'}</p>
                                     <p><strong>⏰ Prochaine étape :</strong> Nous vous recontacterons dans les plus brefs délais pour finaliser votre réservation.</p>
                                 </div>
                                 <div class="rbf-v3-success-actions">
