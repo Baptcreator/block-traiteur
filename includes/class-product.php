@@ -100,6 +100,7 @@ class RestaurantBooking_Product
             'beer_category' => isset($data['beer_category']) ? self::clean_escaped_quotes(sanitize_text_field($data['beer_category'])) : null,
             'wine_category' => isset($data['wine_category']) ? self::clean_escaped_quotes(sanitize_text_field($data['wine_category'])) : null,
             'unit_per_person' => isset($data['unit_per_person']) ? self::clean_escaped_quotes(sanitize_text_field($data['unit_per_person'])) : null,
+            'quantity_info' => isset($data['quantity_info']) ? self::clean_escaped_quotes(sanitize_textarea_field($data['quantity_info'])) : null,
             'suggested_beverage' => isset($data['suggested_beverage']) ? (bool) $data['suggested_beverage'] : false,
             'has_multiple_sizes' => isset($data['has_multiple_sizes']) ? (bool) $data['has_multiple_sizes'] : false,
             'display_order' => isset($data['display_order']) ? (int) $data['display_order'] : 0,
@@ -111,7 +112,7 @@ class RestaurantBooking_Product
         $result = $wpdb->insert(
             $wpdb->prefix . 'restaurant_products',
             $product_data,
-            array('%d', '%s', '%s', '%s', '%f', '%s', '%s', '%d', '%d', '%d', '%s', '%f', '%d', '%d', '%f', '%d', '%s', '%s', '%s', '%d', '%d', '%d', '%s')
+            array('%d', '%s', '%s', '%s', '%f', '%s', '%s', '%d', '%d', '%d', '%s', '%f', '%d', '%d', '%f', '%d', '%s', '%s', '%s', '%s', '%d', '%d', '%d', '%s')
         );
 
         if ($result === false) {
@@ -205,6 +206,7 @@ class RestaurantBooking_Product
             'beer_category' => '%s',
             'wine_category' => '%s',
             'unit_per_person' => '%s',
+            'quantity_info' => '%s',
             'suggested_beverage' => '%d',
             'has_multiple_sizes' => '%d',
             'display_order' => '%d',
@@ -233,6 +235,9 @@ class RestaurantBooking_Product
                     case 'wine_category':
                     case 'unit_per_person':
                         $update_data[$field] = self::clean_escaped_quotes(sanitize_text_field($data[$field]));
+                        break;
+                    case 'quantity_info':
+                        $update_data[$field] = self::clean_escaped_quotes(sanitize_textarea_field($data[$field]));
                         break;
                     case 'price':
                     case 'supplement_price':

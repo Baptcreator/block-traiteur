@@ -809,9 +809,12 @@ class RestaurantBooking_Ajax_Handler_V3
                                             <?php if (!empty($product->description)) : ?>
                                                 <p class="rbf-v3-product-description"><?php echo esc_html($product->description); ?></p>
                                             <?php endif; ?>
+                                            <?php if (!empty($product->quantity_info)) : ?>
+                                                <p class="rbf-v3-product-quantity-info" style="font-size: 0.9em; font-style: italic; color: #666; margin-top: 0.25em;"><?php echo esc_html($product->quantity_info); ?></p>
+                                            <?php endif; ?>
                                             <div class="rbf-v3-product-details">
                                                 <span class="rbf-v3-product-servings"><?php echo esc_html(isset($product->servings_per_person) ? $product->servings_per_person : $product->unit_per_person ?? '1 pers'); ?></span>
-                                                <span class="rbf-v3-product-price"><?php echo number_format($product->price, 0); ?> €</span>
+                                                <span class="rbf-v3-product-price"><?php echo number_format($product->price, 2, ',', ' '); ?> €</span>
                                             </div>
                                             <div class="rbf-v3-product-footer">
                                                 <div class="rbf-v3-quantity-selector">
@@ -858,9 +861,12 @@ class RestaurantBooking_Ajax_Handler_V3
                                             <?php if (!empty($product->description)) : ?>
                                                 <p class="rbf-v3-product-description"><?php echo esc_html($product->description); ?></p>
                                             <?php endif; ?>
+                                            <?php if (!empty($product->quantity_info)) : ?>
+                                                <p class="rbf-v3-product-quantity-info" style="font-size: 0.9em; font-style: italic; color: #666; margin-top: 0.25em;"><?php echo esc_html($product->quantity_info); ?></p>
+                                            <?php endif; ?>
                                             <div class="rbf-v3-product-details">
                                                 <span class="rbf-v3-product-servings"><?php echo esc_html(isset($product->servings_per_person) ? $product->servings_per_person : $product->unit_per_person ?? '1 pers'); ?></span>
-                                                <span class="rbf-v3-product-price"><?php echo number_format($product->price, 0); ?> €</span>
+                                                <span class="rbf-v3-product-price"><?php echo number_format($product->price, 2, ',', ' '); ?> €</span>
                                             </div>
                                             <div class="rbf-v3-product-footer">
                                                 <div class="rbf-v3-quantity-selector">
@@ -3175,7 +3181,7 @@ class RestaurantBooking_Ajax_Handler_V3
                 $html .= '<p class="rbf-v3-product-description">' . esc_html($product->description) . '</p>';
             }
             $html .= '<div class="rbf-v3-product-price-qty">';
-            $html .= '<span class="rbf-v3-product-price">' . number_format($product->price, 0) . ' €</span>';
+            $html .= '<span class="rbf-v3-product-price">' . number_format($product->price, 2, ',', ' ') . ' €</span>';
             $html .= '<div class="rbf-v3-quantity-selector">';
             $html .= '<button type="button" class="rbf-v3-qty-btn rbf-v3-qty-minus" data-target="mini_boss_' . $product->id . '_qty">-</button>';
             $html .= '<input type="number" name="mini_boss_' . $product->id . '_qty" value="0" min="0" max="999" class="rbf-v3-qty-input">';
@@ -3466,7 +3472,7 @@ class RestaurantBooking_Ajax_Handler_V3
                 $html .= '<p class="rbf-v3-product-description">' . esc_html($product->description) . '</p>';
             }
             $html .= '<div class="rbf-v3-product-price-qty">';
-            $html .= '<span class="rbf-v3-product-price">' . number_format($product->price, 0) . ' €</span>';
+            $html .= '<span class="rbf-v3-product-price">' . number_format($product->price, 2, ',', ' ') . ' €</span>';
             $html .= '<div class="rbf-v3-quantity-selector">';
             // Récupérer la quantité sauvegardée ou 0 par défaut
             $saved_quantity = intval($form_data['signature_' . $product->id . '_qty'] ?? 0);

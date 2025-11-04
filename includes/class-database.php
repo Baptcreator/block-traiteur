@@ -343,7 +343,8 @@ class RestaurantBooking_Database
             'beer_category' => 'varchar(50) DEFAULT NULL',
             'keg_sizes' => 'json DEFAULT NULL',
             'volume_cl' => 'int(11) DEFAULT NULL',
-            'alcohol_degree' => 'decimal(3,1) DEFAULT NULL'
+            'alcohol_degree' => 'decimal(3,1) DEFAULT NULL',
+            'quantity_info' => 'text DEFAULT NULL'
         );
         
         // Vérifier et migrer la table restaurant_availability

@@ -303,6 +303,16 @@ class RestaurantBooking_Products_BuffetSucre_Admin
                         </td>
                     </tr>
 
+                    <tr>
+                        <th scope="row">
+                            <label for="product_quantity_info"><?php _e('Quantité', 'restaurant-booking'); ?></label>
+                        </th>
+                        <td>
+                            <textarea id="product_quantity_info" name="product_quantity_info" 
+                                      rows="2" class="large-text" placeholder="Ex: 1 portion/pers ou 2 par personnes"><?php echo $product ? esc_textarea($product['quantity_info']) : ''; ?></textarea>
+                            <p class="description"><?php _e('Information de quantité indicative (s\'affichera sous la description dans le formulaire de devis). Ex: "1 portion/pers" ou "2 par personnes"', 'restaurant-booking'); ?></p>
+                        </td>
+                    </tr>
 
                     <tr>
                         <th scope="row">
@@ -549,6 +559,7 @@ class RestaurantBooking_Products_BuffetSucre_Admin
         $product_id = isset($_POST['product_id']) ? intval($_POST['product_id']) : 0;
         $product_name = sanitize_text_field($_POST['product_name']);
         $product_description = sanitize_textarea_field($_POST['product_description']);
+        $product_quantity_info = isset($_POST['product_quantity_info']) ? sanitize_textarea_field($_POST['product_quantity_info']) : '';
         $product_price = floatval($_POST['product_price']);
         $product_image_id = intval($_POST['product_image_id']);
         $is_active = isset($_POST['is_active']) ? 1 : 0;
@@ -571,6 +582,7 @@ class RestaurantBooking_Products_BuffetSucre_Admin
             'category_id' => $category['id'],
             'name' => $product_name,
             'description' => $product_description,
+            'quantity_info' => $product_quantity_info,
             'price' => $product_price,
             'unit_type' => 'portion_6p',
             'unit_label' => '/6 personnes',
