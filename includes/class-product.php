@@ -112,7 +112,7 @@ class RestaurantBooking_Product
         $result = $wpdb->insert(
             $wpdb->prefix . 'restaurant_products',
             $product_data,
-            array('%d', '%s', '%s', '%s', '%f', '%s', '%s', '%d', '%d', '%d', '%s', '%f', '%d', '%d', '%f', '%d', '%s', '%s', '%s', '%s', '%d', '%d', '%d', '%s')
+            array('%d', '%s', '%s', '%s', '%f', '%s', '%s', '%d', '%d', '%d', '%s', '%f', '%d', '%d', '%f', '%d', '%s', '%s', '%s', '%s', '%d', '%d', '%d', '%d', '%s')
         );
 
         if ($result === false) {

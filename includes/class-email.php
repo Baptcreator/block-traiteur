@@ -353,6 +353,9 @@ class RestaurantBooking_Email
      */
     private static function get_quote_email_template($quote, $customer_data, $price_data, $download_link = '')
     {
+        // Récupérer les textes configurables
+        $form_texts = RestaurantBooking_Options_Helper::get_instance()->get_form_texts();
+        
         $service_type = is_array($quote) ? $quote['service_type'] : $quote->service_type;
         $service_name = $service_type === 'restaurant' ? 'Privatisation du restaurant' : 'Privatisation de la remorque Block';
         
@@ -382,12 +385,12 @@ class RestaurantBooking_Email
                 <div class="content">
                     <h2>Bonjour ' . esc_html($customer_data['firstname']) . ' ' . esc_html($customer_data['name']) . ',</h2>
                     
-                    <p>Nous vous remercions pour votre demande de devis. Vous trouverez ci-dessous le récapitulatif de votre demande.</p>
+                    <p>' . esc_html($form_texts['email_welcome_text']) . '</p>
                     
                     <div class="quote-details">
-                        <h3>📋 Détails de votre réservation</h3>
+                        <h3>📋 ' . esc_html($form_texts['email_quote_details_title']) . '</h3>
                         <p><strong>Numéro de devis :</strong> ' . esc_html(is_array($quote) ? $quote['quote_number'] : $quote->quote_number) . '</p>
-                        <p><strong>Service :</strong> ' . esc_html($service_name) . '</p>
+                        <p><strong>Prestation :</strong> ' . esc_html($service_name) . '</p>
                         <p><strong>Date :</strong> ' . date('d/m/Y', strtotime(is_array($quote) ? $quote['event_date'] : $quote->event_date)) . '</p>
                         <p><strong>Nombre de convives :</strong> ' . esc_html(is_array($quote) ? $quote['guest_count'] : $quote->guest_count) . ' personnes</p>
                         <p><strong>Durée :</strong> ' . esc_html(is_array($quote) ? $quote['event_duration'] : $quote->event_duration) . 'H</p>';
@@ -405,7 +408,7 @@ class RestaurantBooking_Email
         }
         
         $message .= '
-                        <p class="price"><strong>💰 Prix total estimé : ' . number_format($total_price, 2, ',', ' ') . ' €</strong></p>
+                        <p class="price"><strong>Prix total estimé : ' . number_format($total_price, 2, ',', ' ') . ' €</strong></p>
                     </div>';
                     
         if (!empty($customer_data['message'])) {
@@ -420,12 +423,12 @@ class RestaurantBooking_Email
         if (!empty($download_link)) {
             $message .= '
                     <div class="quote-details" style="text-align: center; background: #e3f2fd; padding: 20px; margin: 20px 0;">
-                        <h3>📄 Votre devis détaillé</h3>
+                        <h3>📄 ' . esc_html($form_texts['email_quote_details_title']) . '</h3>
                         <p>Cliquez sur le bouton ci-dessous pour télécharger et imprimer votre devis complet :</p>
                         <a href="' . esc_url($download_link) . '" 
                            style="display: inline-block; background: #243127; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; margin: 10px 0;"
                            target="_blank">
-                           📥 Télécharger mon devis
+                           📥 ' . esc_html($form_texts['email_download_button_text']) . '
                         </a>
                         <p><small>Le lien s\'ouvrira dans votre navigateur. Vous pourrez ensuite l\'imprimer ou l\'enregistrer en PDF.</small></p>
                     </div>';
@@ -433,14 +436,13 @@ class RestaurantBooking_Email
         
         $message .= '
                     <div class="highlight">
-                        <p><strong>⏰ Prochaines étapes :</strong></p>
-                        <p>Notre équipe va étudier votre demande et vous recontacter dans les plus brefs délais pour finaliser votre réservation et confirmer tous les détails.</p>
+                        <p><strong>' . esc_html($form_texts['email_next_steps_title']) . '</strong></p>
+                        <p>' . esc_html($form_texts['email_next_steps_text']) . '</p>
                     </div>
                     
-                    <p>Si vous avez des questions, n\'hésitez pas à nous contacter.</p>
+                    <p>' . esc_html($form_texts['email_questions_text']) . '</p>
                     
-                    <p>Cordialement,<br>
-                    L\'équipe Block Street Food & Events</p>
+                    <p>' . $form_texts['email_signature'] . '</p>
                 </div>
                 
                 <div class="footer">

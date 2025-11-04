@@ -141,7 +141,7 @@ class RestaurantBooking_Shortcode_Form_V3
 
         ob_start();
         ?>
-        <div id="<?php echo esc_attr($form_id); ?>" class="rbf-v3-container <?php echo esc_attr($atts['custom_class']); ?>" data-config='<?php echo json_encode($options); ?>'>
+        <div id="<?php echo esc_attr($form_id); ?>" class="rbf-v3-container <?php echo esc_attr($atts['custom_class']); ?>" data-config="<?php echo esc_attr(json_encode($options)); ?>">
             
             <!-- En-tête du formulaire -->
             <div class="rbf-v3-header">
@@ -226,7 +226,7 @@ class RestaurantBooking_Shortcode_Form_V3
             <?php if ($atts['calculator_position'] !== 'hidden') : ?>
             <div class="rbf-v3-price-calculator <?php echo esc_attr($atts['calculator_position']); ?>" style="display: none;">
                 <div class="rbf-v3-calculator-header">
-                    <h4>💰 Estimation de votre devis</h4>
+                    <h4>Estimation de votre devis</h4>
                 </div>
                 <div class="rbf-v3-calculator-body">
                     <div class="rbf-v3-price-line">

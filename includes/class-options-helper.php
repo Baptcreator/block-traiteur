@@ -101,7 +101,19 @@ class RestaurantBooking_Options_Helper
         
         // Descriptions forfaits
         'restaurant_forfait_description' => 'Mise à disposition des murs de Block|Notre équipe salle + cuisine assurant la prestation|Présentation + mise en place buffets, selon vos choix|Mise à disposition vaisselle + verrerie|Entretien + nettoyage',
-        'remorque_forfait_description' => 'Notre équipe salle + cuisine assurant la prestation|Déplacement et installation de la remorque BLOCK (aller et retour)|Présentation + mise en place buffets, selon vos choix|La fourniture de vaisselle jetable recyclable|La fourniture de verrerie (en cas d\'ajout de boisson)'
+        'remorque_forfait_description' => 'Notre équipe salle + cuisine assurant la prestation|Déplacement et installation de la remorque BLOCK (aller et retour)|Présentation + mise en place buffets, selon vos choix|La fourniture de vaisselle jetable recyclable|La fourniture de verrerie (en cas d\'ajout de boisson)',
+        
+        // Encadrés informatifs dans le formulaire
+        'info_step3_title' => 'ℹ️ Information importante :',
+        'info_step3_message' => 'Sélection obligatoire : le total des plats (DOG + CROQ + Mini Boss) doit être égal ou supérieur à {guest_count} convives.',
+        'info_step4_title' => 'ℹ️ Information importante :',
+        'info_step4_message' => 'Sélection obligatoire pour {guest_count} convives. Les quantités minimales sont calculées automatiquement.',
+        'info_step5_title' => 'ℹ️ Étape optionnelle :',
+        'info_step5_message' => 'Sélectionnez vos boissons pour accompagner votre événement.',
+        'info_step5_skip_title' => 'ℹ️ Cette étape est optionnelle.',
+        'info_step5_skip_message' => 'Vous pouvez passer directement à l\'étape suivante si vous ne souhaitez pas de boissons.',
+        'info_step6_skip_title' => 'ℹ️ Cette étape est optionnelle.',
+        'info_step6_skip_message' => 'Vous pouvez passer directement à l\'étape suivante si vous ne souhaitez pas d\'animations supplémentaires.'
     );
 
     /**
@@ -478,20 +490,73 @@ class RestaurantBooking_Options_Helper
     public function get_form_texts()
     {
         return array(
+            // Étape 1
             'step1_title_restaurant' => $this->get_option('step1_title_restaurant'),
             'step1_title_remorque' => $this->get_option('step1_title_remorque'),
             'step1_card_title' => $this->get_option('step1_card_title'),
             'restaurant_steps_list' => $this->get_option('restaurant_steps_list'),
             'remorque_steps_list' => $this->get_option('remorque_steps_list'),
+            // Étape 2
             'step2_title' => $this->get_option('step2_title'),
             'restaurant_forfait_card_title' => $this->get_option('restaurant_forfait_card_title'),
             'remorque_forfait_card_title' => $this->get_option('remorque_forfait_card_title'),
+            // Étape 3
+            'step3_title' => $this->get_option('step3_title'),
+            'step3_signature_title' => $this->get_option('step3_signature_title'),
+            'step3_hot_dogs_title' => $this->get_option('step3_hot_dogs_title'),
+            'step3_croques_title' => $this->get_option('step3_croques_title'),
+            'step3_mini_boss_title' => $this->get_option('step3_mini_boss_title'),
+            'step3_accompaniments_title' => $this->get_option('step3_accompaniments_title'),
             'signature_dish_text' => $this->get_option('signature_dish_text'),
             'accompaniment_text' => $this->get_option('accompaniment_text'),
             'buffet_sale_text' => $this->get_option('buffet_sale_text'),
             'buffet_sucre_text' => $this->get_option('buffet_sucre_text'),
             'mini_boss_text' => $this->get_option('mini_boss_text'),
-            'mini_boss_description' => $this->get_option('mini_boss_description')
+            'mini_boss_description' => $this->get_option('mini_boss_description'),
+            // Étape 4
+            'step4_title' => $this->get_option('step4_title'),
+            'step4_buffet_formula_title' => $this->get_option('step4_buffet_formula_title'),
+            'step4_buffet_sale_title' => $this->get_option('step4_buffet_sale_title'),
+            'step4_buffet_sucre_title' => $this->get_option('step4_buffet_sucre_title'),
+            'step4_buffet_mixte_title' => $this->get_option('step4_buffet_mixte_title'),
+            // Étape 5
+            'step5_suggestions_title' => $this->get_option('step5_suggestions_title'),
+            'step5_all_soft_title' => $this->get_option('step5_all_soft_title'),
+            'step5_all_beers_title' => $this->get_option('step5_all_beers_title'),
+            'step5_tab_soft_label' => $this->get_option('step5_tab_soft_label'),
+            'step5_filter_all_beers' => $this->get_option('step5_filter_all_beers'),
+            // Page coordonnées
+            'contact_recap_title' => $this->get_option('contact_recap_title'),
+            // Étape 6 Options/Animations
+            'step6_title' => $this->get_option('step6_title'),
+            'step6_tireuse_title' => $this->get_option('step6_tireuse_title'),
+            'step6_tireuse_description' => $this->get_option('step6_tireuse_description'),
+            'step6_tireuse_checkbox_label' => $this->get_option('step6_tireuse_checkbox_label'),
+            'step6_kegs_section_title' => $this->get_option('step6_kegs_section_title'),
+            'step6_games_title' => $this->get_option('step6_games_title'),
+            'step6_games_description' => $this->get_option('step6_games_description'),
+            'step6_games_section_title' => $this->get_option('step6_games_section_title'),
+            // Messages
+            'success_message_subtitle' => $this->get_option('success_message_subtitle'),
+            // Emails
+            'email_welcome_text' => $this->get_option('email_welcome_text'),
+            'email_quote_details_title' => $this->get_option('email_quote_details_title'),
+            'email_download_button_text' => $this->get_option('email_download_button_text'),
+            'email_next_steps_title' => $this->get_option('email_next_steps_title'),
+            'email_next_steps_text' => $this->get_option('email_next_steps_text'),
+            'email_questions_text' => $this->get_option('email_questions_text'),
+            'email_signature' => $this->get_option('email_signature'),
+            // Encadrés informatifs
+            'info_step3_title' => $this->get_option('info_step3_title'),
+            'info_step3_message' => $this->get_option('info_step3_message'),
+            'info_step4_title' => $this->get_option('info_step4_title'),
+            'info_step4_message' => $this->get_option('info_step4_message'),
+            'info_step5_title' => $this->get_option('info_step5_title'),
+            'info_step5_message' => $this->get_option('info_step5_message'),
+            'info_step5_skip_title' => $this->get_option('info_step5_skip_title'),
+            'info_step5_skip_message' => $this->get_option('info_step5_skip_message'),
+            'info_step6_skip_title' => $this->get_option('info_step6_skip_title'),
+            'info_step6_skip_message' => $this->get_option('info_step6_skip_message')
         );
     }
 

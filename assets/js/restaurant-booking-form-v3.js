@@ -366,29 +366,17 @@
                 this.skipCurrentStep();
             });
             
-            // Chargement des produits signature - Code original qui fonctionnait
-            this.container.on('change', '[data-action="load-signature-products"]', (e) => {
-                this.loadSignatureProducts($(e.currentTarget).val());
-            });
+            // ❌ SUPPRIMÉ : Chargement des produits signature - plus nécessaire car DOG et CROQ sont affichés simultanément
+            // this.container.on('change', '[data-action="load-signature-products"]', (e) => {
+            //     this.loadSignatureProducts($(e.currentTarget).val());
+            // });
             
-            // Toggle Mini Boss - Version améliorée pour éviter le double clic
-            this.container.on('change', '[data-action="toggle-mini-boss"]', (e) => {
-                const $checkbox = $(e.currentTarget);
-                const isChecked = $checkbox.is(':checked');
-                
-                // Prevenir les doubles événements
-                if ($checkbox.data('toggling')) {
-                    return;
-                }
-                
-                $checkbox.data('toggling', true);
-                
-                // Appliquer le toggle avec un délai pour laisser le temps au DOM de se mettre à jour
-                setTimeout(() => {
-                    this.toggleMiniBoss(isChecked);
-                    $checkbox.data('toggling', false);
-                }, 50);
-            });
+            // ❌ SUPPRIMÉ : Toggle Mini Boss - plus nécessaire car Mini Boss est toujours visible
+            // this.container.on('change', '[data-action="toggle-mini-boss"]', (e) => {
+            //     const $checkbox = $(e.currentTarget);
+            //     const isChecked = $checkbox.is(':checked');
+            //     this.toggleMiniBoss(isChecked);
+            // });
             
             // Gestion des accompagnements - Code original qui fonctionnait
             this.container.on('change', '.rbf-v3-accompaniment-checkbox', (e) => {
@@ -510,19 +498,19 @@
             
             // Définir les étapes selon le service
             const steps = (service === 'restaurant') ? [
-                { number: 1, label: 'Service' },
+                { number: 1, label: 'Prestation' },
                 { number: 2, label: 'Forfait' },
                 { number: 3, label: 'Repas' },
                 { number: 4, label: 'Buffets' },
                 { number: 5, label: 'Boissons' },
                 { number: 6, label: 'Contact' }
             ] : [
-                { number: 1, label: 'Service' },
+                { number: 1, label: 'Prestation' },
                 { number: 2, label: 'Forfait' },
                 { number: 3, label: 'Repas' },
                 { number: 4, label: 'Buffets' },
                 { number: 5, label: 'Boissons' },
-                { number: 6, label: 'Options' },
+                { number: 6, label: 'Animation' },
                 { number: 7, label: 'Contact' }
             ];
 
@@ -1782,10 +1770,10 @@
                             <div class="rbf-v3-success-message">
                                 <h2>🎉 Parfait ! Votre demande a été envoyée !</h2>
                                 <div class="rbf-v3-success-details">
-                                    <p><strong>Service :</strong> ${serviceName}</p>
+                                    <p><strong>Prestation :</strong> ${serviceName}</p>
                                     <p><strong>📧 Email de confirmation :</strong> envoyé à <code>${this.formData.client_email}</code></p>
                                     <p><strong>📞 Contact :</strong> ${this.formData.client_phone || 'Non renseigné'}</p>
-                                    <p><strong>⏰ Prochaine étape :</strong> Nous vous recontacterons dans les plus brefs délais pour finaliser votre réservation.</p>
+                                    <p><strong>⏰ Prochaine étape :</strong> L'équipe BLOCK vous recontactera sous 48h max pour en parler, l'ajuster et le valider ensemble !</p>
                                 </div>
                                 <div class="rbf-v3-success-actions">
                                     <p class="rbf-v3-success-note">💡 <em>Pensez à vérifier vos spams si vous ne recevez pas notre email de confirmation.</em></p>
@@ -3193,48 +3181,62 @@
             this.log('Validation étape 3 - Nombre de convives:', guestCount);
             this.log('FormData guest_count:', this.formData.guest_count);
 
-            // Vérifier plats signature
-            const signatureType = this.container.find('input[name="signature_type"]:checked').val();
-            if (!signatureType) {
+            // ✅ NOUVELLE LOGIQUE : Calculer le total de tous les plats (DOG + CROQ + Mini Boss)
+            let totalDogQty = 0;
+            let totalCroqQty = 0;
+            let totalMiniBossQty = 0;
+
+            // Compter les plats DOG et CROQ (tous sont affichés simultanément maintenant)
+            const signatureInputs = this.container.find('input[name^="signature_"][name$="_qty"]');
+            this.log('Champs signature trouvés (DOG + CROQ):', signatureInputs.length);
+            
+            signatureInputs.each((index, input) => {
+                const qty = parseInt($(input).val()) || 0;
+                totalDogQty += qty; // On cumule tout dans DOG pour simplifier, mais on pourrait distinguer
+                this.log(`Plat signature ${index} (${$(input).attr('name')}):`, qty);
+            });
+
+            // Compter les Mini Boss
+            const miniBossInputs = this.container.find('input[name^="mini_boss_"][name$="_qty"]');
+            this.log('Champs Mini Boss trouvés:', miniBossInputs.length);
+            
+            miniBossInputs.each((index, input) => {
+                const qty = parseInt($(input).val()) || 0;
+                totalMiniBossQty += qty;
+                this.log(`Mini Boss ${index} (${$(input).attr('name')}):`, qty);
+            });
+
+            // Total de tous les plats
+            const totalPlatsQty = totalDogQty + totalMiniBossQty;
+
+            this.log('Total plats signature (DOG + CROQ):', totalDogQty);
+            this.log('Total Mini Boss:', totalMiniBossQty);
+            this.log('Total TOUS LES PLATS:', totalPlatsQty);
+            this.log('Validation plats:', totalPlatsQty >= guestCount ? 'RÉUSSIE' : 'ÉCHOUÉE');
+
+            // Vérifier que le total des plats >= nombre de convives
+            if (totalPlatsQty < guestCount) {
                 isValid = false;
-                errors.push('🍽️ Veuillez sélectionner un type de plat signature (DOG ou CROQ).');
-            } else {
-                // Vérifier si les produits signature ont été chargés
-                const signatureInputs = this.container.find('input[name^="signature_"][name$="_qty"]');
-                this.log('Champs signature trouvés:', signatureInputs.length);
+                errors.push(`❌🍽️ Quantité insuffisante ! Il faut au minimum ${guestCount} plats pour ${guestCount} convives. Actuellement sélectionnés : ${totalPlatsQty} plats (DOG + CROQ + Mini Boss).`);
                 
-                if (signatureInputs.length === 0) {
-                    isValid = false;
-                    errors.push('🍽️ Les produits signature ne sont pas encore chargés. Veuillez attendre un moment et réessayer.');
-                } else {
-                    let totalSignatureQty = 0;
-                    signatureInputs.each((index, input) => {
-                        const qty = parseInt($(input).val()) || 0;
-                        totalSignatureQty += qty;
-                        this.log(`Plat signature ${index} (${$(input).attr('name')}):`, qty);
-                    });
-
-                    this.log('Total plats signature:', totalSignatureQty);
-                    this.log('Validation plats signature:', totalSignatureQty >= guestCount ? 'RÉUSSIE' : 'ÉCHOUÉE');
-
-                    if (totalSignatureQty < guestCount) {
-                        isValid = false;
-                        errors.push(`❌🍽️ Quantité insuffisante ! Il faut au minimum ${guestCount} plats signature pour ${guestCount} convives. Actuellement sélectionnés : ${totalSignatureQty} plats.`);
-                        
-                        // Mettre en évidence les champs concernés
-                        signatureInputs.each((index, input) => {
-                            $(input).addClass('rbf-v3-field-error');
-                        });
-                    } else {
-                        // Retirer la classe d'erreur si validation réussie
-                        signatureInputs.each((index, input) => {
-                            $(input).removeClass('rbf-v3-field-error');
-                        });
-                    }
-                }
+                // Mettre en évidence tous les champs concernés
+                signatureInputs.each((index, input) => {
+                    $(input).addClass('rbf-v3-field-error');
+                });
+                miniBossInputs.each((index, input) => {
+                    $(input).addClass('rbf-v3-field-error');
+                });
+            } else {
+                // Retirer la classe d'erreur si validation réussie
+                signatureInputs.each((index, input) => {
+                    $(input).removeClass('rbf-v3-field-error');
+                });
+                miniBossInputs.each((index, input) => {
+                    $(input).removeClass('rbf-v3-field-error');
+                });
             }
 
-            // Vérifier accompagnements
+            // ✅ NOUVELLE LOGIQUE : Vérifier que accompagnements >= total des plats
             let totalAccompanimentQty = 0;
             const accompanimentInputs = this.container.find('input[name^="accompaniment_"][name$="_qty"]');
             this.log('Champs accompagnement trouvés:', accompanimentInputs.length);
@@ -3259,12 +3261,12 @@
                 });
 
                 this.log('Total accompagnements:', totalAccompanimentQty);
-                this.log('Nombre de convives requis (minimum):', guestCount);
-                this.log('Validation accompagnements:', totalAccompanimentQty >= guestCount ? 'RÉUSSIE' : 'ÉCHOUÉE');
+                this.log('Total plats requis (minimum accompagnements):', totalPlatsQty);
+                this.log('Validation accompagnements:', totalAccompanimentQty >= totalPlatsQty ? 'RÉUSSIE' : 'ÉCHOUÉE');
 
-                if (totalAccompanimentQty < guestCount) {
+                if (totalAccompanimentQty < totalPlatsQty) {
                     isValid = false;
-                    errors.push(`🥗 Quantité insuffisante ! Il faut au minimum ${guestCount} accompagnements pour ${guestCount} convives. Actuellement sélectionnés : ${totalAccompanimentQty} accompagnements.`);
+                    errors.push(`🥗 Quantité insuffisante ! Il faut au minimum ${totalPlatsQty} accompagnements pour ${totalPlatsQty} plats sélectionnés. Actuellement sélectionnés : ${totalAccompanimentQty} accompagnements.`);
                     
                     // Mettre en évidence les champs concernés
                     accompanimentInputs.each((index, input) => {
@@ -3278,7 +3280,7 @@
                 }
             }
 
-            // ✅ NOUVEAU : Valider les options de frites si des frites sont sélectionnées
+            // ✅ Valider les options de frites si des frites sont sélectionnées
             const fritesQuantity = this.getFritesQuantity();
             if (fritesQuantity > 0) {
                 const saucesQuantity = this.getSaucesTotalQuantity();

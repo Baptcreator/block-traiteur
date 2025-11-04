@@ -458,7 +458,7 @@ class RestaurantBooking_Ajax_Handler_V3
                 </div>
                 <div class="rbf-v3-card-footer">
                     <button type="button" class="rbf-v3-btn rbf-v3-btn-primary rbf-v3-btn-full" id="rbf-v3-start-quote">
-                        🎯 COMMENCER MON DEVIS
+                        🔥 COMMENCER MON DEVIS
                     </button>
                 </div>
             </div>
@@ -636,83 +636,66 @@ class RestaurantBooking_Ajax_Handler_V3
      */
     private function generate_step_3_html($service_type, $form_data)
     {
+        // Récupérer les textes configurables
+        $form_texts = RestaurantBooking_Options_Helper::get_instance()->get_form_texts();
+        
         $guest_count = intval($form_data['guest_count'] ?? 10);
         
         ob_start();
         ?>
         <div class="rbf-v3-step-content active" data-step="3">
-            <h2 class="rbf-v3-step-title">Choix des formules repas</h2>
+            <h2 class="rbf-v3-step-title"><?php echo esc_html($form_texts['step3_title']); ?></h2>
             
             <div class="rbf-v3-message info">
                 <div class="rbf-v3-message-content">
-                    <strong>ℹ️ Information importante :</strong>
-                    <span>Sélection obligatoire pour <?php echo $guest_count; ?> convives. Les quantités minimales sont calculées automatiquement.</span>
+                    <strong><?php echo esc_html($form_texts['info_step3_title']); ?></strong>
+                    <span><?php echo esc_html(str_replace('{guest_count}', $guest_count, $form_texts['info_step3_message'])); ?></span>
                 </div>
             </div>
 
-            <!-- Plat signature -->
+            <!-- Plats Signature - DOG et CROQ affichés simultanément -->
             <div class="rbf-v3-product-section">
-                <h3>🍽️ Choix du plat signature</h3>
+                <h3><?php echo esc_html($form_texts['step3_signature_title']); ?></h3>
                 <p class="rbf-v3-help-text">
                     <em><?php echo esc_html($form_texts['signature_dish_text']); ?></em>
                 </p>
                 
-                <div class="rbf-v3-signature-selector">
-                    <?php 
-                    $selected_signature_type = $form_data['signature_type'] ?? '';
-                    ?>
-                    <label class="rbf-v3-radio-card">
-                        <input type="radio" name="signature_type" value="DOG" required data-action="load-signature-products" <?php echo ($selected_signature_type === 'DOG') ? 'checked' : ''; ?>>
-                        <div class="rbf-v3-radio-content">
-                            <span class="rbf-v3-radio-title">🌭 DOG</span>
-                            <span class="rbf-v3-radio-subtitle">Nos hot-dogs signature</span>
-                        </div>
-                    </label>
-                    
-                    <label class="rbf-v3-radio-card">
-                        <input type="radio" name="signature_type" value="CROQ" required data-action="load-signature-products" <?php echo ($selected_signature_type === 'CROQ') ? 'checked' : ''; ?>>
-                        <div class="rbf-v3-radio-content">
-                            <span class="rbf-v3-radio-title">🥪 CROQ</span>
-                            <span class="rbf-v3-radio-subtitle">Nos croque-monsieurs</span>
-                        </div>
-                    </label>
+                <!-- Bandeau DOG -->
+                <div class="rbf-v3-signature-banner rbf-v3-signature-banner-dog">
+                    <span class="rbf-v3-banner-title"><?php echo esc_html($form_texts['step3_hot_dogs_title']); ?></span>
                 </div>
                 
-                <div class="rbf-v3-signature-products" <?php echo !empty($selected_signature_type) ? '' : 'style="display: none;"'; ?>>
-                    <?php 
-                    // Pré-charger les produits si un type est déjà sélectionné
-                    if (!empty($selected_signature_type)) {
-                        echo $this->load_signature_products_html($selected_signature_type, $form_data);
-                    } else {
-                        echo '<!-- Les produits seront chargés dynamiquement selon le choix DOG/CROQ -->';
-                    }
-                    ?>
+                <!-- Produits DOG -->
+                <div class="rbf-v3-signature-products rbf-v3-signature-products-dog">
+                    <?php echo $this->get_signature_products_html_with_banner('DOG', $guest_count, $form_data); ?>
+                </div>
+                
+                <!-- Bandeau CROQ -->
+                <div class="rbf-v3-signature-banner rbf-v3-signature-banner-croq">
+                    <span class="rbf-v3-banner-title"><?php echo esc_html($form_texts['step3_croques_title']); ?></span>
+                </div>
+                
+                <!-- Produits CROQ -->
+                <div class="rbf-v3-signature-products rbf-v3-signature-products-croq">
+                    <?php echo $this->get_signature_products_html_with_banner('CROQ', $guest_count, $form_data); ?>
                 </div>
             </div>
 
-            <!-- Menu Mini Boss -->
+            <!-- Menu Mini Boss - Directement visible -->
             <div class="rbf-v3-product-section">
-                <h3>👑 Menu Mini Boss</h3>
+                <h3><?php echo esc_html($form_texts['step3_mini_boss_title']); ?></h3>
                 <p class="rbf-v3-help-text"><em><?php echo esc_html($form_texts['mini_boss_text']); ?></em></p>
                 
-                <label class="rbf-v3-checkbox-card">
-                    <input type="checkbox" name="mini_boss_enabled" value="1" data-action="toggle-mini-boss" data-initial-state="disabled">
-                    <div class="rbf-v3-checkbox-content">
-                        <span class="rbf-v3-checkbox-title">Ajouter le menu Mini Boss</span>
-                        <span class="rbf-v3-checkbox-subtitle"><?php echo esc_html($form_texts['mini_boss_description']); ?></span>
-                    </div>
-                </label>
-                
-                <div class="rbf-v3-mini-boss-products" style="display: none;" data-initial-state="hidden">
-                    <?php echo $this->get_mini_boss_products_html(); ?>
+                <div class="rbf-v3-mini-boss-products">
+                    <?php echo $this->get_mini_boss_products_html($form_data); ?>
                 </div>
             </div>
 
             <!-- Accompagnements -->
             <div class="rbf-v3-product-section">
-                <h3>🥗 Accompagnements</h3>
+                <h3><?php echo esc_html($form_texts['step3_accompaniments_title']); ?></h3>
                 <p class="rbf-v3-help-text">
-                    <em><?php echo esc_html($form_texts['accompaniment_text']); ?></em>
+                    <em>Minimum : quantité égale ou supérieure au total des plats sélectionnés (DOG + CROQ + Mini Boss)</em>
                 </p>
                 
                 <div class="rbf-v3-accompaniments-vertical">
@@ -740,18 +723,18 @@ class RestaurantBooking_Ajax_Handler_V3
         ob_start();
         ?>
         <div class="rbf-v3-step-content active" data-step="4">
-            <h2 class="rbf-v3-step-title">Choix du/des buffet(s)</h2>
+            <h2 class="rbf-v3-step-title"><?php echo esc_html($form_texts['step4_title']); ?></h2>
             
             <div class="rbf-v3-message info">
                 <div class="rbf-v3-message-content">
-                    <strong>ℹ️ Information importante :</strong>
-                    <span>Sélection obligatoire pour <?php echo $guest_count; ?> convives. Les quantités minimales sont calculées automatiquement.</span>
+                    <strong><?php echo esc_html($form_texts['info_step4_title']); ?></strong>
+                    <span><?php echo esc_html(str_replace('{guest_count}', $guest_count, $form_texts['info_step4_message'])); ?></span>
                 </div>
             </div>
 
             <!-- Sélection type buffet -->
             <div class="rbf-v3-product-section">
-                <h3>🍽️ Choisissez votre formule buffet :</h3>
+                <h3><?php echo esc_html($form_texts['step4_buffet_formula_title']); ?></h3>
                 <p class="rbf-v3-help-text">
                     <em>Sélectionnez le type de buffet qui correspond à votre événement</em>
                 </p>
@@ -760,24 +743,21 @@ class RestaurantBooking_Ajax_Handler_V3
                     <label class="rbf-v3-radio-card">
                         <input type="radio" name="buffet_type" value="sale" data-action="show-buffet-section">
                         <div class="rbf-v3-radio-content">
-                            <span class="rbf-v3-radio-title">🥗 Buffet salé</span>
-                            <span class="rbf-v3-radio-subtitle">Plats salés uniquement</span>
+                            <span class="rbf-v3-radio-title"><?php echo esc_html($form_texts['step4_buffet_sale_title']); ?></span>
                         </div>
                     </label>
                     
                     <label class="rbf-v3-radio-card">
                         <input type="radio" name="buffet_type" value="sucre" data-action="show-buffet-section">
                         <div class="rbf-v3-radio-content">
-                            <span class="rbf-v3-radio-title">🍰 Buffet sucré</span>
-                            <span class="rbf-v3-radio-subtitle">Desserts uniquement</span>
+                            <span class="rbf-v3-radio-title"><?php echo esc_html($form_texts['step4_buffet_sucre_title']); ?></span>
                         </div>
                     </label>
                     
                     <label class="rbf-v3-radio-card">
                         <input type="radio" name="buffet_type" value="both" data-action="show-buffet-section">
                         <div class="rbf-v3-radio-content">
-                            <span class="rbf-v3-radio-title">🍽️ Buffets salés et sucrés</span>
-                            <span class="rbf-v3-radio-subtitle">Le meilleur des deux</span>
+                            <span class="rbf-v3-radio-title"><?php echo esc_html($form_texts['step4_buffet_mixte_title']); ?></span>
                         </div>
                     </label>
                 </div>
@@ -813,7 +793,6 @@ class RestaurantBooking_Ajax_Handler_V3
                                                 <p class="rbf-v3-product-quantity-info" style="font-size: 0.9em; font-style: italic; color: #666; margin-top: 0.25em;"><?php echo esc_html($product->quantity_info); ?></p>
                                             <?php endif; ?>
                                             <div class="rbf-v3-product-details">
-                                                <span class="rbf-v3-product-servings"><?php echo esc_html(isset($product->servings_per_person) ? $product->servings_per_person : $product->unit_per_person ?? '1 pers'); ?></span>
                                                 <span class="rbf-v3-product-price"><?php echo number_format($product->price, 2, ',', ' '); ?> €</span>
                                             </div>
                                             <div class="rbf-v3-product-footer">
@@ -865,7 +844,6 @@ class RestaurantBooking_Ajax_Handler_V3
                                                 <p class="rbf-v3-product-quantity-info" style="font-size: 0.9em; font-style: italic; color: #666; margin-top: 0.25em;"><?php echo esc_html($product->quantity_info); ?></p>
                                             <?php endif; ?>
                                             <div class="rbf-v3-product-details">
-                                                <span class="rbf-v3-product-servings"><?php echo esc_html(isset($product->servings_per_person) ? $product->servings_per_person : $product->unit_per_person ?? '1 pers'); ?></span>
                                                 <span class="rbf-v3-product-price"><?php echo number_format($product->price, 2, ',', ' '); ?> €</span>
                                             </div>
                                             <div class="rbf-v3-product-footer">
@@ -899,6 +877,9 @@ class RestaurantBooking_Ajax_Handler_V3
      */
     private function generate_step_5_html($service_type, $form_data)
     {
+        // Récupérer les textes configurables
+        $form_texts = RestaurantBooking_Options_Helper::get_instance()->get_form_texts();
+        
         // Récupérer les boissons depuis la base de données
         $soft_beverages = $this->get_beverages_by_type('soft', $service_type);
         $wine_beverages = $this->get_beverages_by_type('wines', $service_type);
@@ -914,8 +895,8 @@ class RestaurantBooking_Ajax_Handler_V3
             <div class="rbf-v3-product-section">
                 <div class="rbf-v3-message info">
                     <div class="rbf-v3-message-content">
-                        <strong>ℹ️ Étape optionnelle :</strong>
-                        <span>Sélectionnez vos boissons pour accompagner votre événement.</span>
+                        <strong><?php echo esc_html($form_texts['info_step5_title']); ?></strong>
+                        <span><?php echo esc_html($form_texts['info_step5_message']); ?></span>
                     </div>
                 </div>
             </div>
@@ -956,8 +937,8 @@ class RestaurantBooking_Ajax_Handler_V3
             <div class="rbf-v3-step-skip-section">
                 <div class="rbf-v3-skip-info">
                     <p class="rbf-v3-skip-text">
-                        <strong>ℹ️ Cette étape est optionnelle.</strong><br>
-                        Vous pouvez passer directement à l'étape suivante si vous ne souhaitez pas de boissons.
+                        <strong><?php echo esc_html($form_texts['info_step5_skip_title']); ?></strong><br>
+                        <?php echo esc_html($form_texts['info_step5_skip_message']); ?>
                     </p>
                 </div>
                 <div class="rbf-v3-skip-actions">
@@ -1152,6 +1133,9 @@ class RestaurantBooking_Ajax_Handler_V3
      */
     private function generate_step_6_options_html($form_data)
     {
+        // Récupérer les textes configurables
+        $form_texts = RestaurantBooking_Options_Helper::get_instance()->get_form_texts();
+        
         // Récupérer les fûts et jeux depuis la BDD
         $kegs = $this->get_products_by_category('fut');
         
@@ -1175,7 +1159,7 @@ class RestaurantBooking_Ajax_Handler_V3
         ob_start();
         ?>
         <div class="rbf-v3-step-content active" data-step="6">
-            <h2 class="rbf-v3-step-title">Choix des options (optionnel)</h2>
+            <h2 class="rbf-v3-step-title"><?php echo esc_html($form_texts['step6_title']); ?></h2>
             
             <!-- Message d'information -->
             <div class="rbf-v3-product-section">
@@ -1192,17 +1176,17 @@ class RestaurantBooking_Ajax_Handler_V3
                 
                 <!-- Option Tireuse -->
                 <div class="rbf-v3-option-card">
-                    <h3>🍺 MISE À DISPO TIREUSE <?php echo esc_html($this->options['tireuse_price'] ?? '50'); ?> €</h3>
-                    <p>Descriptif + mention (fûts non inclus à choisir)</p>
+                    <h3><?php echo esc_html($form_texts['step6_tireuse_title']); ?></h3>
+                    <p><?php echo esc_html($form_texts['step6_tireuse_description']); ?></p>
                     <label class="rbf-v3-checkbox-label">
                         <input type="checkbox" name="option_tireuse" value="1" data-action="toggle-kegs">
                         <span class="rbf-v3-checkmark"></span>
-                        Ajouter la tireuse à bière
+                        <?php echo esc_html($form_texts['step6_tireuse_checkbox_label']); ?>
                     </label>
                     
                     <!-- Sélection des fûts (masquée par défaut) -->
                     <div class="rbf-v3-kegs-selection" style="display: none; margin-top: 20px;">
-                        <h4>SÉLECTION DES FÛTS (si tireuse sélectionnée)</h4>
+                        <h4><?php echo esc_html($form_texts['step6_kegs_section_title']); ?></h4>
                         
                         <!-- ✅ CORRECTION : Onglets fûts par catégorie dynamiques -->
                         <div class="rbf-v3-kegs-tabs">
@@ -1296,8 +1280,8 @@ class RestaurantBooking_Ajax_Handler_V3
                 
                 <!-- Option Jeux -->
                 <div class="rbf-v3-option-card">
-                    <h3>🎮 INSTALLATION JEUX <?php echo esc_html($this->options['games_price'] ?? '70'); ?> €</h3>
-                    <p>Descriptif avec listing des jeux disponibles</p>
+                    <h3><?php echo esc_html($form_texts['step6_games_title']); ?></h3>
+                    <p><?php echo esc_html($form_texts['step6_games_description']); ?></p>
                     <label class="rbf-v3-checkbox-label">
                         <input type="checkbox" name="option_games" value="1" data-action="toggle-games">
                         <span class="rbf-v3-checkmark"></span>
@@ -1306,7 +1290,7 @@ class RestaurantBooking_Ajax_Handler_V3
                     
                     <!-- Sélection des jeux (masquée par défaut) -->
                     <div class="rbf-v3-games-selection" style="display: none; margin-top: 20px;">
-                        <h4>SÉLECTION DES JEUX (si option sélectionnée)</h4>
+                        <h4><?php echo esc_html($form_texts['step6_games_section_title']); ?></h4>
                         
                         <div class="rbf-v3-games-grid">
                             <?php if (!empty($games)) : ?>
@@ -1348,8 +1332,8 @@ class RestaurantBooking_Ajax_Handler_V3
             <div class="rbf-v3-step-skip-section">
                 <div class="rbf-v3-skip-info">
                     <p class="rbf-v3-skip-text">
-                        <strong>ℹ️ Cette étape est optionnelle.</strong><br>
-                        Vous pouvez passer directement à l'étape suivante si vous ne souhaitez pas d'options supplémentaires.
+                        <strong><?php echo esc_html($form_texts['info_step6_skip_title']); ?></strong><br>
+                        <?php echo esc_html($form_texts['info_step6_skip_message']); ?>
                     </p>
                 </div>
                 <div class="rbf-v3-skip-actions">
@@ -1368,6 +1352,9 @@ class RestaurantBooking_Ajax_Handler_V3
      */
     private function generate_step_6_contact_html($form_data)
     {
+        // Récupérer les textes configurables
+        $form_texts = RestaurantBooking_Options_Helper::get_instance()->get_form_texts();
+        
         ob_start();
         ?>
         <div class="rbf-v3-step-content active" data-step="6">
@@ -1446,10 +1433,10 @@ class RestaurantBooking_Ajax_Handler_V3
 
             <!-- Récapitulatif -->
             <div class="rbf-v3-recap-card">
-                <h3>📋 Récapitulatif de votre demande</h3>
+                <h3>📋 <?php echo esc_html($form_texts['contact_recap_title']); ?></h3>
                 <div class="rbf-v3-recap-content">
                     <div class="rbf-v3-recap-line">
-                        <span>Service :</span>
+                        <span>Prestation :</span>
                         <strong><?php echo (($form_data['service_type'] ?? '') === 'restaurant') ? 'Privatisation du restaurant' : 'Privatisation de la remorque Block'; ?></strong>
                     </div>
                     <div class="rbf-v3-recap-line">
@@ -2407,6 +2394,9 @@ class RestaurantBooking_Ajax_Handler_V3
         
         $categories = $wpdb->get_results($wpdb->prepare($sql, $params), ARRAY_A);
         
+        // Récupérer les textes configurables
+        $form_texts_tabs = RestaurantBooking_Options_Helper::get_instance()->get_form_texts();
+        
         // Mapper les catégories vers les onglets selon les IDs réels
         foreach ($categories as $category) {
             $category_id = intval($category['id']);
@@ -2414,7 +2404,7 @@ class RestaurantBooking_Ajax_Handler_V3
             switch ($category_id) {
                 case 106: // Boissons Soft
                     $tabs['soft'] = array(
-                        'label' => 'Soft',
+                        'label' => $form_texts_tabs['step5_tab_soft_label'],
                         'category_id' => 106
                     );
                     break;
@@ -2445,7 +2435,7 @@ class RestaurantBooking_Ajax_Handler_V3
         // S'assurer qu'il y a au moins un onglet par défaut
         if (empty($tabs)) {
             $tabs['soft'] = array(
-                'label' => 'Soft',
+                'label' => $form_texts_tabs['step5_tab_soft_label'],
                 'category_id' => 106
             );
         }
@@ -2484,7 +2474,11 @@ class RestaurantBooking_Ajax_Handler_V3
                 </div>
             <?php endif; ?>
             
-            <h3>🌟 NOS SUGGESTIONS</h3>
+            <?php 
+            // Récupérer les textes configurables
+            $form_texts_beverage = RestaurantBooking_Options_Helper::get_instance()->get_form_texts();
+            ?>
+            <h3><?php echo esc_html($form_texts_beverage['step5_suggestions_title']); ?></h3>
             <div class="rbf-v3-beverages-grid">
                 <?php 
                 $has_featured = false;
@@ -2557,7 +2551,17 @@ class RestaurantBooking_Ajax_Handler_V3
                 <?php endif; ?>
             </div>
             
-            <h3>📋 TOUS LES <?php echo strtoupper($category_label); ?></h3>
+            <?php 
+            // Titre personnalisé selon le type
+            if ($tab_key === 'soft') {
+                $all_title = $form_texts_beverage['step5_all_soft_title'];
+            } elseif ($tab_key === 'beers') {
+                $all_title = $form_texts_beverage['step5_all_beers_title'];
+            } else {
+                $all_title = 'TOUS LES ' . strtoupper($category_label);
+            }
+            ?>
+            <h3><?php echo esc_html($all_title); ?></h3>
             <div class="rbf-v3-beverages-grid">
                 <?php foreach ($beverages as $beverage) : ?>
                     <?php if (!$beverage['is_featured']) : ?>
@@ -2675,10 +2679,10 @@ class RestaurantBooking_Ajax_Handler_V3
         $message = "Bonjour " . $customer_data['firstname'] . " " . $customer_data['name'] . ",\n\n";
         $message .= "Nous avons bien reçu votre demande de devis.\n\n";
         $message .= "📋 Numéro de devis : " . $quote->quote_number . "\n";
-        $message .= "🍽️ Service : " . ($quote->service_type === 'restaurant' ? 'Privatisation du restaurant' : 'Privatisation de la remorque Block') . "\n";
+        $message .= "Prestation : " . ($quote->service_type === 'restaurant' ? 'Privatisation du restaurant' : 'Privatisation de la remorque Block') . "\n";
         $message .= "📅 Date : " . date('d/m/Y', strtotime($quote->event_date)) . "\n";
         $message .= "👥 Convives : " . $quote->guest_count . " personnes\n";
-        $message .= "⏰ Durée : " . $quote->event_duration . "H\n\n";
+        $message .= "Durée : " . $quote->event_duration . "H\n\n";
         
         if ($quote->postal_code) {
             $message .= "📍 Code postal : " . $quote->postal_code . "\n";
@@ -2688,14 +2692,14 @@ class RestaurantBooking_Ajax_Handler_V3
             $message .= "🚛 Distance : " . $quote->distance_km . " km\n";
         }
         
-        $message .= "\n💰 Prix total estimé : " . number_format($quote->total_price, 2, ',', ' ') . " €\n\n";
+        $message .= "\nPrix total estimé : " . number_format($quote->total_price, 2, ',', ' ') . " €\n\n";
         
         if (!empty($customer_data['message'])) {
             $message .= "💬 Votre message :\n" . $customer_data['message'] . "\n\n";
         }
         
-        $message .= "Nous vous recontacterons dans les plus brefs délais pour finaliser votre réservation.\n\n";
-        $message .= "Cordialement,\nL'équipe Block Street Food & Events\n\n";
+        $message .= "L'équipe BLOCK vous recontactera sous 48h max pour en parler, l'ajuster et le valider ensemble !\n\n";
+        $message .= "N'hésitez pas à nous contacter si vous avez la moindre question.\n\nA bientôt !\n\nL'équipe BLOCK\n\n";
         $message .= "---\n";
         $message .= "Ceci est un email automatique, merci de ne pas y répondre.";
         
@@ -3126,7 +3130,7 @@ class RestaurantBooking_Ajax_Handler_V3
     /**
      * Obtenir le HTML des produits Mini Boss
      */
-    private function get_mini_boss_products_html()
+    private function get_mini_boss_products_html($form_data = [])
     {
         global $wpdb;
 
@@ -3163,13 +3167,14 @@ class RestaurantBooking_Ajax_Handler_V3
             return '<p class="rbf-v3-message info">Aucun menu Mini Boss disponible pour le moment.</p>';
         }
 
-        $html = '<div class="rbf-v3-mini-boss-grid">';
+        // Générer la grille de produits (3 par ligne comme les autres)
+        $html = '<div class="rbf-v3-mini-boss-grid rbf-v3-products-grid-3">';
         foreach ($products as $product) {
             $image_url = $product->image_url ? esc_url($product->image_url) : '';
             
             $html .= '<div class="rbf-v3-product-card">';
             
-            // Afficher le bloc image dans tous les cas (comme pour les autres sections)
+            // Afficher le bloc image dans tous les cas
             $html .= '<div class="rbf-v3-product-image">';
             if ($image_url) {
                 $html .= '<img src="' . $image_url . '" alt="' . esc_attr($product->name) . '" loading="lazy">';
@@ -3183,8 +3188,11 @@ class RestaurantBooking_Ajax_Handler_V3
             $html .= '<div class="rbf-v3-product-price-qty">';
             $html .= '<span class="rbf-v3-product-price">' . number_format($product->price, 2, ',', ' ') . ' €</span>';
             $html .= '<div class="rbf-v3-quantity-selector">';
+            // Récupérer la quantité sauvegardée ou 0 par défaut
+            $saved_quantity = intval($form_data['mini_boss_' . $product->id . '_qty'] ?? 0);
+            
             $html .= '<button type="button" class="rbf-v3-qty-btn rbf-v3-qty-minus" data-target="mini_boss_' . $product->id . '_qty">-</button>';
-            $html .= '<input type="number" name="mini_boss_' . $product->id . '_qty" value="0" min="0" max="999" class="rbf-v3-qty-input">';
+            $html .= '<input type="number" name="mini_boss_' . $product->id . '_qty" value="' . $saved_quantity . '" min="0" max="999" class="rbf-v3-qty-input">';
             $html .= '<button type="button" class="rbf-v3-qty-btn rbf-v3-qty-plus" data-target="mini_boss_' . $product->id . '_qty">+</button>';
             $html .= '</div>';
             $html .= '</div>';
@@ -3410,7 +3418,10 @@ class RestaurantBooking_Ajax_Handler_V3
     /**
      * Obtenir le HTML des produits signature
      */
-    private function get_signature_products_html($signature_type, $guest_count, $form_data = [])
+    /**
+     * Générer le HTML des produits signature avec bandeau (nouvelle version pour affichage simultané DOG et CROQ)
+     */
+    private function get_signature_products_html_with_banner($signature_type, $guest_count, $form_data = [])
     {
         global $wpdb;
 
@@ -3421,7 +3432,7 @@ class RestaurantBooking_Ajax_Handler_V3
         $products = $wpdb->get_results($wpdb->prepare(
             "SELECT p.* FROM {$table_name} p 
              INNER JOIN {$wpdb->prefix}restaurant_categories c ON p.category_id = c.id 
-             WHERE c.type = %s AND p.is_active = 1 ORDER BY p.name ASC",
+             WHERE c.type = %s AND p.is_active = 1 ORDER BY p.display_order ASC, p.name ASC",
             $category
         ));
 
@@ -3434,32 +3445,18 @@ class RestaurantBooking_Ajax_Handler_V3
             }
         }
 
-        // Fallback si pas de produits en base
+        // Si pas de produits en base
         if (empty($products)) {
-            $products = [
-                (object) [
-                    'id' => ($category === 'dog') ? 1 : 3,
-                    'name' => ($category === 'dog') ? 'Hot-Dog Classic' : 'Croque-Monsieur Classic',
-                    'price' => 12,
-                    'description' => 'Notre ' . ($category === 'dog' ? 'hot-dog' : 'croque-monsieur') . ' signature',
-                    'image_url' => ''
-                ],
-                (object) [
-                    'id' => ($category === 'dog') ? 2 : 4,
-                    'name' => ($category === 'dog') ? 'Hot-Dog Spicy' : 'Croque-Monsieur Deluxe',
-                    'price' => 14,
-                    'description' => 'Version épicée de notre ' . ($category === 'dog' ? 'hot-dog' : 'croque-monsieur'),
-                    'image_url' => ''
-                ]
-            ];
+            return '<p class="rbf-v3-message info">Aucun produit ' . ($signature_type === 'DOG' ? 'DOG' : 'CROQ') . ' disponible pour le moment.</p>';
         }
 
-        $html = '<div class="rbf-v3-signature-products-grid">';
+        // Générer la grille de produits (3 par ligne)
+        $html = '<div class="rbf-v3-signature-products-grid rbf-v3-products-grid-3">';
         foreach ($products as $product) {
             $image_url = $product->image_url ? esc_url($product->image_url) : '';
             
             $html .= '<div class="rbf-v3-product-card">';
-            // Afficher le bloc image dans tous les cas (comme pour Mini-Boss)
+            // Afficher le bloc image dans tous les cas
             $html .= '<div class="rbf-v3-product-image">';
             if ($image_url) {
                 $html .= '<img src="' . $image_url . '" alt="' . esc_attr($product->name) . '" loading="lazy">';
@@ -3488,6 +3485,14 @@ class RestaurantBooking_Ajax_Handler_V3
         $html .= '</div>';
 
         return $html;
+    }
+
+    /**
+     * Ancienne méthode conservée pour compatibilité (peut être utilisée ailleurs)
+     */
+    private function get_signature_products_html($signature_type, $guest_count, $form_data = [])
+    {
+        return $this->get_signature_products_html_with_banner($signature_type, $guest_count, $form_data);
     }
 
     
@@ -3607,6 +3612,9 @@ class RestaurantBooking_Ajax_Handler_V3
      */
     private function generate_step_7_contact_remorque_html($form_data)
     {
+        // Récupérer les textes configurables
+        $form_texts = RestaurantBooking_Options_Helper::get_instance()->get_form_texts();
+        
         ob_start();
         ?>
         <div class="rbf-v3-step-content active" data-step="7">
@@ -3685,10 +3693,10 @@ class RestaurantBooking_Ajax_Handler_V3
 
             <!-- Récapitulatif -->
             <div class="rbf-v3-recap-card">
-                <h3>📋 Récapitulatif de votre demande</h3>
+                <h3>📋 <?php echo esc_html($form_texts['contact_recap_title']); ?></h3>
                 <div class="rbf-v3-recap-content">
                     <div class="rbf-v3-recap-line">
-                        <span>Service :</span>
+                        <span>Prestation :</span>
                         <strong>Privatisation de la remorque Block</strong>
                     </div>
                     <div class="rbf-v3-recap-line">
@@ -4186,11 +4194,14 @@ class RestaurantBooking_Ajax_Handler_V3
             return '';
         }
         
+        // Récupérer les textes configurables
+        $form_texts_filter = RestaurantBooking_Options_Helper::get_instance()->get_form_texts();
+        
         ob_start();
         ?>
         <div class="rbf-v3-beverage-subcategory-tabs">
             <button type="button" class="rbf-v3-subcategory-btn active" data-filter="all">
-                Tous les <?php echo $tab_key === 'wines' ? 'vins' : 'bières'; ?>
+                <?php echo $tab_key === 'beers' ? esc_html($form_texts_filter['step5_filter_all_beers']) : 'Tous les vins'; ?>
             </button>
             <?php foreach ($subcategories as $key => $data) : ?>
                 <button type="button" class="rbf-v3-subcategory-btn" data-filter="<?php echo esc_attr($key); ?>">

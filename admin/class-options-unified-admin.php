@@ -65,56 +65,99 @@ class RestaurantBooking_Options_Unified_Admin
         'tireuse_price' => 50,
         'games_price' => 70,
         
-        // Textes d'interface
-        'final_message' => 'Votre devis est d\'ores et déjà disponible dans votre boîte mail, la suite ? Block va prendre contact avec vous afin d\'affiner celui-ci et de créer avec vous toute l\'expérience dont vous rêvez',
-        'comment_section_text' => '1 question, 1 souhait, n\'hésitez pas de nous en fait part, on en parle, on....',
+        // Textes étape 0 - Sélection du service
+        'widget_title' => 'Demande de Devis Privatisation',
+        'widget_subtitle' => 'Choisissez votre service et obtenez votre devis personnalisé',
+        'service_selection_title' => 'Choisissez votre service',
+        'restaurant_card_title' => 'PRIVATISATION DU RESTAURANT',
+        'restaurant_card_subtitle' => 'De 10 à 30 personnes',
+        'restaurant_card_description' => 'Privatisez notre restaurant pour vos événements intimes et profitez d\'un service personnalisé dans un cadre chaleureux.',
+        'remorque_card_title' => 'Privatisation de la remorque Block',
+        'remorque_card_subtitle' => 'À partir de 20 personnes',
+        'remorque_card_description' => 'Notre remorque mobile se déplace pour vos événements extérieurs et grandes réceptions.',
         
-        // Textes du formulaire de devis - Étape 1
+        // Textes étape 1 - Introduction
         'step1_title_restaurant' => 'Pourquoi privatiser notre restaurant ?',
         'step1_title_remorque' => 'Pourquoi privatiser notre remorque Block ?',
         'step1_card_title' => 'Comment ça fonctionne ?',
         'restaurant_steps_list' => 'Forfait de base|Choix du formule repas (personnalisable)|Choix des boissons (optionnel)|Coordonnées / Contact',
         'remorque_steps_list' => 'Forfait de base|Choix du formule repas (personnalisable)|Choix des boissons (optionnel)|Choix des options (optionnel)|Coordonnées/Contact',
         
-        // Textes du formulaire de devis - Étape 2
+        // Textes étape 2 - Forfait de base
         'step2_title' => 'Forfait de base',
         'restaurant_forfait_card_title' => 'FORFAIT DE BASE PRIVATISATION RESTO',
         'remorque_forfait_card_title' => 'FORFAIT DE BASE PRIVATISATION REMORQUE BLOCK',
+        'restaurant_forfait_description' => 'Mise à disposition des murs de Block|Notre équipe salle + cuisine assurant la prestation|Présentation + mise en place buffets, selon vos choix|Mise à disposition vaisselle + verrerie|Entretien + nettoyage',
+        'remorque_forfait_description' => 'Notre équipe salle + cuisine assurant la prestation|Déplacement et installation de la remorque BLOCK (aller et retour)|Présentation + mise en place buffets, selon vos choix|La fourniture de vaisselle jetable recyclable|La fourniture de verrerie (en cas d\'ajout de boisson)',
         
-        // Textes du formulaire de devis - Étape 3 (Règles produits)
-        'signature_dish_text' => 'exactement 1 plat par personne',
-        'accompaniment_text' => 'exactement 1/personne',
-        'buffet_sale_text' => 'min 1/personne et min 2 recettes différents',
-        'buffet_sucre_text' => 'min 1/personne et min 1 plat',
+        // Textes étape 3 - Choix des repas
+        'step3_title' => 'Choix du repas',
+        'step3_signature_title' => 'PLAT SIGNATURE',
+        'step3_hot_dogs_title' => 'NOS HOT-DOGS',
+        'step3_croques_title' => 'NOS CROQUES',
+        'step3_mini_boss_title' => 'PLAT MINI BLOCKER',
+        'step3_accompaniments_title' => 'Accompagnements',
         'mini_boss_text' => 'Optionnel - Pour les plus petits',
         'mini_boss_description' => 'Menu spécialement conçu pour les enfants',
         
-        // Textes du widget/shortcode
-        'widget_title' => 'Demande de Devis Privatisation',
-        'widget_subtitle' => 'Choisissez votre service et obtenez votre devis personnalisé',
-        'service_selection_title' => 'Choisissez votre service',
+        // Textes étape 4 - Buffets
+        'step4_title' => 'CHOISISSEZ VOTRE/VOS BUFFET(S)',
+        'step4_buffet_formula_title' => 'Choisissez votre formule buffet :',
+        'step4_buffet_sale_title' => 'Buffet salé',
+        'step4_buffet_sucre_title' => 'Buffet sucré',
+        'step4_buffet_mixte_title' => 'Buffets salé + sucré',
         
-        // Textes carte Restaurant
-        'restaurant_card_title' => 'PRIVATISATION DU RESTAURANT',
-        'restaurant_card_subtitle' => 'De 10 à 30 personnes',
-        'restaurant_card_description' => 'Privatisez notre restaurant pour vos événements intimes et profitez d\'un service personnalisé dans un cadre chaleureux.',
+        // Textes étape 5 - Boissons
+        'step5_suggestions_title' => 'NOS SUGGESTIONS',
+        'step5_all_soft_title' => 'TOUTES LES BOISSONS FRAÎCHES',
+        'step5_all_beers_title' => 'TOUTES LES BIÈRES',
+        'step5_tab_soft_label' => 'Boissons fraîches',
+        'step5_filter_all_beers' => 'Toutes les bières',
         
-        // Textes carte Remorque
-        'remorque_card_title' => 'Privatisation de la remorque Block',
-        'remorque_card_subtitle' => 'À partir de 20 personnes',
-        'remorque_card_description' => 'Notre remorque mobile se déplace pour vos événements extérieurs et grandes réceptions.',
+        // Textes étape 6 - Options/Animations (remorque uniquement)
+        'step6_title' => 'CHOIX DES ANIMATIONS',
+        'step6_tireuse_title' => '🍺 MISE À DISPO TIREUSE A BIÈRES 50€',
+        'step6_tireuse_description' => 'Faites mousser votre événement ! (fûts non inclus, les choisir parmi notre séléction)',
+        'step6_tireuse_checkbox_label' => 'Ajouter la tireuse à bières',
+        'step6_kegs_section_title' => 'SÉLECTION DES FÛTS',
+        'step6_games_title' => '🎮 INSTALLATION ESPACE JEUX 70€',
+        'step6_games_description' => 'Des jeux d\'exterieur pour rassembler, détendre et profiter !',
+        'step6_games_section_title' => 'SÉLECTION DES JEUX',
+        
+        // Textes étape coordonnées
+        'contact_recap_title' => 'RECAP DE VOTRE DEMANDE',
         
         // Messages système
         'success_message' => 'Votre devis est d\'ores et déjà disponible dans votre boîte mail',
+        'success_message_subtitle' => 'L\'équipe BLOCK vous recontactera sous 48h max pour en parler, l\'ajuster et le valider ensemble !',
         'loading_message' => 'Génération de votre devis en cours...',
+        'final_message' => 'Votre devis est d\'ores et déjà disponible dans votre boîte mail, la suite ? Block va prendre contact avec vous afin d\'affiner celui-ci et de créer avec vous toute l\'expérience dont vous rêvez',
+        'comment_section_text' => '1 question, 1 souhait, n\'hésitez pas de nous en fait part, on en parle, on....',
+        
+        // Textes des emails
+        'email_welcome_text' => 'Merci pour votre demande ! On a hâte de donner vie à votre événement ! Vous trouverez ci-dessous le récapitulatif de votre demande.',
+        'email_quote_details_title' => 'Détails de votre demande',
+        'email_download_button_text' => 'Télécharger ma demande',
+        'email_next_steps_title' => 'Prochaines étapes :',
+        'email_next_steps_text' => 'L\'équipe BLOCK vous recontactera sous 48h max pour en parler, l\'ajuster et le valider ensemble !',
+        'email_questions_text' => 'N\'hésitez pas à nous contacter si vous avez la moindre question.',
+        'email_signature' => 'A bientôt !<br><br>L\'équipe BLOCK',
+        
+        // Encadrés informatifs dans le formulaire
+        'info_step3_title' => 'ℹ️ Information importante :',
+        'info_step3_message' => 'Sélection obligatoire : le total des plats (DOG + CROQ + Mini Boss) doit être égal ou supérieur à {guest_count} convives.',
+        'info_step4_title' => 'ℹ️ Information importante :',
+        'info_step4_message' => 'Sélection obligatoire pour {guest_count} convives. Les quantités minimales sont calculées automatiquement.',
+        'info_step5_title' => 'ℹ️ Étape optionnelle :',
+        'info_step5_message' => 'Sélectionnez vos boissons pour accompagner votre événement.',
+        'info_step5_skip_title' => 'ℹ️ Cette étape est optionnelle.',
+        'info_step5_skip_message' => 'Vous pouvez passer directement à l\'étape suivante si vous ne souhaitez pas de boissons.',
+        'info_step6_skip_title' => 'ℹ️ Cette étape est optionnelle.',
+        'info_step6_skip_message' => 'Vous pouvez passer directement à l\'étape suivante si vous ne souhaitez pas d\'animations supplémentaires.',
         
         // Prix de base des forfaits
         'restaurant_base_price' => 300,
         'remorque_base_price' => 350,
-        
-        // Descriptions forfaits
-        'restaurant_forfait_description' => 'Mise à disposition des murs de Block|Notre équipe salle + cuisine assurant la prestation|Présentation + mise en place buffets, selon vos choix|Mise à disposition vaisselle + verrerie|Entretien + nettoyage',
-        'remorque_forfait_description' => 'Notre équipe salle + cuisine assurant la prestation|Déplacement et installation de la remorque BLOCK (aller et retour)|Présentation + mise en place buffets, selon vos choix|La fourniture de vaisselle jetable recyclable|La fourniture de verrerie (en cas d\'ajout de boisson)'
     );
 
     /**
@@ -144,6 +187,7 @@ class RestaurantBooking_Options_Unified_Admin
                 <h3><?php _e('Configuration globale du plugin', 'restaurant-booking'); ?></h3>
                 <p><?php _e('Cette page permet de configurer toutes les options, règles et textes utilisés dans les formulaires de devis.', 'restaurant-booking'); ?></p>
                 <p><strong><?php _e('⚠️ Important :', 'restaurant-booking'); ?></strong> <?php _e('Les modifications apportées ici seront immédiatement visibles sur les widgets publics.', 'restaurant-booking'); ?></p>
+                <p><strong>🟧 Légende :</strong> Les sections avec un liseret orange à gauche sont spécifiques à la privatisation de la remorque.</p>
             </div>
 
             <form method="post" action="">
@@ -151,10 +195,544 @@ class RestaurantBooking_Options_Unified_Admin
                 
                 <div class="restaurant-booking-options-container">
                     
-                    <!-- Section 1: Règles de validation produits -->
+                    <!-- ========================================
+                         SECTION 1 : TEXTES DU FORMULAIRE
+                         ======================================== -->
                     <div class="options-section">
-                        <h2>🍽️ <?php _e('Règles de Validation Produits', 'restaurant-booking'); ?></h2>
+                        <h2>📝 <?php _e('TEXTES DU FORMULAIRE DE DEVIS (par étape)', 'restaurant-booking'); ?></h2>
+                        <p class="description"><?php _e('Tous les textes affichés dans le formulaire de devis, organisés par étape.', 'restaurant-booking'); ?></p>
                         
+                        <!-- Étape 0 : Sélection du service -->
+                        <div class="options-group">
+                            <h3>📍 <?php _e('Étape 0 - Sélection du service', 'restaurant-booking'); ?></h3>
+                            <p class="description"><?php _e('Première page où l\'utilisateur choisit entre Restaurant ou Remorque', 'restaurant-booking'); ?></p>
+                            <table class="form-table">
+                                <tr>
+                                    <th scope="row"><?php _e('Titre principal du formulaire', 'restaurant-booking'); ?></th>
+                                    <td>
+                                        <input type="text" name="widget_title" value="<?php echo esc_attr($options['widget_title']); ?>" class="large-text" />
+                                        <p class="description"><?php _e('Titre affiché en haut du formulaire', 'restaurant-booking'); ?></p>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><?php _e('Sous-titre', 'restaurant-booking'); ?></th>
+                                    <td>
+                                        <textarea name="widget_subtitle" rows="2" class="large-text"><?php echo esc_textarea($options['widget_subtitle']); ?></textarea>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><?php _e('Titre "Choisissez votre service"', 'restaurant-booking'); ?></th>
+                                    <td>
+                                        <input type="text" name="service_selection_title" value="<?php echo esc_attr($options['service_selection_title']); ?>" class="large-text" />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><?php _e('Carte Restaurant - Titre', 'restaurant-booking'); ?></th>
+                                    <td>
+                                        <input type="text" name="restaurant_card_title" value="<?php echo esc_attr($options['restaurant_card_title']); ?>" class="large-text" />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><?php _e('Carte Restaurant - Sous-titre', 'restaurant-booking'); ?></th>
+                                    <td>
+                                        <input type="text" name="restaurant_card_subtitle" value="<?php echo esc_attr($options['restaurant_card_subtitle']); ?>" class="large-text" />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><?php _e('Carte Restaurant - Description', 'restaurant-booking'); ?></th>
+                                    <td>
+                                        <textarea name="restaurant_card_description" rows="3" class="large-text"><?php echo esc_textarea($options['restaurant_card_description']); ?></textarea>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><?php _e('Carte Remorque - Titre', 'restaurant-booking'); ?></th>
+                                    <td>
+                                        <input type="text" name="remorque_card_title" value="<?php echo esc_attr($options['remorque_card_title']); ?>" class="large-text" />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><?php _e('Carte Remorque - Sous-titre', 'restaurant-booking'); ?></th>
+                                    <td>
+                                        <input type="text" name="remorque_card_subtitle" value="<?php echo esc_attr($options['remorque_card_subtitle']); ?>" class="large-text" />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><?php _e('Carte Remorque - Description', 'restaurant-booking'); ?></th>
+                                    <td>
+                                        <textarea name="remorque_card_description" rows="3" class="large-text"><?php echo esc_textarea($options['remorque_card_description']); ?></textarea>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+
+                        <!-- Étape 1 : Introduction -->
+                        <div class="options-group">
+                            <h3>1️⃣ <?php _e('Étape 1 - Introduction', 'restaurant-booking'); ?></h3>
+                            <table class="form-table">
+                                <tr>
+                                    <th scope="row"><?php _e('Titre Introduction Restaurant', 'restaurant-booking'); ?></th>
+                                    <td>
+                                        <input type="text" name="step1_title_restaurant" value="<?php echo esc_attr($options['step1_title_restaurant']); ?>" class="large-text" />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><?php _e('Titre Introduction Remorque', 'restaurant-booking'); ?></th>
+                                    <td>
+                                        <input type="text" name="step1_title_remorque" value="<?php echo esc_attr($options['step1_title_remorque']); ?>" class="large-text" />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><?php _e('Titre carte "Comment ça fonctionne"', 'restaurant-booking'); ?></th>
+                                    <td>
+                                        <input type="text" name="step1_card_title" value="<?php echo esc_attr($options['step1_card_title']); ?>" class="regular-text" />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><?php _e('Liste des étapes Restaurant', 'restaurant-booking'); ?></th>
+                                    <td>
+                                        <textarea name="restaurant_steps_list" rows="4" class="large-text"><?php echo esc_textarea($options['restaurant_steps_list']); ?></textarea>
+                                        <p class="description"><?php _e('Séparez chaque étape par un pipe (|)', 'restaurant-booking'); ?></p>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><?php _e('Liste des étapes Remorque', 'restaurant-booking'); ?></th>
+                                    <td>
+                                        <textarea name="remorque_steps_list" rows="4" class="large-text"><?php echo esc_textarea($options['remorque_steps_list']); ?></textarea>
+                                        <p class="description"><?php _e('Séparez chaque étape par un pipe (|)', 'restaurant-booking'); ?></p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+
+                        <!-- Étape 2 : Forfait de base -->
+                        <div class="options-group">
+                            <h3>2️⃣ <?php _e('Étape 2 - Forfait de base', 'restaurant-booking'); ?></h3>
+                            <table class="form-table">
+                                <tr>
+                                    <th scope="row"><?php _e('Titre de l\'étape', 'restaurant-booking'); ?></th>
+                                    <td>
+                                        <input type="text" name="step2_title" value="<?php echo esc_attr($options['step2_title']); ?>" class="regular-text" />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><?php _e('Titre carte forfait Restaurant', 'restaurant-booking'); ?></th>
+                                    <td>
+                                        <input type="text" name="restaurant_forfait_card_title" value="<?php echo esc_attr($options['restaurant_forfait_card_title']); ?>" class="large-text" />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><?php _e('Titre carte forfait Remorque', 'restaurant-booking'); ?></th>
+                                    <td>
+                                        <input type="text" name="remorque_forfait_card_title" value="<?php echo esc_attr($options['remorque_forfait_card_title']); ?>" class="large-text" />
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+
+                        <!-- Étape 3 : Choix des repas -->
+                        <div class="options-group">
+                            <h3>3️⃣ <?php _e('Étape 3 - Choix des repas', 'restaurant-booking'); ?></h3>
+                            <table class="form-table">
+                                <tr>
+                                    <th scope="row"><?php _e('Titre de l\'étape', 'restaurant-booking'); ?></th>
+                                    <td>
+                                        <input type="text" name="step3_title" value="<?php echo esc_attr($options['step3_title']); ?>" class="regular-text" />
+                                        <p class="description"><?php _e('Titre principal de l\'étape choix des repas', 'restaurant-booking'); ?></p>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><?php _e('Titre section Plat Signature', 'restaurant-booking'); ?></th>
+                                    <td>
+                                        <input type="text" name="step3_signature_title" value="<?php echo esc_attr($options['step3_signature_title']); ?>" class="regular-text" />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><?php _e('Titre Hot-Dogs', 'restaurant-booking'); ?></th>
+                                    <td>
+                                        <input type="text" name="step3_hot_dogs_title" value="<?php echo esc_attr($options['step3_hot_dogs_title']); ?>" class="regular-text" />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><?php _e('Titre Croques', 'restaurant-booking'); ?></th>
+                                    <td>
+                                        <input type="text" name="step3_croques_title" value="<?php echo esc_attr($options['step3_croques_title']); ?>" class="regular-text" />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><?php _e('Titre Menu Mini Boss', 'restaurant-booking'); ?></th>
+                                    <td>
+                                        <input type="text" name="step3_mini_boss_title" value="<?php echo esc_attr($options['step3_mini_boss_title']); ?>" class="regular-text" />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><?php _e('Titre Accompagnements', 'restaurant-booking'); ?></th>
+                                    <td>
+                                        <input type="text" name="step3_accompaniments_title" value="<?php echo esc_attr($options['step3_accompaniments_title']); ?>" class="regular-text" />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><?php _e('Texte Menu Mini Boss', 'restaurant-booking'); ?></th>
+                                    <td>
+                                        <input type="text" name="mini_boss_text" value="<?php echo esc_attr($options['mini_boss_text']); ?>" class="regular-text" />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><?php _e('Description Menu Mini Boss', 'restaurant-booking'); ?></th>
+                                    <td>
+                                        <input type="text" name="mini_boss_description" value="<?php echo esc_attr($options['mini_boss_description']); ?>" class="regular-text" />
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                        
+                        <!-- Étape 4 : Buffets -->
+                        <div class="options-group">
+                            <h3>4️⃣ <?php _e('Étape 4 - Buffets', 'restaurant-booking'); ?></h3>
+                            <table class="form-table">
+                                <tr>
+                                    <th scope="row"><?php _e('Titre de l\'étape', 'restaurant-booking'); ?></th>
+                                    <td>
+                                        <input type="text" name="step4_title" value="<?php echo esc_attr($options['step4_title']); ?>" class="regular-text" />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><?php _e('Titre formule buffet', 'restaurant-booking'); ?></th>
+                                    <td>
+                                        <input type="text" name="step4_buffet_formula_title" value="<?php echo esc_attr($options['step4_buffet_formula_title']); ?>" class="regular-text" />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><?php _e('Titre Buffet Salé', 'restaurant-booking'); ?></th>
+                                    <td>
+                                        <input type="text" name="step4_buffet_sale_title" value="<?php echo esc_attr($options['step4_buffet_sale_title']); ?>" class="regular-text" />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><?php _e('Titre Buffet Sucré', 'restaurant-booking'); ?></th>
+                                    <td>
+                                        <input type="text" name="step4_buffet_sucre_title" value="<?php echo esc_attr($options['step4_buffet_sucre_title']); ?>" class="regular-text" />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><?php _e('Titre Buffets Mixtes', 'restaurant-booking'); ?></th>
+                                    <td>
+                                        <input type="text" name="step4_buffet_mixte_title" value="<?php echo esc_attr($options['step4_buffet_mixte_title']); ?>" class="regular-text" />
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                        
+                        <!-- Étape 5 : Boissons -->
+                        <div class="options-group">
+                            <h3>5️⃣ <?php _e('Étape 5 - Boissons', 'restaurant-booking'); ?></h3>
+                            <table class="form-table">
+                                <tr>
+                                    <th scope="row"><?php _e('Titre Suggestions', 'restaurant-booking'); ?></th>
+                                    <td>
+                                        <input type="text" name="step5_suggestions_title" value="<?php echo esc_attr($options['step5_suggestions_title']); ?>" class="regular-text" />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><?php _e('Titre Toutes les boissons fraîches', 'restaurant-booking'); ?></th>
+                                    <td>
+                                        <input type="text" name="step5_all_soft_title" value="<?php echo esc_attr($options['step5_all_soft_title']); ?>" class="regular-text" />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><?php _e('Titre Toutes les bières', 'restaurant-booking'); ?></th>
+                                    <td>
+                                        <input type="text" name="step5_all_beers_title" value="<?php echo esc_attr($options['step5_all_beers_title']); ?>" class="regular-text" />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><?php _e('Label onglet boissons fraîches', 'restaurant-booking'); ?></th>
+                                    <td>
+                                        <input type="text" name="step5_tab_soft_label" value="<?php echo esc_attr($options['step5_tab_soft_label']); ?>" class="regular-text" />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><?php _e('Filtre toutes les bières', 'restaurant-booking'); ?></th>
+                                    <td>
+                                        <input type="text" name="step5_filter_all_beers" value="<?php echo esc_attr($options['step5_filter_all_beers']); ?>" class="regular-text" />
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                        
+                        <!-- Étape 6 : Options/Animations (Remorque uniquement) -->
+                        <div class="options-group options-group-remorque">
+                            <h3>🟧 6️⃣ <?php _e('Étape 6 - Options/Animations (Remorque uniquement)', 'restaurant-booking'); ?></h3>
+                            <p class="description" style="color: #FF8C00;"><strong><?php _e('Cette étape n\'apparaît que pour la privatisation de la remorque', 'restaurant-booking'); ?></strong></p>
+                            <table class="form-table">
+                                <tr>
+                                    <th scope="row"><?php _e('Titre de l\'étape', 'restaurant-booking'); ?></th>
+                                    <td>
+                                        <input type="text" name="step6_title" value="<?php echo esc_attr($options['step6_title']); ?>" class="regular-text" />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><?php _e('Titre Tireuse', 'restaurant-booking'); ?></th>
+                                    <td>
+                                        <input type="text" name="step6_tireuse_title" value="<?php echo esc_attr($options['step6_tireuse_title']); ?>" class="regular-text" />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><?php _e('Description Tireuse', 'restaurant-booking'); ?></th>
+                                    <td>
+                                        <textarea name="step6_tireuse_description" rows="2" class="large-text"><?php echo esc_textarea($options['step6_tireuse_description']); ?></textarea>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><?php _e('Label checkbox Tireuse', 'restaurant-booking'); ?></th>
+                                    <td>
+                                        <input type="text" name="step6_tireuse_checkbox_label" value="<?php echo esc_attr($options['step6_tireuse_checkbox_label']); ?>" class="regular-text" />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><?php _e('Titre section Fûts', 'restaurant-booking'); ?></th>
+                                    <td>
+                                        <input type="text" name="step6_kegs_section_title" value="<?php echo esc_attr($options['step6_kegs_section_title']); ?>" class="regular-text" />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><?php _e('Titre Jeux', 'restaurant-booking'); ?></th>
+                                    <td>
+                                        <input type="text" name="step6_games_title" value="<?php echo esc_attr($options['step6_games_title']); ?>" class="regular-text" />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><?php _e('Description Jeux', 'restaurant-booking'); ?></th>
+                                    <td>
+                                        <textarea name="step6_games_description" rows="2" class="large-text"><?php echo esc_textarea($options['step6_games_description']); ?></textarea>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><?php _e('Titre section Jeux', 'restaurant-booking'); ?></th>
+                                    <td>
+                                        <input type="text" name="step6_games_section_title" value="<?php echo esc_attr($options['step6_games_section_title']); ?>" class="regular-text" />
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                        
+                        <!-- Étape Finale : Coordonnées -->
+                        <div class="options-group">
+                            <h3>📋 <?php _e('Étape Finale - Coordonnées', 'restaurant-booking'); ?></h3>
+                            <table class="form-table">
+                                <tr>
+                                    <th scope="row"><?php _e('Titre Récapitulatif', 'restaurant-booking'); ?></th>
+                                    <td>
+                                        <input type="text" name="contact_recap_title" value="<?php echo esc_attr($options['contact_recap_title']); ?>" class="regular-text" />
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                        
+                        <!-- Messages système -->
+                        <div class="options-group">
+                            <h3>💬 <?php _e('Messages système', 'restaurant-booking'); ?></h3>
+                            <table class="form-table">
+                                <tr>
+                                    <th scope="row"><?php _e('Message de succès', 'restaurant-booking'); ?></th>
+                                    <td>
+                                        <textarea name="success_message" rows="2" class="large-text"><?php echo esc_textarea($options['success_message']); ?></textarea>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><?php _e('Sous-titre message de succès', 'restaurant-booking'); ?></th>
+                                    <td>
+                                        <textarea name="success_message_subtitle" rows="2" class="large-text"><?php echo esc_textarea($options['success_message_subtitle']); ?></textarea>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><?php _e('Message de chargement', 'restaurant-booking'); ?></th>
+                                    <td>
+                                        <input type="text" name="loading_message" value="<?php echo esc_attr($options['loading_message']); ?>" class="large-text" />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><?php _e('Message final (legacy)', 'restaurant-booking'); ?></th>
+                                    <td>
+                                        <textarea name="final_message" rows="3" class="large-text"><?php echo esc_textarea($options['final_message']); ?></textarea>
+                                        <p class="description"><?php _e('Message alternatif affiché après soumission du devis', 'restaurant-booking'); ?></p>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><?php _e('Texte section commentaire', 'restaurant-booking'); ?></th>
+                                    <td>
+                                        <textarea name="comment_section_text" rows="2" class="large-text"><?php echo esc_textarea($options['comment_section_text']); ?></textarea>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                        
+                        <!-- Textes des Emails -->
+                        <div class="options-group">
+                            <h3>📧 <?php _e('Textes des Emails', 'restaurant-booking'); ?></h3>
+                            <table class="form-table">
+                                <tr>
+                                    <th scope="row"><?php _e('Texte de bienvenue', 'restaurant-booking'); ?></th>
+                                    <td>
+                                        <textarea name="email_welcome_text" rows="2" class="large-text"><?php echo esc_textarea($options['email_welcome_text']); ?></textarea>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><?php _e('Titre Détails demande', 'restaurant-booking'); ?></th>
+                                    <td>
+                                        <input type="text" name="email_quote_details_title" value="<?php echo esc_attr($options['email_quote_details_title']); ?>" class="regular-text" />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><?php _e('Texte bouton téléchargement', 'restaurant-booking'); ?></th>
+                                    <td>
+                                        <input type="text" name="email_download_button_text" value="<?php echo esc_attr($options['email_download_button_text']); ?>" class="regular-text" />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><?php _e('Titre prochaines étapes', 'restaurant-booking'); ?></th>
+                                    <td>
+                                        <input type="text" name="email_next_steps_title" value="<?php echo esc_attr($options['email_next_steps_title']); ?>" class="regular-text" />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><?php _e('Texte prochaines étapes', 'restaurant-booking'); ?></th>
+                                    <td>
+                                        <textarea name="email_next_steps_text" rows="2" class="large-text"><?php echo esc_textarea($options['email_next_steps_text']); ?></textarea>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><?php _e('Texte questions', 'restaurant-booking'); ?></th>
+                                    <td>
+                                        <textarea name="email_questions_text" rows="2" class="large-text"><?php echo esc_textarea($options['email_questions_text']); ?></textarea>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><?php _e('Signature email', 'restaurant-booking'); ?></th>
+                                    <td>
+                                        <textarea name="email_signature" rows="2" class="large-text"><?php echo esc_textarea($options['email_signature']); ?></textarea>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                        
+                        <!-- Encadrés informatifs -->
+                        <div class="options-group">
+                            <h3>ℹ️ <?php _e('Encadrés informatifs du formulaire', 'restaurant-booking'); ?></h3>
+                            <p class="description"><?php _e('Ces textes apparaissent dans les encadrés d\'information à différentes étapes du formulaire. Utilisez {guest_count} comme placeholder pour afficher le nombre de convives.', 'restaurant-booking'); ?></p>
+                            <table class="form-table">
+                                <tr>
+                                    <th scope="row"><?php _e('Étape 3 - Titre encadré', 'restaurant-booking'); ?></th>
+                                    <td>
+                                        <input type="text" name="info_step3_title" value="<?php echo esc_attr($options['info_step3_title']); ?>" class="large-text" />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><?php _e('Étape 3 - Message encadré', 'restaurant-booking'); ?></th>
+                                    <td>
+                                        <textarea name="info_step3_message" rows="2" class="large-text"><?php echo esc_textarea($options['info_step3_message']); ?></textarea>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><?php _e('Étape 4 - Titre encadré', 'restaurant-booking'); ?></th>
+                                    <td>
+                                        <input type="text" name="info_step4_title" value="<?php echo esc_attr($options['info_step4_title']); ?>" class="large-text" />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><?php _e('Étape 4 - Message encadré', 'restaurant-booking'); ?></th>
+                                    <td>
+                                        <textarea name="info_step4_message" rows="2" class="large-text"><?php echo esc_textarea($options['info_step4_message']); ?></textarea>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><?php _e('Étape 5 - Titre encadré', 'restaurant-booking'); ?></th>
+                                    <td>
+                                        <input type="text" name="info_step5_title" value="<?php echo esc_attr($options['info_step5_title']); ?>" class="large-text" />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><?php _e('Étape 5 - Message encadré', 'restaurant-booking'); ?></th>
+                                    <td>
+                                        <textarea name="info_step5_message" rows="2" class="large-text"><?php echo esc_textarea($options['info_step5_message']); ?></textarea>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><?php _e('Étape 5 - Titre "passer cette étape"', 'restaurant-booking'); ?></th>
+                                    <td>
+                                        <input type="text" name="info_step5_skip_title" value="<?php echo esc_attr($options['info_step5_skip_title']); ?>" class="large-text" />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><?php _e('Étape 5 - Message "passer cette étape"', 'restaurant-booking'); ?></th>
+                                    <td>
+                                        <textarea name="info_step5_skip_message" rows="2" class="large-text"><?php echo esc_textarea($options['info_step5_skip_message']); ?></textarea>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><?php _e('Étape 6 - Titre "passer cette étape"', 'restaurant-booking'); ?></th>
+                                    <td>
+                                        <input type="text" name="info_step6_skip_title" value="<?php echo esc_attr($options['info_step6_skip_title']); ?>" class="large-text" />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><?php _e('Étape 6 - Message "passer cette étape"', 'restaurant-booking'); ?></th>
+                                    <td>
+                                        <textarea name="info_step6_skip_message" rows="2" class="large-text"><?php echo esc_textarea($options['info_step6_skip_message']); ?></textarea>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- ========================================
+                         SECTION 2 : RÈGLES DE VALIDATION DES PRODUITS
+                         ======================================== -->
+                    <div class="options-section">
+                        <h2>🍽️ <?php _e('RÈGLES DE VALIDATION DES PRODUITS', 'restaurant-booking'); ?></h2>
+                        <p class="description"><?php _e('Règles qui définissent les quantités minimales et maximales de produits que les clients peuvent commander. Ces règles s\'appliquent de la même manière pour le restaurant et la remorque.', 'restaurant-booking'); ?></p>
+                        
+                        <!-- Plats Signature -->
+                        <div class="options-group">
+                            <h3><?php _e('Plats Signature', 'restaurant-booking'); ?></h3>
+                            <table class="form-table">
+                                <tr>
+                                    <th scope="row"><?php _e('Minimum par personne', 'restaurant-booking'); ?></th>
+                                    <td>
+                                        <input type="number" name="signature_dish_min_per_person" value="<?php echo esc_attr($options['signature_dish_min_per_person']); ?>" min="1" class="small-text" />
+                                        <p class="description"><?php _e('Nombre minimum de plats signature par personne', 'restaurant-booking'); ?></p>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><?php _e('Texte de règle affiché', 'restaurant-booking'); ?></th>
+                                    <td>
+                                        <input type="text" name="signature_dish_text" value="<?php echo esc_attr($options['signature_dish_text']); ?>" class="regular-text" />
+                                        <p class="description"><?php _e('Texte affiché dans le formulaire pour expliquer la règle', 'restaurant-booking'); ?></p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+
+                        <!-- Accompagnements -->
+                        <div class="options-group">
+                            <h3><?php _e('Accompagnements', 'restaurant-booking'); ?></h3>
+                            <table class="form-table">
+                                <tr>
+                                    <th scope="row"><?php _e('Minimum par personne', 'restaurant-booking'); ?></th>
+                                    <td>
+                                        <input type="number" name="accompaniment_min_per_person" value="<?php echo esc_attr($options['accompaniment_min_per_person']); ?>" min="1" class="small-text" />
+                                        <p class="description"><?php _e('Nombre minimum d\'accompagnements par personne', 'restaurant-booking'); ?></p>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><?php _e('Texte de règle affiché', 'restaurant-booking'); ?></th>
+                                    <td>
+                                        <input type="text" name="accompaniment_text" value="<?php echo esc_attr($options['accompaniment_text']); ?>" class="regular-text" />
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+
+                        <!-- Buffet Salé -->
                         <div class="options-group">
                             <h3><?php _e('Buffet Salé', 'restaurant-booking'); ?></h3>
                             <table class="form-table">
@@ -173,7 +751,7 @@ class RestaurantBooking_Options_Unified_Admin
                                     </td>
                                 </tr>
                                 <tr>
-                                    <th scope="row"><?php _e('Texte d\'explication', 'restaurant-booking'); ?></th>
+                                    <th scope="row"><?php _e('Texte de règle affiché', 'restaurant-booking'); ?></th>
                                     <td>
                                         <input type="text" name="buffet_sale_text" value="<?php echo esc_attr($options['buffet_sale_text']); ?>" class="regular-text" />
                                         <p class="description"><?php _e('Texte affiché dans le widget pour expliquer la règle', 'restaurant-booking'); ?></p>
@@ -182,6 +760,7 @@ class RestaurantBooking_Options_Unified_Admin
                             </table>
                         </div>
 
+                        <!-- Buffet Sucré -->
                         <div class="options-group">
                             <h3><?php _e('Buffet Sucré', 'restaurant-booking'); ?></h3>
                             <table class="form-table">
@@ -189,172 +768,31 @@ class RestaurantBooking_Options_Unified_Admin
                                     <th scope="row"><?php _e('Minimum par personne', 'restaurant-booking'); ?></th>
                                     <td>
                                         <input type="number" name="buffet_sucre_min_per_person" value="<?php echo esc_attr($options['buffet_sucre_min_per_person']); ?>" min="1" class="small-text" />
+                                        <p class="description"><?php _e('Nombre minimum de desserts par personne', 'restaurant-booking'); ?></p>
                                     </td>
                                 </tr>
                                 <tr>
-                                    <th scope="row"><?php _e('Minimum de plats', 'restaurant-booking'); ?></th>
+                                    <th scope="row"><?php _e('Minimum de plats différents', 'restaurant-booking'); ?></th>
                                     <td>
                                         <input type="number" name="buffet_sucre_min_dishes" value="<?php echo esc_attr($options['buffet_sucre_min_dishes']); ?>" min="1" class="small-text" />
+                                        <p class="description"><?php _e('Nombre minimum de desserts différents à sélectionner', 'restaurant-booking'); ?></p>
                                     </td>
                                 </tr>
                                 <tr>
-                                    <th scope="row"><?php _e('Texte d\'explication', 'restaurant-booking'); ?></th>
+                                    <th scope="row"><?php _e('Texte de règle affiché', 'restaurant-booking'); ?></th>
                                     <td>
                                         <input type="text" name="buffet_sucre_text" value="<?php echo esc_attr($options['buffet_sucre_text']); ?>" class="regular-text" />
                                     </td>
                                 </tr>
                             </table>
                         </div>
-
-                        <div class="options-group">
-                            <h3><?php _e('Accompagnements', 'restaurant-booking'); ?></h3>
-                            <table class="form-table">
-                                <tr>
-                                    <th scope="row"><?php _e('Minimum par personne', 'restaurant-booking'); ?></th>
-                                    <td>
-                                        <input type="number" name="accompaniment_min_per_person" value="<?php echo esc_attr($options['accompaniment_min_per_person']); ?>" min="1" class="small-text" />
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <th scope="row"><?php _e('Texte d\'explication', 'restaurant-booking'); ?></th>
-                                    <td>
-                                        <input type="text" name="accompaniment_text" value="<?php echo esc_attr($options['accompaniment_text']); ?>" class="regular-text" />
-                                    </td>
-                                </tr>
-                            </table>
-                        </div>
-
-                        <div class="options-group">
-                            <h3><?php _e('Plats Signature', 'restaurant-booking'); ?></h3>
-                            <table class="form-table">
-                                <tr>
-                                    <th scope="row"><?php _e('Minimum par personne', 'restaurant-booking'); ?></th>
-                                    <td>
-                                        <input type="number" name="signature_dish_min_per_person" value="<?php echo esc_attr($options['signature_dish_min_per_person']); ?>" min="1" class="small-text" />
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <th scope="row"><?php _e('Texte d\'explication', 'restaurant-booking'); ?></th>
-                                    <td>
-                                        <input type="text" name="signature_dish_text" value="<?php echo esc_attr($options['signature_dish_text']); ?>" class="regular-text" />
-                                    </td>
-                                </tr>
-                            </table>
-                        </div>
                     </div>
 
-                    <!-- Section 2: Textes du Formulaire de Devis -->
+                    <!-- ========================================
+                         SECTION 3 : CONFIGURATION RESTAURANT
+                         ======================================== -->
                     <div class="options-section">
-                        <h2>📝 <?php _e('Textes du Formulaire de Devis', 'restaurant-booking'); ?></h2>
-                        
-                        <div class="options-group">
-                            <h3><?php _e('Étape 1 - Introduction', 'restaurant-booking'); ?></h3>
-                            <table class="form-table">
-                                <tr>
-                                    <th scope="row"><?php _e('Titre Restaurant', 'restaurant-booking'); ?></th>
-                                    <td>
-                                        <input type="text" name="step1_title_restaurant" value="<?php echo esc_attr($options['step1_title_restaurant']); ?>" class="large-text" />
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <th scope="row"><?php _e('Titre Remorque', 'restaurant-booking'); ?></th>
-                                    <td>
-                                        <input type="text" name="step1_title_remorque" value="<?php echo esc_attr($options['step1_title_remorque']); ?>" class="large-text" />
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <th scope="row"><?php _e('Titre carte "Comment ça fonctionne"', 'restaurant-booking'); ?></th>
-                                    <td>
-                                        <input type="text" name="step1_card_title" value="<?php echo esc_attr($options['step1_card_title']); ?>" class="regular-text" />
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <th scope="row"><?php _e('Étapes Restaurant', 'restaurant-booking'); ?></th>
-                                    <td>
-                                        <textarea name="restaurant_steps_list" rows="4" class="large-text"><?php echo esc_textarea($options['restaurant_steps_list']); ?></textarea>
-                                        <p class="description"><?php _e('Séparez chaque étape par un pipe (|)', 'restaurant-booking'); ?></p>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <th scope="row"><?php _e('Étapes Remorque', 'restaurant-booking'); ?></th>
-                                    <td>
-                                        <textarea name="remorque_steps_list" rows="4" class="large-text"><?php echo esc_textarea($options['remorque_steps_list']); ?></textarea>
-                                        <p class="description"><?php _e('Séparez chaque étape par un pipe (|)', 'restaurant-booking'); ?></p>
-                                    </td>
-                                </tr>
-                            </table>
-                        </div>
-
-                        <div class="options-group">
-                            <h3><?php _e('Étape 2 - Forfait de base', 'restaurant-booking'); ?></h3>
-                            <table class="form-table">
-                                <tr>
-                                    <th scope="row"><?php _e('Titre étape 2', 'restaurant-booking'); ?></th>
-                                    <td>
-                                        <input type="text" name="step2_title" value="<?php echo esc_attr($options['step2_title']); ?>" class="regular-text" />
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <th scope="row"><?php _e('Titre carte Restaurant', 'restaurant-booking'); ?></th>
-                                    <td>
-                                        <input type="text" name="restaurant_forfait_card_title" value="<?php echo esc_attr($options['restaurant_forfait_card_title']); ?>" class="large-text" />
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <th scope="row"><?php _e('Titre carte Remorque', 'restaurant-booking'); ?></th>
-                                    <td>
-                                        <input type="text" name="remorque_forfait_card_title" value="<?php echo esc_attr($options['remorque_forfait_card_title']); ?>" class="large-text" />
-                                    </td>
-                                </tr>
-                            </table>
-                        </div>
-
-                        <div class="options-group">
-                            <h3><?php _e('Étape 3 - Règles des produits', 'restaurant-booking'); ?></h3>
-                            <table class="form-table">
-                                <tr>
-                                    <th scope="row"><?php _e('Texte Plats Signature', 'restaurant-booking'); ?></th>
-                                    <td>
-                                        <input type="text" name="signature_dish_text" value="<?php echo esc_attr($options['signature_dish_text']); ?>" class="regular-text" />
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <th scope="row"><?php _e('Texte Accompagnements', 'restaurant-booking'); ?></th>
-                                    <td>
-                                        <input type="text" name="accompaniment_text" value="<?php echo esc_attr($options['accompaniment_text']); ?>" class="regular-text" />
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <th scope="row"><?php _e('Texte Buffet Salé', 'restaurant-booking'); ?></th>
-                                    <td>
-                                        <input type="text" name="buffet_sale_text" value="<?php echo esc_attr($options['buffet_sale_text']); ?>" class="regular-text" />
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <th scope="row"><?php _e('Texte Buffet Sucré', 'restaurant-booking'); ?></th>
-                                    <td>
-                                        <input type="text" name="buffet_sucre_text" value="<?php echo esc_attr($options['buffet_sucre_text']); ?>" class="regular-text" />
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <th scope="row"><?php _e('Texte Menu Mini Boss', 'restaurant-booking'); ?></th>
-                                    <td>
-                                        <input type="text" name="mini_boss_text" value="<?php echo esc_attr($options['mini_boss_text']); ?>" class="regular-text" />
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <th scope="row"><?php _e('Description Menu Mini Boss', 'restaurant-booking'); ?></th>
-                                    <td>
-                                        <input type="text" name="mini_boss_description" value="<?php echo esc_attr($options['mini_boss_description']); ?>" class="regular-text" />
-                                    </td>
-                                </tr>
-                            </table>
-                        </div>
-                    </div>
-
-                    <!-- Section 3: Privatisation Restaurant -->
-                    <div class="options-section">
-                        <h2>🏪 <?php _e('Privatisation Restaurant', 'restaurant-booking'); ?></h2>
+                        <h2>🏪 <?php _e('CONFIGURATION RESTAURANT', 'restaurant-booking'); ?></h2>
                         
                         <div class="options-group">
                             <h3><?php _e('Nombre de convives', 'restaurant-booking'); ?></h3>
@@ -377,6 +815,7 @@ class RestaurantBooking_Options_Unified_Admin
                                     <th scope="row"><?php _e('Texte d\'affichage', 'restaurant-booking'); ?></th>
                                     <td>
                                         <input type="text" name="restaurant_guests_text" value="<?php echo esc_attr($options['restaurant_guests_text']); ?>" class="regular-text" />
+                                        <p class="description"><?php _e('Texte affiché dans le formulaire', 'restaurant-booking'); ?></p>
                                     </td>
                                 </tr>
                             </table>
@@ -443,9 +882,11 @@ class RestaurantBooking_Options_Unified_Admin
                         </div>
                     </div>
 
-                    <!-- Section 3: Privatisation Remorque -->
-                    <div class="options-section">
-                        <h2>🚛 <?php _e('Privatisation Remorque', 'restaurant-booking'); ?></h2>
+                    <!-- ========================================
+                         SECTION 4 : CONFIGURATION REMORQUE
+                         ======================================== -->
+                    <div class="options-section options-section-remorque">
+                        <h2>🟧 🚛 <?php _e('CONFIGURATION REMORQUE', 'restaurant-booking'); ?></h2>
                         
                         <div class="options-group">
                             <h3><?php _e('Nombre de convives', 'restaurant-booking'); ?></h3>
@@ -469,6 +910,7 @@ class RestaurantBooking_Options_Unified_Admin
                                     <td>
                                         <input type="number" name="remorque_staff_threshold" value="<?php echo esc_attr($options['remorque_staff_threshold']); ?>" min="1" class="small-text" />
                                         <span><?php _e('personnes', 'restaurant-booking'); ?></span>
+                                        <p class="description"><?php _e('Au-delà de ce nombre, un supplément personnel s\'applique', 'restaurant-booking'); ?></p>
                                     </td>
                                 </tr>
                                 <tr>
@@ -479,7 +921,7 @@ class RestaurantBooking_Options_Unified_Admin
                                     </td>
                                 </tr>
                                 <tr>
-                                    <th scope="row"><?php _e('Texte d\'affichage', 'restaurant-booking'); ?></th>
+                                    <th scope="row"><?php _e('Texte d\'affichage convives', 'restaurant-booking'); ?></th>
                                     <td>
                                         <input type="text" name="remorque_guests_text" value="<?php echo esc_attr($options['remorque_guests_text']); ?>" class="regular-text" />
                                     </td>
@@ -522,6 +964,7 @@ class RestaurantBooking_Options_Unified_Admin
 
                         <div class="options-group">
                             <h3><?php _e('Distance et Déplacement', 'restaurant-booking'); ?></h3>
+                            <p class="description"><?php _e('Configuration du calcul de distance via Google Maps API', 'restaurant-booking'); ?></p>
                             <table class="form-table">
                                 <tr>
                                     <th scope="row"><?php _e('Rayon gratuit', 'restaurant-booking'); ?></th>
@@ -609,127 +1052,6 @@ class RestaurantBooking_Options_Unified_Admin
                         </div>
                     </div>
 
-                    <!-- Section 4: Textes d'interface -->
-                    <div class="options-section">
-                        <h2>💬 <?php _e('Textes d\'Interface', 'restaurant-booking'); ?></h2>
-                        
-                        <div class="options-group">
-                            <table class="form-table">
-                                <tr>
-                                    <th scope="row"><?php _e('Message final après devis', 'restaurant-booking'); ?></th>
-                                    <td>
-                                        <textarea name="final_message" rows="3" class="large-text"><?php echo esc_textarea($options['final_message']); ?></textarea>
-                                        <p class="description"><?php _e('Message affiché après soumission du devis', 'restaurant-booking'); ?></p>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <th scope="row"><?php _e('Texte section commentaire', 'restaurant-booking'); ?></th>
-                                    <td>
-                                        <textarea name="comment_section_text" rows="2" class="large-text"><?php echo esc_textarea($options['comment_section_text']); ?></textarea>
-                                        <p class="description"><?php _e('Texte affiché dans la section commentaires', 'restaurant-booking'); ?></p>
-                                    </td>
-                                </tr>
-                            </table>
-                        </div>
-                    </div>
-
-                    <!-- Section 5: Textes du Formulaire (Shortcode) -->
-                    <div class="options-section">
-                        <h2>📝 <?php _e('Textes du Formulaire de Devis', 'restaurant-booking'); ?></h2>
-                        <p class="description"><?php _e('Ces textes sont utilisés dans le shortcode [restaurant_booking_form_v3]', 'restaurant-booking'); ?></p>
-                        
-                        <div class="options-group">
-                            <h3><?php _e('En-tête du formulaire', 'restaurant-booking'); ?></h3>
-                            <table class="form-table">
-                                <tr>
-                                    <th scope="row"><?php _e('Titre principal', 'restaurant-booking'); ?></th>
-                                    <td>
-                                        <input type="text" name="widget_title" value="<?php echo esc_attr($options['widget_title']); ?>" class="large-text" />
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <th scope="row"><?php _e('Sous-titre', 'restaurant-booking'); ?></th>
-                                    <td>
-                                        <textarea name="widget_subtitle" rows="2" class="large-text"><?php echo esc_textarea($options['widget_subtitle']); ?></textarea>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <th scope="row"><?php _e('Titre sélection service', 'restaurant-booking'); ?></th>
-                                    <td>
-                                        <input type="text" name="service_selection_title" value="<?php echo esc_attr($options['service_selection_title']); ?>" class="large-text" />
-                                    </td>
-                                </tr>
-                            </table>
-                        </div>
-
-                        <div class="options-group">
-                            <h3><?php _e('Carte Restaurant', 'restaurant-booking'); ?></h3>
-                            <table class="form-table">
-                                <tr>
-                                    <th scope="row"><?php _e('Titre', 'restaurant-booking'); ?></th>
-                                    <td>
-                                        <input type="text" name="restaurant_card_title" value="<?php echo esc_attr($options['restaurant_card_title']); ?>" class="large-text" />
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <th scope="row"><?php _e('Sous-titre', 'restaurant-booking'); ?></th>
-                                    <td>
-                                        <input type="text" name="restaurant_card_subtitle" value="<?php echo esc_attr($options['restaurant_card_subtitle']); ?>" class="large-text" />
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <th scope="row"><?php _e('Description', 'restaurant-booking'); ?></th>
-                                    <td>
-                                        <textarea name="restaurant_card_description" rows="3" class="large-text"><?php echo esc_textarea($options['restaurant_card_description']); ?></textarea>
-                                    </td>
-                                </tr>
-                            </table>
-                        </div>
-
-                        <div class="options-group">
-                            <h3><?php _e('Carte Remorque', 'restaurant-booking'); ?></h3>
-                            <table class="form-table">
-                                <tr>
-                                    <th scope="row"><?php _e('Titre', 'restaurant-booking'); ?></th>
-                                    <td>
-                                        <input type="text" name="remorque_card_title" value="<?php echo esc_attr($options['remorque_card_title']); ?>" class="large-text" />
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <th scope="row"><?php _e('Sous-titre', 'restaurant-booking'); ?></th>
-                                    <td>
-                                        <input type="text" name="remorque_card_subtitle" value="<?php echo esc_attr($options['remorque_card_subtitle']); ?>" class="large-text" />
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <th scope="row"><?php _e('Description', 'restaurant-booking'); ?></th>
-                                    <td>
-                                        <textarea name="remorque_card_description" rows="3" class="large-text"><?php echo esc_textarea($options['remorque_card_description']); ?></textarea>
-                                    </td>
-                                </tr>
-                            </table>
-                        </div>
-
-                        <div class="options-group">
-                            <h3><?php _e('Messages système', 'restaurant-booking'); ?></h3>
-                            <table class="form-table">
-                                <tr>
-                                    <th scope="row"><?php _e('Message de succès', 'restaurant-booking'); ?></th>
-                                    <td>
-                                        <textarea name="success_message" rows="2" class="large-text"><?php echo esc_textarea($options['success_message']); ?></textarea>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <th scope="row"><?php _e('Message de chargement', 'restaurant-booking'); ?></th>
-                                    <td>
-                                        <input type="text" name="loading_message" value="<?php echo esc_attr($options['loading_message']); ?>" class="large-text" />
-                                    </td>
-                                </tr>
-                            </table>
-                        </div>
-                    </div>
-
-
                 </div>
 
                 <p class="submit">
@@ -761,6 +1083,11 @@ class RestaurantBooking_Options_Unified_Admin
             border-radius: 4px;
             margin: 20px 0;
             padding: 20px;
+            position: relative;
+        }
+        /* Liseret orange pour les sections Remorque */
+        .options-section-remorque {
+            border-left: 5px solid #FF8C00;
         }
         .options-section h2 {
             margin-top: 0;
@@ -772,6 +1099,12 @@ class RestaurantBooking_Options_Unified_Admin
             padding: 15px;
             background: #fafafa;
             border-radius: 4px;
+            position: relative;
+        }
+        /* Liseret orange pour les sous-groupes Remorque */
+        .options-group-remorque {
+            border-left: 4px solid #FF8C00;
+            background: #FFF8F0;
         }
         .options-group h3 {
             margin-top: 0;
@@ -900,4 +1233,3 @@ class RestaurantBooking_Options_Unified_Admin
         return isset($options[$key]) ? $options[$key] : $default;
     }
 }
-

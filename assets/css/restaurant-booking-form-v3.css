@@ -2415,11 +2415,97 @@ button.rbf-v3-subcategory-btn.active {
     text-transform: uppercase;
 }
 
+/* ❌ Ancienne signature selector - conservée pour compatibilité mais plus utilisée dans Step 3 */
 .rbf-v3-signature-selector {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
     gap: var(--rbf-v3-spacing-md);
     margin-bottom: var(--rbf-v3-spacing-lg);
+}
+
+/* ========================================
+   BANDEAUX PLATS SIGNATURE (DOG & CROQ)
+   ======================================== */
+
+.rbf-v3-signature-banner {
+    width: 100%;
+    padding: var(--rbf-v3-spacing-md);
+    margin-top: var(--rbf-v3-spacing-lg);
+    margin-bottom: var(--rbf-v3-spacing-md);
+    background: var(--rbf-v3-green);
+    border-radius: var(--rbf-v3-radius);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: var(--rbf-v3-shadow-sm);
+}
+
+.rbf-v3-banner-title {
+    font-family: var(--rbf-v3-font-title);
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--rbf-v3-white);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin: 0;
+}
+
+/* Premier bandeau (DOG) - pas de margin-top */
+.rbf-v3-signature-banner-dog {
+    margin-top: 0;
+    background: var(--rbf-v3-green);
+}
+
+/* Deuxième bandeau (CROQ) - avec un peu plus d'espace au-dessus */
+.rbf-v3-signature-banner-croq {
+    margin-top: var(--rbf-v3-spacing-xl);
+    background: var(--rbf-v3-green);
+}
+
+/* Responsive pour les bandeaux */
+@media (max-width: 768px) {
+    .rbf-v3-signature-banner {
+        padding: var(--rbf-v3-spacing-sm);
+    }
+    
+    .rbf-v3-banner-title {
+        font-size: 1.2rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .rbf-v3-signature-banner {
+        padding: var(--rbf-v3-spacing-xs);
+    }
+    
+    .rbf-v3-banner-title {
+        font-size: 1rem;
+    }
+}
+
+/* ========================================
+   GRILLES PRODUITS 3 PAR LIGNE
+   ======================================== */
+
+.rbf-v3-products-grid-3 {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--rbf-v3-spacing-md);
+    margin-top: var(--rbf-v3-spacing-md);
+    margin-bottom: var(--rbf-v3-spacing-lg);
+}
+
+/* Responsive pour grilles 3 colonnes */
+@media (max-width: 992px) {
+    .rbf-v3-products-grid-3 {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 576px) {
+    .rbf-v3-products-grid-3 {
+        grid-template-columns: 1fr;
+    }
 }
 
 .rbf-v3-radio-card {
