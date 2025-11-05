@@ -189,7 +189,7 @@ class RestaurantBooking_Ajax_Handler_V3
     /**
      * Charger une étape du formulaire
      */
-    public function load_step()
+public function load_step()
     {
         // ✅ CORRECTION : Debug pour utilisateurs non connectés
         $this->log_ajax_debug_info('load_step');
@@ -203,6 +203,34 @@ class RestaurantBooking_Ajax_Handler_V3
         $step = intval($_POST['step'] ?? 0);
         $service_type = sanitize_text_field($_POST['service_type'] ?? '');
         $form_data = $this->sanitize_form_data($_POST['form_data'] ?? []);
+        
+        // ✅ CORRECTION : Nettoyer les quantités de produits au premier chargement
+        // Si c'est le premier chargement de l'étape 3 et qu'il n'y a que des données de base (service, guest_count, etc)
+        // alors on s'assure qu'aucune quantité de produit n'est présente
+        if ($step === 3) {
+            $has_product_data = false;
+            foreach ($form_data as $key => $value) {
+                // Vérifier si ce sont des données de produits (signature_, mini_boss_, etc.)
+                if (preg_match('/^(signature_|mini_boss_|accompaniment_|buffet_).+_qty$/', $key) && intval($value) > 0) {
+                    $has_product_data = true;
+                    break;
+                }
+            }
+            
+            // Si aucune donnée de produit n'est présente, on nettoie complètement pour éviter les quantités fantômes
+            if (!$has_product_data) {
+                // Ne garder que les données de base (étapes 1 et 2)
+                $base_keys = ['service_type', 'guest_count', 'event_date', 'event_time', 'event_duration', 
+                             'address', 'postal_code', 'city', 'has_parking', 'parking_info'];
+                $clean_data = [];
+                foreach ($base_keys as $base_key) {
+                    if (isset($form_data[$base_key])) {
+                        $clean_data[$base_key] = $form_data[$base_key];
+                    }
+                }
+                $form_data = $clean_data;
+            }
+        }
 
         if (empty($service_type)) {
             $this->send_json_response(false, ['message' => 'Type de service manquant']);
@@ -695,7 +723,7 @@ class RestaurantBooking_Ajax_Handler_V3
             <div class="rbf-v3-product-section">
                 <h3><?php echo esc_html($form_texts['step3_accompaniments_title']); ?></h3>
                 <p class="rbf-v3-help-text">
-                    <em>Minimum : quantité égale ou supérieure au total des plats sélectionnés (DOG + CROQ + Mini Boss)</em>
+                    <em><?php echo esc_html($form_texts['accompaniment_help_text']); ?></em>
                 </p>
                 
                 <div class="rbf-v3-accompaniments-vertical">
@@ -736,7 +764,7 @@ class RestaurantBooking_Ajax_Handler_V3
             <div class="rbf-v3-product-section">
                 <h3><?php echo esc_html($form_texts['step4_buffet_formula_title']); ?></h3>
                 <p class="rbf-v3-help-text">
-                    <em>Sélectionnez le type de buffet qui correspond à votre événement</em>
+                    <em><?php echo esc_html($form_texts['step4_buffet_selection_help_text']); ?></em>
                 </p>
                 
                 <div class="rbf-v3-signature-selector">
@@ -768,7 +796,7 @@ class RestaurantBooking_Ajax_Handler_V3
                 <!-- Buffet Salé -->
                 <div class="rbf-v3-buffet-section" data-buffet-type="sale" style="display: none;">
                     <div class="rbf-v3-product-section">
-                        <h3>🥗 BUFFET SALÉ</h3>
+                        <h3>BUFFET SALÉ</h3>
                         <p class="rbf-v3-help-text">
                             <em><?php echo esc_html($form_texts['buffet_sale_text']); ?></em>
                         </p>
@@ -819,7 +847,7 @@ class RestaurantBooking_Ajax_Handler_V3
                 <!-- Buffet Sucré -->
                 <div class="rbf-v3-buffet-section" data-buffet-type="sucre" style="display: none;">
                     <div class="rbf-v3-product-section">
-                        <h3>🍰 BUFFET SUCRÉ</h3>
+                        <h3>BUFFET SUCRÉ</h3>
                         <p class="rbf-v3-help-text">
                             <em><?php echo esc_html($form_texts['buffet_sucre_text']); ?></em>
                         </p>

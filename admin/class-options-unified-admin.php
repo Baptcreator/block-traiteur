@@ -27,7 +27,7 @@ class RestaurantBooking_Options_Unified_Admin
         'buffet_sucre_text' => 'min 1/personne et min 1 plat',
         
         'accompaniment_min_per_person' => 1,
-        'accompaniment_text' => 'exactement 1/personne',
+        'accompaniment_text' => 'minimum 1/personne',
         
         'signature_dish_min_per_person' => 1,
         'signature_dish_text' => 'exactement 1 plat par personne',
@@ -97,12 +97,14 @@ class RestaurantBooking_Options_Unified_Admin
         'step3_croques_title' => 'NOS CROQUES',
         'step3_mini_boss_title' => 'PLAT MINI BLOCKER',
         'step3_accompaniments_title' => 'Accompagnements',
+        'accompaniment_help_text' => 'Minimum : quantité égale ou supérieure au total des plats sélectionnés (DOG + CROQ + Mini Boss)',
         'mini_boss_text' => 'Optionnel - Pour les plus petits',
         'mini_boss_description' => 'Menu spécialement conçu pour les enfants',
         
         // Textes étape 4 - Buffets
         'step4_title' => 'CHOISISSEZ VOTRE/VOS BUFFET(S)',
         'step4_buffet_formula_title' => 'Choisissez votre formule buffet :',
+        'step4_buffet_selection_help_text' => 'Sélectionnez le type de buffet qui correspond à votre événement',
         'step4_buffet_sale_title' => 'Buffet salé',
         'step4_buffet_sucre_title' => 'Buffet sucré',
         'step4_buffet_mixte_title' => 'Buffets salé + sucré',
@@ -142,6 +144,7 @@ class RestaurantBooking_Options_Unified_Admin
         'email_next_steps_text' => 'L\'équipe BLOCK vous recontactera sous 48h max pour en parler, l\'ajuster et le valider ensemble !',
         'email_questions_text' => 'N\'hésitez pas à nous contacter si vous avez la moindre question.',
         'email_signature' => 'A bientôt !<br><br>L\'équipe BLOCK',
+        'email_footer_text' => 'Block Street Food & Events - Restaurant & Remorque<br><br>Ceci est un email automatique, merci de ne pas y répondre directement.',
         
         // Encadrés informatifs dans le formulaire
         'info_step3_title' => 'ℹ️ Information importante :',
@@ -158,6 +161,56 @@ class RestaurantBooking_Options_Unified_Admin
         // Prix de base des forfaits
         'restaurant_base_price' => 300,
         'remorque_base_price' => 350,
+        
+        // Messages d'erreur de validation du formulaire
+        // Étape 1 (Date et lieu - remorque)
+        'error_event_date_required' => 'Veuillez compléter la date de l\'événement',
+        'error_guest_count_required' => 'Veuillez indiquer le nombre de convives',
+        'error_event_duration_required' => 'Veuillez choisir la durée de l\'événement',
+        'error_postal_code_required' => 'Veuillez saisir votre code postal (5 chiffres)',
+        'error_field_required_generic' => 'Veuillez compléter le champ "{field}"',
+        
+        // Étape 2 (Forfait de base)
+        'error_min_guests' => 'Minimum {min} convives requis pour {service}',
+        'error_max_guests' => 'Maximum {max} convives pour {service}',
+        
+        // Étape 3 (Repas)
+        'error_insufficient_dishes' => 'Quantité insuffisante ! Il faut au minimum {required} plats pour {guests} convives. Actuellement sélectionnés : {selected} plats (HOT-DOGS / CROQUES + MINI BLOCKER).',
+        'error_accompaniments_not_loaded' => 'Les accompagnements ne sont pas encore chargés. Veuillez recharger la page.',
+        'error_insufficient_accompaniments' => 'Quantité insuffisante ! Il faut au minimum {required} accompagnements pour {guests} convives. Actuellement sélectionnés : {selected} accompagnements.',
+        'error_too_many_sauces' => 'Trop de sauces ! Vous avez {fries} frites mais {sauces} sauces. Maximum {max} sauces.',
+        'error_too_many_chimichurri' => 'Trop de chimichurri ! Vous avez {fries} frites mais {chimichurri} chimichurri. Maximum {max}.',
+        'error_max_options_adjusted' => 'Maximum {max} options au total pour {quantity} {product}. Valeur ajustée.',
+        
+        // Étape 4 (Buffets)
+        'error_buffet_required' => 'Veuillez sélectionner un type de buffet (obligatoire).',
+        'error_buffet_sale_min_person' => 'Buffet salé : minimum 1 par personne requis. Actuellement {selected} pour {guests} convives.',
+        'error_buffet_sale_min_recipes' => 'Buffet salé : minimum 2 recettes différentes requises.',
+        'error_buffet_sucre_min_person' => 'Buffet sucré : minimum 1 par personne requis. Actuellement {selected} pour {guests} convives.',
+        'error_buffet_sucre_min_dish' => 'Buffet sucré : minimum 1 plat requis.',
+        
+        // Étape 6/7 (Contact)
+        'error_firstname_required' => 'Prénom est obligatoire.',
+        'error_lastname_required' => 'Nom est obligatoire.',
+        'error_email_required' => 'Email est obligatoire.',
+        'error_phone_required' => 'Téléphone est obligatoire.',
+        'error_email_invalid' => 'Format d\'email invalide.',
+        'error_phone_invalid' => 'Format de téléphone invalide.',
+        
+        // Étape 6 (Options remorque)
+        'error_kegs_without_tireuse' => 'Attention : Vous avez sélectionné des fûts mais pas de tireuse. Les fûts nécessitent une tireuse pour être servis.',
+        
+        // Messages de succès/information
+        'success_tireuse_auto_added' => 'Tireuse automatiquement ajoutée pour vos fûts sélectionnés.',
+        'success_games_auto_added' => 'Installation jeux automatiquement ajoutée pour vos jeux sélectionnés.',
+        'success_tireuse_selected' => 'Tireuse sélectionnée ! Vous pouvez maintenant choisir vos fûts.',
+        'warning_tireuse_deselected' => 'Tireuse désélectionnée - Les fûts ont été automatiquement retirés.',
+        'success_games_selected' => 'Installation jeux sélectionnée ! Vous pouvez maintenant choisir vos jeux.',
+        'warning_games_deselected' => 'Installation jeux désélectionnée - Les jeux ont été automatiquement retirés.',
+        
+        // Messages d\'erreur généraux
+        'error_network' => 'Erreur de connexion. Veuillez réessayer.',
+        'error_generic' => 'Une erreur est survenue.',
     );
 
     /**
@@ -371,6 +424,13 @@ class RestaurantBooking_Options_Unified_Admin
                                     </td>
                                 </tr>
                                 <tr>
+                                    <th scope="row"><?php _e('Texte d\'aide Accompagnements', 'restaurant-booking'); ?></th>
+                                    <td>
+                                        <textarea name="accompaniment_help_text" rows="2" class="large-text"><?php echo esc_textarea($options['accompaniment_help_text']); ?></textarea>
+                                        <p class="description"><?php _e('Texte explicatif affiché sous le titre "Accompagnements" dans le formulaire', 'restaurant-booking'); ?></p>
+                                    </td>
+                                </tr>
+                                <tr>
                                     <th scope="row"><?php _e('Texte Menu Mini Boss', 'restaurant-booking'); ?></th>
                                     <td>
                                         <input type="text" name="mini_boss_text" value="<?php echo esc_attr($options['mini_boss_text']); ?>" class="regular-text" />
@@ -399,6 +459,13 @@ class RestaurantBooking_Options_Unified_Admin
                                     <th scope="row"><?php _e('Titre formule buffet', 'restaurant-booking'); ?></th>
                                     <td>
                                         <input type="text" name="step4_buffet_formula_title" value="<?php echo esc_attr($options['step4_buffet_formula_title']); ?>" class="regular-text" />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><?php _e('Texte d\'aide sélection buffet', 'restaurant-booking'); ?></th>
+                                    <td>
+                                        <input type="text" name="step4_buffet_selection_help_text" value="<?php echo esc_attr($options['step4_buffet_selection_help_text']); ?>" class="large-text" />
+                                        <p class="description"><?php _e('Texte affiché sous "Choisissez votre formule buffet"', 'restaurant-booking'); ?></p>
                                     </td>
                                 </tr>
                                 <tr>
@@ -610,6 +677,14 @@ class RestaurantBooking_Options_Unified_Admin
                                     <th scope="row"><?php _e('Signature email', 'restaurant-booking'); ?></th>
                                     <td>
                                         <textarea name="email_signature" rows="2" class="large-text"><?php echo esc_textarea($options['email_signature']); ?></textarea>
+                                        <p class="description"><?php _e('Vous pouvez utiliser des balises HTML comme &lt;br&gt; pour les sauts de ligne.', 'restaurant-booking'); ?></p>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><?php _e('Pied de page email', 'restaurant-booking'); ?></th>
+                                    <td>
+                                        <textarea name="email_footer_text" rows="3" class="large-text"><?php echo esc_textarea($options['email_footer_text']); ?></textarea>
+                                        <p class="description"><?php _e('Texte affiché au pied de l\'email client. Vous pouvez utiliser des balises HTML comme &lt;br&gt; pour les sauts de ligne.', 'restaurant-booking'); ?></p>
                                     </td>
                                 </tr>
                             </table>
@@ -682,6 +757,246 @@ class RestaurantBooking_Options_Unified_Admin
                                 </tr>
                             </table>
                         </div>
+                        
+                        <!-- Messages d'erreur de validation -->
+                        <div class="options-group">
+                            <h3>❌ <?php _e('Messages d\'erreur de validation', 'restaurant-booking'); ?></h3>
+                            <p class="description"><?php _e('Messages affichés lors de la validation du formulaire. Utilisez les placeholders : {field}, {min}, {max}, {service}, {required}, {guests}, {selected}, {fries}, {sauces}, {chimichurri}, {quantity}, {product}, {max}.', 'restaurant-booking'); ?></p>
+                            <table class="form-table">
+                                <!-- Étape 1/2 -->
+                                <tr>
+                                    <th scope="row" colspan="2" style="background: #f0f0f0; padding: 10px;"><strong><?php _e('Étape 1 & 2 - Date, lieu et forfait de base', 'restaurant-booking'); ?></strong></th>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><?php _e('Date manquante', 'restaurant-booking'); ?></th>
+                                    <td>
+                                        <input type="text" name="error_event_date_required" value="<?php echo esc_attr($options['error_event_date_required']); ?>" class="large-text" />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><?php _e('Nombre de convives manquant', 'restaurant-booking'); ?></th>
+                                    <td>
+                                        <input type="text" name="error_guest_count_required" value="<?php echo esc_attr($options['error_guest_count_required']); ?>" class="large-text" />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><?php _e('Durée manquante', 'restaurant-booking'); ?></th>
+                                    <td>
+                                        <input type="text" name="error_event_duration_required" value="<?php echo esc_attr($options['error_event_duration_required']); ?>" class="large-text" />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><?php _e('Code postal manquant', 'restaurant-booking'); ?></th>
+                                    <td>
+                                        <input type="text" name="error_postal_code_required" value="<?php echo esc_attr($options['error_postal_code_required']); ?>" class="large-text" />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><?php _e('Champ générique manquant', 'restaurant-booking'); ?></th>
+                                    <td>
+                                        <input type="text" name="error_field_required_generic" value="<?php echo esc_attr($options['error_field_required_generic']); ?>" class="large-text" />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><?php _e('Nombre minimum de convives', 'restaurant-booking'); ?></th>
+                                    <td>
+                                        <input type="text" name="error_min_guests" value="<?php echo esc_attr($options['error_min_guests']); ?>" class="large-text" />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><?php _e('Nombre maximum de convives', 'restaurant-booking'); ?></th>
+                                    <td>
+                                        <input type="text" name="error_max_guests" value="<?php echo esc_attr($options['error_max_guests']); ?>" class="large-text" />
+                                    </td>
+                                </tr>
+                                
+                                <!-- Étape 3 -->
+                                <tr>
+                                    <th scope="row" colspan="2" style="background: #f0f0f0; padding: 10px; margin-top: 20px;"><strong><?php _e('Étape 3 - Repas', 'restaurant-booking'); ?></strong></th>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><?php _e('Plats insuffisants', 'restaurant-booking'); ?></th>
+                                    <td>
+                                        <textarea name="error_insufficient_dishes" rows="2" class="large-text"><?php echo esc_textarea($options['error_insufficient_dishes']); ?></textarea>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><?php _e('Accompagnements non chargés', 'restaurant-booking'); ?></th>
+                                    <td>
+                                        <input type="text" name="error_accompaniments_not_loaded" value="<?php echo esc_attr($options['error_accompaniments_not_loaded']); ?>" class="large-text" />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><?php _e('Accompagnements insuffisants', 'restaurant-booking'); ?></th>
+                                    <td>
+                                        <textarea name="error_insufficient_accompaniments" rows="2" class="large-text"><?php echo esc_textarea($options['error_insufficient_accompaniments']); ?></textarea>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><?php _e('Trop de sauces', 'restaurant-booking'); ?></th>
+                                    <td>
+                                        <input type="text" name="error_too_many_sauces" value="<?php echo esc_attr($options['error_too_many_sauces']); ?>" class="large-text" />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><?php _e('Trop de chimichurri', 'restaurant-booking'); ?></th>
+                                    <td>
+                                        <input type="text" name="error_too_many_chimichurri" value="<?php echo esc_attr($options['error_too_many_chimichurri']); ?>" class="large-text" />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><?php _e('Options ajustées', 'restaurant-booking'); ?></th>
+                                    <td>
+                                        <input type="text" name="error_max_options_adjusted" value="<?php echo esc_attr($options['error_max_options_adjusted']); ?>" class="large-text" />
+                                    </td>
+                                </tr>
+                                
+                                <!-- Étape 4 -->
+                                <tr>
+                                    <th scope="row" colspan="2" style="background: #f0f0f0; padding: 10px;"><strong><?php _e('Étape 4 - Buffets', 'restaurant-booking'); ?></strong></th>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><?php _e('Buffet obligatoire', 'restaurant-booking'); ?></th>
+                                    <td>
+                                        <input type="text" name="error_buffet_required" value="<?php echo esc_attr($options['error_buffet_required']); ?>" class="large-text" />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><?php _e('Buffet salé - Min par personne', 'restaurant-booking'); ?></th>
+                                    <td>
+                                        <input type="text" name="error_buffet_sale_min_person" value="<?php echo esc_attr($options['error_buffet_sale_min_person']); ?>" class="large-text" />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><?php _e('Buffet salé - Min recettes', 'restaurant-booking'); ?></th>
+                                    <td>
+                                        <input type="text" name="error_buffet_sale_min_recipes" value="<?php echo esc_attr($options['error_buffet_sale_min_recipes']); ?>" class="large-text" />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><?php _e('Buffet sucré - Min par personne', 'restaurant-booking'); ?></th>
+                                    <td>
+                                        <input type="text" name="error_buffet_sucre_min_person" value="<?php echo esc_attr($options['error_buffet_sucre_min_person']); ?>" class="large-text" />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><?php _e('Buffet sucré - Min 1 plat', 'restaurant-booking'); ?></th>
+                                    <td>
+                                        <input type="text" name="error_buffet_sucre_min_dish" value="<?php echo esc_attr($options['error_buffet_sucre_min_dish']); ?>" class="large-text" />
+                                    </td>
+                                </tr>
+                                
+                                <!-- Étape 6/7 -->
+                                <tr>
+                                    <th scope="row" colspan="2" style="background: #f0f0f0; padding: 10px;"><strong><?php _e('Étape Contact', 'restaurant-booking'); ?></strong></th>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><?php _e('Prénom obligatoire', 'restaurant-booking'); ?></th>
+                                    <td>
+                                        <input type="text" name="error_firstname_required" value="<?php echo esc_attr($options['error_firstname_required']); ?>" class="large-text" />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><?php _e('Nom obligatoire', 'restaurant-booking'); ?></th>
+                                    <td>
+                                        <input type="text" name="error_lastname_required" value="<?php echo esc_attr($options['error_lastname_required']); ?>" class="large-text" />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><?php _e('Email obligatoire', 'restaurant-booking'); ?></th>
+                                    <td>
+                                        <input type="text" name="error_email_required" value="<?php echo esc_attr($options['error_email_required']); ?>" class="large-text" />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><?php _e('Téléphone obligatoire', 'restaurant-booking'); ?></th>
+                                    <td>
+                                        <input type="text" name="error_phone_required" value="<?php echo esc_attr($options['error_phone_required']); ?>" class="large-text" />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><?php _e('Email invalide', 'restaurant-booking'); ?></th>
+                                    <td>
+                                        <input type="text" name="error_email_invalid" value="<?php echo esc_attr($options['error_email_invalid']); ?>" class="large-text" />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><?php _e('Téléphone invalide', 'restaurant-booking'); ?></th>
+                                    <td>
+                                        <input type="text" name="error_phone_invalid" value="<?php echo esc_attr($options['error_phone_invalid']); ?>" class="large-text" />
+                                    </td>
+                                </tr>
+                                
+                                <!-- Options remorque -->
+                                <tr>
+                                    <th scope="row" colspan="2" style="background: #FFF8F0; padding: 10px;"><strong>🟧 <?php _e('Étape 6 - Options (Remorque)', 'restaurant-booking'); ?></strong></th>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><?php _e('Fûts sans tireuse', 'restaurant-booking'); ?></th>
+                                    <td>
+                                        <textarea name="error_kegs_without_tireuse" rows="2" class="large-text"><?php echo esc_textarea($options['error_kegs_without_tireuse']); ?></textarea>
+                                    </td>
+                                </tr>
+                                
+                                <!-- Messages de succès -->
+                                <tr>
+                                    <th scope="row" colspan="2" style="background: #e8f5e9; padding: 10px;"><strong>✅ <?php _e('Messages de succès/information', 'restaurant-booking'); ?></strong></th>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><?php _e('Tireuse ajoutée automatiquement', 'restaurant-booking'); ?></th>
+                                    <td>
+                                        <input type="text" name="success_tireuse_auto_added" value="<?php echo esc_attr($options['success_tireuse_auto_added']); ?>" class="large-text" />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><?php _e('Jeux ajoutés automatiquement', 'restaurant-booking'); ?></th>
+                                    <td>
+                                        <input type="text" name="success_games_auto_added" value="<?php echo esc_attr($options['success_games_auto_added']); ?>" class="large-text" />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><?php _e('Tireuse sélectionnée', 'restaurant-booking'); ?></th>
+                                    <td>
+                                        <input type="text" name="success_tireuse_selected" value="<?php echo esc_attr($options['success_tireuse_selected']); ?>" class="large-text" />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><?php _e('Tireuse désélectionnée', 'restaurant-booking'); ?></th>
+                                    <td>
+                                        <input type="text" name="warning_tireuse_deselected" value="<?php echo esc_attr($options['warning_tireuse_deselected']); ?>" class="large-text" />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><?php _e('Jeux sélectionnés', 'restaurant-booking'); ?></th>
+                                    <td>
+                                        <input type="text" name="success_games_selected" value="<?php echo esc_attr($options['success_games_selected']); ?>" class="large-text" />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><?php _e('Jeux désélectionnés', 'restaurant-booking'); ?></th>
+                                    <td>
+                                        <input type="text" name="warning_games_deselected" value="<?php echo esc_attr($options['warning_games_deselected']); ?>" class="large-text" />
+                                    </td>
+                                </tr>
+                                
+                                <!-- Messages généraux -->
+                                <tr>
+                                    <th scope="row" colspan="2" style="background: #ffebee; padding: 10px;"><strong>❌ <?php _e('Messages d\'erreur généraux', 'restaurant-booking'); ?></strong></th>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><?php _e('Erreur réseau', 'restaurant-booking'); ?></th>
+                                    <td>
+                                        <input type="text" name="error_network" value="<?php echo esc_attr($options['error_network']); ?>" class="large-text" />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><?php _e('Erreur générique', 'restaurant-booking'); ?></th>
+                                    <td>
+                                        <input type="text" name="error_generic" value="<?php echo esc_attr($options['error_generic']); ?>" class="large-text" />
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
                     </div>
 
                     <!-- ========================================
@@ -706,7 +1021,7 @@ class RestaurantBooking_Options_Unified_Admin
                                     <th scope="row"><?php _e('Texte de règle affiché', 'restaurant-booking'); ?></th>
                                     <td>
                                         <input type="text" name="signature_dish_text" value="<?php echo esc_attr($options['signature_dish_text']); ?>" class="regular-text" />
-                                        <p class="description"><?php _e('Texte affiché dans le formulaire pour expliquer la règle', 'restaurant-booking'); ?></p>
+                                        <p class="description"><?php _e('Texte affiché dans le formulaire sous le titre "Plats Signature"', 'restaurant-booking'); ?></p>
                                     </td>
                                 </tr>
                             </table>
@@ -727,6 +1042,7 @@ class RestaurantBooking_Options_Unified_Admin
                                     <th scope="row"><?php _e('Texte de règle affiché', 'restaurant-booking'); ?></th>
                                     <td>
                                         <input type="text" name="accompaniment_text" value="<?php echo esc_attr($options['accompaniment_text']); ?>" class="regular-text" />
+                                        <p class="description"><?php _e('⚠️ Ce texte est différent du "Texte d\'aide" ci-dessus. Il est utilisé pour la validation et les messages d\'erreur.', 'restaurant-booking'); ?></p>
                                     </td>
                                 </tr>
                             </table>
@@ -754,7 +1070,7 @@ class RestaurantBooking_Options_Unified_Admin
                                     <th scope="row"><?php _e('Texte de règle affiché', 'restaurant-booking'); ?></th>
                                     <td>
                                         <input type="text" name="buffet_sale_text" value="<?php echo esc_attr($options['buffet_sale_text']); ?>" class="regular-text" />
-                                        <p class="description"><?php _e('Texte affiché dans le widget pour expliquer la règle', 'restaurant-booking'); ?></p>
+                                        <p class="description"><?php _e('Texte affiché dans le formulaire sous le titre "Buffet Salé"', 'restaurant-booking'); ?></p>
                                     </td>
                                 </tr>
                             </table>
@@ -782,6 +1098,7 @@ class RestaurantBooking_Options_Unified_Admin
                                     <th scope="row"><?php _e('Texte de règle affiché', 'restaurant-booking'); ?></th>
                                     <td>
                                         <input type="text" name="buffet_sucre_text" value="<?php echo esc_attr($options['buffet_sucre_text']); ?>" class="regular-text" />
+                                        <p class="description"><?php _e('Texte affiché dans le formulaire sous le titre "Buffet Sucré"', 'restaurant-booking'); ?></p>
                                     </td>
                                 </tr>
                             </table>
@@ -1148,10 +1465,18 @@ class RestaurantBooking_Options_Unified_Admin
     {
         $options = array();
         
+        // Liste des champs qui peuvent contenir du HTML
+        $html_allowed_fields = array('email_signature', 'email_footer_text');
+        
         // Récupérer toutes les options du formulaire
         foreach ($this->default_options as $key => $default_value) {
             if (isset($_POST[$key])) {
-                $value = sanitize_text_field($_POST[$key]);
+                // Utiliser une sanitization personnalisée pour les champs qui peuvent contenir du HTML
+                if (in_array($key, $html_allowed_fields)) {
+                    $value = $this->sanitize_html_field($_POST[$key]);
+                } else {
+                    $value = sanitize_text_field($_POST[$key]);
+                }
                 
                 // Conversion des types pour les valeurs numériques
                 if (is_numeric($default_value)) {
@@ -1186,6 +1511,36 @@ class RestaurantBooking_Options_Unified_Admin
     }
     
     /**
+     * Sanitizer les champs HTML en autorisant certaines balises sans double-encoder les entités
+     */
+    private function sanitize_html_field($value)
+    {
+        // Supprimer les slashes ajoutés par WordPress
+        $value = wp_unslash($value);
+        
+        // Liste des balises HTML autorisées
+        $allowed_html = array(
+            'br' => array(),
+            'p' => array(),
+            'strong' => array(),
+            'em' => array(),
+            'b' => array(),
+            'i' => array(),
+            'u' => array(),
+            'a' => array(
+                'href' => array(),
+                'title' => array(),
+                'target' => array()
+            )
+        );
+        
+        // Utiliser wp_kses pour nettoyer en autorisant seulement certaines balises
+        $value = wp_kses($value, $allowed_html);
+        
+        return $value;
+    }
+    
+    /**
      * Nettoyer les échappements multiples d'apostrophes
      */
     private function clean_escaped_quotes($text)
@@ -1205,11 +1560,23 @@ class RestaurantBooking_Options_Unified_Admin
         $options = get_option('restaurant_booking_unified_options', array());
         $updated = false;
         
+        // Liste des champs qui peuvent contenir du HTML
+        $html_allowed_fields = array('email_signature', 'email_footer_text');
+        
         foreach ($options as $key => $value) {
             if (is_string($value)) {
-                $cleaned_value = $this->clean_escaped_quotes($value);
-                if ($cleaned_value !== $value) {
-                    $options[$key] = $cleaned_value;
+                $original_value = $value;
+                
+                // Nettoyer les échappements multiples
+                $value = $this->clean_escaped_quotes($value);
+                
+                // Pour les champs HTML, décoder les entités HTML (comme &amp; -> &)
+                if (in_array($key, $html_allowed_fields)) {
+                    $value = html_entity_decode($value, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+                }
+                
+                if ($value !== $original_value) {
+                    $options[$key] = $value;
                     $updated = true;
                 }
             }

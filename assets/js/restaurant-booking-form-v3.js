@@ -3,11 +3,15 @@
  * Gestion complète du formulaire multi-étapes avec validation
  * 
  * @package RestaurantBooking
- * @version 3.0.0
+ * @version 3.0.2
  */
 
 (function($) {
     'use strict';
+    
+    // ✅ VERSION 3.0.4 - FIX CLIC AUTOMATIQUE SUR PREMIER PRODUIT
+    console.log('%c✅ RESTAURANT BOOKING V3.0.4 - CHARGÉ', 'background: #4CAF50; color: white; padding: 5px 10px; font-weight: bold; font-size: 14px;');
+    console.log('%c🔧 Fix: Retrait du code de test qui cliquait automatiquement', 'color: #4CAF50; font-weight: bold;');
 
     /**
      * Configuration AJAX unifiée
@@ -105,6 +109,35 @@
         getText: function(key, fallback = '') {
             const config = this.getConfig();
             return config.texts[key] || fallback;
+        },
+        
+        /**
+         * Récupère un message d'erreur configuré avec placeholders
+         */
+        getErrorMessage: function(key, replacements = {}) {
+            const configs = [rbfV3Config, rbfV3Ajax, restaurant_booking_ajax];
+            let message = '';
+            
+            // Chercher dans error_messages
+            for (const config of configs) {
+                if (config && config.error_messages && config.error_messages[key]) {
+                    message = config.error_messages[key];
+                    break;
+                }
+            }
+            
+            // Si non trouvé, retourner une clé par défaut
+            if (!message) {
+                return `⚠️ Erreur de validation (${key})`;
+            }
+            
+            // Remplacer les placeholders
+            Object.keys(replacements).forEach(placeholder => {
+                const regex = new RegExp(`\\{${placeholder}\\}`, 'g');
+                message = message.replace(regex, replacements[placeholder]);
+            });
+            
+            return message;
         }
     };
 
@@ -454,7 +487,24 @@
          */
         selectService(service) {
             this.selectedService = service;
-            this.formData.service_type = service;
+            
+            // ✅ CORRECTION : Réinitialiser complètement formData pour un nouveau devis
+            // Cela garantit qu'aucune quantité résiduelle n'est conservée d'un devis précédent
+            this.formData = {
+                service_type: service
+            };
+            
+            // Réinitialiser également les données de prix
+            this.priceData = {
+                base: 0,
+                supplements: 0,
+                products: 0,
+                total: 0
+            };
+            
+            // Réinitialiser les détails de boissons
+            this.beveragesDetails = [];
+            
             this.totalSteps = (service === 'restaurant') ? 6 : 7;
 
             // Marquer la card comme sélectionnée
@@ -487,7 +537,7 @@
                 this.goToNextStep();
             }, 500);
 
-            this.log('Service sélectionné:', service);
+            this.log('Service sélectionné:', service, '- FormData réinitialisé');
         }
 
         /**
@@ -510,7 +560,7 @@
                 { number: 3, label: 'Repas' },
                 { number: 4, label: 'Buffets' },
                 { number: 5, label: 'Boissons' },
-                { number: 6, label: 'Animation' },
+                { number: 6, label: 'Animations' },
                 { number: 7, label: 'Contact' }
             ];
 
@@ -739,6 +789,11 @@
                         // Restaurer les valeurs des quantités depuis formData
                         this.restoreQuantityValues();
                         
+                        // ✅ CORRECTION : Après restauration (ou non-restauration), mettre à jour formData et prix
+                        // Cela garantit que formData reflète les valeurs actuelles des inputs
+                        this.updateFormData();
+                        this.calculatePrice();
+                        
                         // Si c'est l'étape 3, s'assurer que les boutons de frites sont bien initialisés
                         if (stepNumber === 3) {
                             setTimeout(() => {
@@ -883,18 +938,23 @@
             const fieldName = $field.attr('name');
             const fieldLabel = $field.closest('.rbf-v3-form-group').find('label').text().replace('*', '').trim();
             
-            const messages = {
-                'event_date': '📅 Veuillez compléter la date de l\'événement',
-                'guest_count': '👥 Veuillez indiquer le nombre de convives',
-                'event_duration': '⏰ Veuillez choisir la durée de l\'événement',
-                'postal_code': '📍 Veuillez saisir votre code postal (5 chiffres)',
-                'client_name': '👤 Veuillez saisir votre nom',
-                'client_firstname': '👤 Veuillez saisir votre prénom',
-                'client_email': '📧 Veuillez saisir une adresse email valide',
-                'client_phone': '📞 Veuillez saisir un numéro de téléphone valide'
+            const messageMap = {
+                'event_date': 'event_date_required',
+                'guest_count': 'guest_count_required',
+                'event_duration': 'event_duration_required',
+                'postal_code': 'postal_code_required',
+                'client_name': 'lastname_required',
+                'client_firstname': 'firstname_required',
+                'client_email': 'email_required',
+                'client_phone': 'phone_required'
             };
 
-            return messages[fieldName] || `⚠️ Veuillez compléter le champ "${fieldLabel}"`;
+            const messageKey = messageMap[fieldName];
+            if (messageKey) {
+                return AjaxConfig.getErrorMessage(messageKey);
+            }
+            
+            return AjaxConfig.getErrorMessage('field_required_generic', { field: fieldLabel });
         }
 
         /**
@@ -1586,7 +1646,7 @@
                     if (!tireuseSelected) {
                         // Cocher automatiquement la tireuse
                         this.container.find('input[name="option_tireuse"]').prop('checked', true).trigger('change');
-                        this.showMessage('✅ Tireuse automatiquement ajoutée pour vos fûts sélectionnés.', 'info');
+                        this.showMessage(AjaxConfig.getErrorMessage('tireuse_auto_added'), 'info');
                         setTimeout(() => this.hideMessage(), 3000);
                     }
                 }
@@ -1597,7 +1657,7 @@
                     if (!gamesSelected) {
                         // Cocher automatiquement l'installation jeux
                         this.container.find('input[name="option_games"]').prop('checked', true).trigger('change');
-                        this.showMessage('✅ Installation jeux automatiquement ajoutée pour vos jeux sélectionnés.', 'info');
+                        this.showMessage(AjaxConfig.getErrorMessage('games_auto_added'), 'info');
                         setTimeout(() => this.hideMessage(), 3000);
                     }
                 }
@@ -2861,12 +2921,8 @@
                 });
             });
             
-            // Tester un clic programmatique
-            const $firstPlusBtn = this.container.find('.rbf-v3-qty-plus').first();
-            if ($firstPlusBtn.length) {
-                this.log('🧪 Test clic programmatique sur premier bouton +');
-                $firstPlusBtn.trigger('click');
-            }
+            // ✅ CORRECTION : Code de test retiré - ne plus cliquer automatiquement sur le premier bouton
+            // Ce code de debug causait l'ajout automatique de 2 unités sur le premier produit
         }
 
         /**
@@ -2905,6 +2961,21 @@
          */
         restoreQuantityValues() {
             if (!this.formData) return;
+            
+            // ✅ CORRECTION : Ne pas restaurer les quantités lors du premier chargement
+            // Vérifier si on a des données de produits dans formData
+            const hasProductData = Object.keys(this.formData).some(key => 
+                (key.startsWith('signature_') || key.startsWith('mini_boss_') || 
+                 key.startsWith('accompaniment_') || key.startsWith('buffet_')) && 
+                key.endsWith('_qty') && 
+                parseInt(this.formData[key]) > 0
+            );
+            
+            // Si aucune donnée de produit n'existe, c'est le premier chargement - ne rien restaurer
+            if (!hasProductData) {
+                this.log('Premier chargement détecté - pas de restauration de quantités');
+                return;
+            }
 
             // Restaurer les quantités d'accompagnements
             this.container.find('input[name^="accompaniment_"][name$="_qty"]').each((index, input) => {
@@ -3030,7 +3101,7 @@
                 }
                 
                 // Afficher un message d'information
-                this.showMessage('✅ Tireuse sélectionnée ! Vous pouvez maintenant choisir vos fûts.', 'info');
+                this.showMessage(AjaxConfig.getErrorMessage('tireuse_selected'), 'info');
                 setTimeout(() => this.hideMessage(), 3000);
             } else {
                 $container.slideUp();
@@ -3045,7 +3116,7 @@
                     }
                 });
                 if (hadKegsSelected) {
-                    this.showMessage('⚠️ Tireuse désélectionnée - Les fûts ont été automatiquement retirés.', 'info');
+                    this.showMessage(AjaxConfig.getErrorMessage('tireuse_deselected'), 'info');
                     setTimeout(() => this.hideMessage(), 3000);
                 }
             }
@@ -3062,13 +3133,13 @@
             
             if (enabled) {
                 $container.slideDown();
-                this.showMessage('✅ Installation jeux sélectionnée ! Vous pouvez maintenant choisir vos jeux.', 'info');
+                this.showMessage(AjaxConfig.getErrorMessage('games_selected'), 'info');
                 setTimeout(() => this.hideMessage(), 3000);
             } else {
                 $container.slideUp();
                 // Désélectionner tous les jeux
                 $container.find('input[type="checkbox"]').prop('checked', false).trigger('change');
-                this.showMessage('⚠️ Installation jeux désélectionnée - Les jeux ont été automatiquement retirés.', 'info');
+                this.showMessage(AjaxConfig.getErrorMessage('games_deselected'), 'info');
                 setTimeout(() => this.hideMessage(), 3000);
             }
             
@@ -3142,10 +3213,10 @@
 
             if (guestCount < minGuests) {
                 isValid = false;
-                errors.push(`Minimum ${minGuests} convives requis pour ${this.selectedService}`);
+                errors.push(AjaxConfig.getErrorMessage('min_guests', { min: minGuests, service: this.selectedService }));
             } else if (guestCount > maxGuests) {
                 isValid = false;
-                errors.push(`Maximum ${maxGuests} convives pour ${this.selectedService}`);
+                errors.push(AjaxConfig.getErrorMessage('max_guests', { max: maxGuests, service: this.selectedService }));
             }
 
             if (!isValid) {
@@ -3217,7 +3288,11 @@
             // Vérifier que le total des plats >= nombre de convives
             if (totalPlatsQty < guestCount) {
                 isValid = false;
-                errors.push(`❌🍽️ Quantité insuffisante ! Il faut au minimum ${guestCount} plats pour ${guestCount} convives. Actuellement sélectionnés : ${totalPlatsQty} plats (DOG + CROQ + Mini Boss).`);
+                errors.push(AjaxConfig.getErrorMessage('insufficient_dishes', { 
+                    required: guestCount, 
+                    guests: guestCount, 
+                    selected: totalPlatsQty 
+                }));
                 
                 // Mettre en évidence tous les champs concernés
                 signatureInputs.each((index, input) => {
@@ -3236,7 +3311,7 @@
                 });
             }
 
-            // ✅ NOUVELLE LOGIQUE : Vérifier que accompagnements >= total des plats
+            // ✅ NOUVELLE LOGIQUE : Vérifier que accompagnements >= nombre de convives
             let totalAccompanimentQty = 0;
             const accompanimentInputs = this.container.find('input[name^="accompaniment_"][name$="_qty"]');
             this.log('Champs accompagnement trouvés:', accompanimentInputs.length);
@@ -3244,7 +3319,7 @@
             
             if (accompanimentInputs.length === 0) {
                 isValid = false;
-                errors.push('🥗 Les accompagnements ne sont pas encore chargés. Veuillez recharger la page.');
+                errors.push(AjaxConfig.getErrorMessage('accompaniments_not_loaded'));
             } else {
                 accompanimentInputs.each((index, input) => {
                     const $input = $(input);
@@ -3261,12 +3336,16 @@
                 });
 
                 this.log('Total accompagnements:', totalAccompanimentQty);
-                this.log('Total plats requis (minimum accompagnements):', totalPlatsQty);
-                this.log('Validation accompagnements:', totalAccompanimentQty >= totalPlatsQty ? 'RÉUSSIE' : 'ÉCHOUÉE');
+                this.log('Nombre de convives (minimum accompagnements):', guestCount);
+                this.log('Validation accompagnements:', totalAccompanimentQty >= guestCount ? 'RÉUSSIE' : 'ÉCHOUÉE');
 
-                if (totalAccompanimentQty < totalPlatsQty) {
+                if (totalAccompanimentQty < guestCount) {
                     isValid = false;
-                    errors.push(`🥗 Quantité insuffisante ! Il faut au minimum ${totalPlatsQty} accompagnements pour ${totalPlatsQty} plats sélectionnés. Actuellement sélectionnés : ${totalAccompanimentQty} accompagnements.`);
+                    errors.push(AjaxConfig.getErrorMessage('insufficient_accompaniments', { 
+                        required: guestCount, 
+                        guests: guestCount, 
+                        selected: totalAccompanimentQty 
+                    }));
                     
                     // Mettre en évidence les champs concernés
                     accompanimentInputs.each((index, input) => {
@@ -3288,12 +3367,20 @@
                 
                 if (saucesQuantity > fritesQuantity) {
                     isValid = false;
-                    errors.push(`🍟 Trop de sauces ! Vous avez ${fritesQuantity} frites mais ${saucesQuantity} sauces. Maximum ${fritesQuantity} sauces.`);
+                    errors.push(AjaxConfig.getErrorMessage('too_many_sauces', { 
+                        fries: fritesQuantity, 
+                        sauces: saucesQuantity, 
+                        max: fritesQuantity 
+                    }));
                 }
                 
                 if (chimichurriQuantity > fritesQuantity) {
                     isValid = false;
-                    errors.push(`🍟 Trop de chimichurri ! Vous avez ${fritesQuantity} frites mais ${chimichurriQuantity} chimichurri. Maximum ${fritesQuantity}.`);
+                    errors.push(AjaxConfig.getErrorMessage('too_many_chimichurri', { 
+                        fries: fritesQuantity, 
+                        chimichurri: chimichurriQuantity, 
+                        max: fritesQuantity 
+                    }));
                 }
             }
 
@@ -3401,7 +3488,11 @@
                 this.updateQuantityButtons($changedInput);
                 
                 // ✅ CORRECTION : Afficher le message sans scroll pour ne pas perturber l'utilisateur
-                this.showMessage(`Maximum ${accQuantity} options au total pour ${accQuantity} ${accName}. Valeur ajustée.`, 'warning', true);
+                this.showMessage(AjaxConfig.getErrorMessage('max_options_adjusted', { 
+                    max: accQuantity, 
+                    quantity: accQuantity, 
+                    product: accName 
+                }), 'warning', true);
                 
                 this.log('✅ Valeur ajustée:', {
                     oldValue: currentValue,
@@ -3471,7 +3562,7 @@
             // ✅ CORRECTION : Les buffets sont OBLIGATOIRES selon le cahier des charges
             if (!buffetType) {
                 isValid = false;
-                errors.push('🍽️ Veuillez sélectionner un type de buffet (obligatoire).');
+                errors.push(AjaxConfig.getErrorMessage('buffet_required'));
                 this.log('Aucun buffet sélectionné - validation échouée');
             }
 
@@ -3494,12 +3585,15 @@
 
                 if (totalSaleQty < guestCount) {
                     isValid = false;
-                    errors.push(`🥗 Buffet salé : minimum 1 par personne requis. Actuellement ${totalSaleQty} pour ${guestCount} convives.`);
+                    errors.push(AjaxConfig.getErrorMessage('buffet_sale_min_person', { 
+                        selected: totalSaleQty, 
+                        guests: guestCount 
+                    }));
                 }
 
                 if (saleRecipes < 2) {
                     isValid = false;
-                    errors.push('🥗 Buffet salé : minimum 2 recettes différentes requises.');
+                    errors.push(AjaxConfig.getErrorMessage('buffet_sale_min_recipes'));
                 }
             }
 
@@ -3521,12 +3615,15 @@
 
                 if (totalSucreQty < guestCount) {
                     isValid = false;
-                    errors.push(`🍰 Buffet sucré : minimum 1 par personne requis. Actuellement ${totalSucreQty} pour ${guestCount} convives.`);
+                    errors.push(AjaxConfig.getErrorMessage('buffet_sucre_min_person', { 
+                        selected: totalSucreQty, 
+                        guests: guestCount 
+                    }));
                 }
 
                 if (sucreRecipes < 1) {
                     isValid = false;
-                    errors.push('🍰 Buffet sucré : minimum 1 plat requis.');
+                    errors.push(AjaxConfig.getErrorMessage('buffet_sucre_min_dish'));
                 }
             }
 
@@ -3582,7 +3679,8 @@
                 const value = $field.val();
                 if (!value || value.trim() === '') {
                     isValid = false;
-                    errors.push(`👤 ${field.label} est obligatoire.`);
+                    const messageKey = field.name.replace('client_', '') + '_required';
+                    errors.push(AjaxConfig.getErrorMessage(messageKey));
                 }
             });
 
@@ -3591,7 +3689,7 @@
             const email = $emailField.val();
             if (email && email.trim() && !this.isValidEmail(email.trim())) {
                 isValid = false;
-                errors.push('📧 Format d\'email invalide.');
+                errors.push(AjaxConfig.getErrorMessage('email_invalid'));
             }
 
             // Validation téléphone
@@ -3599,7 +3697,7 @@
             const phone = $phoneField.val();
             if (phone && phone.trim() && !this.isValidPhone(phone.trim())) {
                 isValid = false;
-                errors.push('📞 Format de téléphone invalide.');
+                errors.push(AjaxConfig.getErrorMessage('phone_invalid'));
             }
 
             this.log('Validation étape 6 - Résultat:', { isValid, errors });
@@ -3635,7 +3733,8 @@
                 const value = $field.val();
                 if (!value || value.trim() === '') {
                     isValid = false;
-                    errors.push(`👤 ${field.label} est obligatoire.`);
+                    const messageKey = field.name.replace('client_', '') + '_required';
+                    errors.push(AjaxConfig.getErrorMessage(messageKey));
                 }
             });
 
@@ -3644,7 +3743,7 @@
             const email = $emailField.val();
             if (email && email.trim() && !this.isValidEmail(email.trim())) {
                 isValid = false;
-                errors.push('📧 Format d\'email invalide.');
+                errors.push(AjaxConfig.getErrorMessage('email_invalid'));
             }
 
             // Validation téléphone
@@ -3652,7 +3751,7 @@
             const phone = $phoneField.val();
             if (phone && phone.trim() && !this.isValidPhone(phone.trim())) {
                 isValid = false;
-                errors.push('📞 Format de téléphone invalide.');
+                errors.push(AjaxConfig.getErrorMessage('phone_invalid'));
             }
 
             this.log('Validation étape 7 - Résultat:', { isValid, errors });
@@ -3683,7 +3782,7 @@
             const tireuseSelected = this.container.find('input[name="option_tireuse"]').is(':checked');
 
             if (kegsSelected && !tireuseSelected) {
-                this.showMessage('⚠️ Attention : Vous avez sélectionné des fûts mais pas de tireuse. Les fûts nécessitent une tireuse pour être servis.', 'error');
+                this.showMessage(AjaxConfig.getErrorMessage('kegs_without_tireuse'), 'error');
                 return false;
             }
 

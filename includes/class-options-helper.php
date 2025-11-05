@@ -94,10 +94,14 @@ class RestaurantBooking_Options_Helper
         // Textes du formulaire de devis - Étape 3 (Règles produits)
         'signature_dish_text' => 'exactement 1 plat par personne',
         'accompaniment_text' => 'exactement 1/personne',
+        'accompaniment_help_text' => 'Minimum : quantité égale ou supérieure au total des plats sélectionnés (DOG + CROQ + Mini Boss)',
         'buffet_sale_text' => 'min 1/personne et min 2 recettes différents',
         'buffet_sucre_text' => 'min 1/personne et min 1 plat',
         'mini_boss_text' => 'Optionnel - Pour les plus petits',
         'mini_boss_description' => 'Menu spécialement conçu pour les enfants',
+        
+        // Textes du formulaire de devis - Étape 4 (Buffets)
+        'step4_buffet_selection_help_text' => 'Sélectionnez le type de buffet qui correspond à votre événement',
         
         // Descriptions forfaits
         'restaurant_forfait_description' => 'Mise à disposition des murs de Block|Notre équipe salle + cuisine assurant la prestation|Présentation + mise en place buffets, selon vos choix|Mise à disposition vaisselle + verrerie|Entretien + nettoyage',
@@ -113,7 +117,10 @@ class RestaurantBooking_Options_Helper
         'info_step5_skip_title' => 'ℹ️ Cette étape est optionnelle.',
         'info_step5_skip_message' => 'Vous pouvez passer directement à l\'étape suivante si vous ne souhaitez pas de boissons.',
         'info_step6_skip_title' => 'ℹ️ Cette étape est optionnelle.',
-        'info_step6_skip_message' => 'Vous pouvez passer directement à l\'étape suivante si vous ne souhaitez pas d\'animations supplémentaires.'
+        'info_step6_skip_message' => 'Vous pouvez passer directement à l\'étape suivante si vous ne souhaitez pas d\'animations supplémentaires.',
+        
+        // Textes email
+        'email_footer_text' => 'Block Street Food & Events - Restaurant & Remorque<br><br>Ceci est un email automatique, merci de ne pas y répondre directement.'
     );
 
     /**
@@ -441,14 +448,14 @@ class RestaurantBooking_Options_Helper
         
         $errors = array();
         
-        // Vérifier le nombre exact par personne
+        // Vérifier le nombre minimum par personne
         $total_quantity = array_sum($selected_accompaniments);
-        $required_total = $guests_count * $rules['min_per_person'];
+        $required_minimum = $guests_count * $rules['min_per_person'];
         
-        if ($total_quantity !== $required_total) {
+        if ($total_quantity < $required_minimum) {
             $errors[] = sprintf(
-                __('Vous devez sélectionner exactement %d accompagnements pour %d personnes (%s). Actuellement sélectionnés : %d accompagnements.', 'restaurant-booking'),
-                $required_total,
+                __('Vous devez sélectionner au minimum %d accompagnements pour %d personnes (%s). Actuellement sélectionnés : %d accompagnements.', 'restaurant-booking'),
+                $required_minimum,
                 $guests_count,
                 $rules['text'],
                 $total_quantity
@@ -509,6 +516,7 @@ class RestaurantBooking_Options_Helper
             'step3_accompaniments_title' => $this->get_option('step3_accompaniments_title'),
             'signature_dish_text' => $this->get_option('signature_dish_text'),
             'accompaniment_text' => $this->get_option('accompaniment_text'),
+            'accompaniment_help_text' => $this->get_option('accompaniment_help_text'),
             'buffet_sale_text' => $this->get_option('buffet_sale_text'),
             'buffet_sucre_text' => $this->get_option('buffet_sucre_text'),
             'mini_boss_text' => $this->get_option('mini_boss_text'),
@@ -516,6 +524,7 @@ class RestaurantBooking_Options_Helper
             // Étape 4
             'step4_title' => $this->get_option('step4_title'),
             'step4_buffet_formula_title' => $this->get_option('step4_buffet_formula_title'),
+            'step4_buffet_selection_help_text' => $this->get_option('step4_buffet_selection_help_text'),
             'step4_buffet_sale_title' => $this->get_option('step4_buffet_sale_title'),
             'step4_buffet_sucre_title' => $this->get_option('step4_buffet_sucre_title'),
             'step4_buffet_mixte_title' => $this->get_option('step4_buffet_mixte_title'),

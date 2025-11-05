@@ -446,8 +446,7 @@ class RestaurantBooking_Email
                 </div>
                 
                 <div class="footer">
-                    <p>Block Street Food & Events - Restaurant & Remorque</p>
-                    <p>Ceci est un email automatique, merci de ne pas y répondre directement.</p>
+                    <p>' . wp_kses_post(RestaurantBooking_Options_Helper::get_instance()->get_option('email_footer_text', 'Block Street Food & Events - Restaurant & Remorque<br><br>Ceci est un email automatique, merci de ne pas y répondre directement.')) . '</p>
                 </div>
             </div>
         </body>

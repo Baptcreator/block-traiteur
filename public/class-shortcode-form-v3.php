@@ -32,7 +32,7 @@ class RestaurantBooking_Shortcode_Form_V3
             'restaurant-booking-form-v3',
             RESTAURANT_BOOKING_PLUGIN_URL . 'assets/css/restaurant-booking-form-v3.css',
             [],
-            '3.0.0-' . time() // Force cache refresh pendant développement
+            '3.0.1-' . time() . '-' . rand(1000, 9999) // Version 3.0.1 - Force cache refresh
         );
         
         // CSS V3 Force - Override des styles de boutons du thème
@@ -64,7 +64,7 @@ class RestaurantBooking_Shortcode_Form_V3
             'restaurant-booking-form-v3',
             RESTAURANT_BOOKING_PLUGIN_URL . 'assets/js/restaurant-booking-form-v3.js',
             ['jquery'],
-            '3.0.0-' . time(),
+            '3.0.4-' . time() . '-' . rand(1000, 9999), // Version 3.0.4 - Fix clic automatique
             true
         );
         
@@ -77,6 +77,9 @@ class RestaurantBooking_Shortcode_Form_V3
             true
         );
         
+        // Récupérer les options depuis la base de données
+        $options = $this->get_options();
+        
         // ✅ CORRECTION : Configuration AJAX unifiée pour tous les scripts
         $unified_config = [
             'ajaxUrl' => plugin_dir_url(__FILE__) . '../ajax-clean.php',
@@ -85,7 +88,7 @@ class RestaurantBooking_Shortcode_Form_V3
             'texts' => [
                 'loading' => __('Chargement...', 'restaurant-booking'),
                 'calculating' => __('Calcul en cours...', 'restaurant-booking'),
-                'error_network' => __('Erreur de connexion. Veuillez réessayer.', 'restaurant-booking'),
+                'error_network' => $this->get_option_value($options, 'error_network', 'Erreur de connexion. Veuillez réessayer.'),
                 'error_required' => __('Veuillez compléter ce champ', 'restaurant-booking'),
                 'error_invalid_date' => __('Date invalide', 'restaurant-booking'),
                 'error_min_guests' => __('Nombre minimum de convives non respecté', 'restaurant-booking'),
@@ -95,6 +98,50 @@ class RestaurantBooking_Shortcode_Form_V3
                 'next_step' => __('Étape suivante', 'restaurant-booking'),
                 'prev_step' => __('Étape précédente', 'restaurant-booking'),
                 'submit_quote' => __('Obtenir mon devis', 'restaurant-booking')
+            ],
+            'error_messages' => [
+                // Étape 1/2
+                'event_date_required' => $this->get_option_value($options, 'error_event_date_required', 'Veuillez compléter la date de l\'événement'),
+                'guest_count_required' => $this->get_option_value($options, 'error_guest_count_required', 'Veuillez indiquer le nombre de convives'),
+                'event_duration_required' => $this->get_option_value($options, 'error_event_duration_required', 'Veuillez choisir la durée de l\'événement'),
+                'postal_code_required' => $this->get_option_value($options, 'error_postal_code_required', 'Veuillez saisir votre code postal (5 chiffres)'),
+                'field_required_generic' => $this->get_option_value($options, 'error_field_required_generic', 'Veuillez compléter le champ "{field}"'),
+                'min_guests' => $this->get_option_value($options, 'error_min_guests', 'Minimum {min} convives requis pour {service}'),
+                'max_guests' => $this->get_option_value($options, 'error_max_guests', 'Maximum {max} convives pour {service}'),
+                
+                // Étape 3
+                'insufficient_dishes' => $this->get_option_value($options, 'error_insufficient_dishes', 'Quantité insuffisante ! Il faut au minimum {required} plats pour {guests} convives. Actuellement sélectionnés : {selected} plats (HOT-DOGS / CROQUES + MINI BLOCKER).'),
+                'accompaniments_not_loaded' => $this->get_option_value($options, 'error_accompaniments_not_loaded', 'Les accompagnements ne sont pas encore chargés. Veuillez recharger la page.'),
+                'insufficient_accompaniments' => $this->get_option_value($options, 'error_insufficient_accompaniments', 'Quantité insuffisante ! Il faut au minimum {required} accompagnements pour {guests} convives. Actuellement sélectionnés : {selected} accompagnements.'),
+                'too_many_sauces' => $this->get_option_value($options, 'error_too_many_sauces', 'Trop de sauces ! Vous avez {fries} frites mais {sauces} sauces. Maximum {max} sauces.'),
+                'too_many_chimichurri' => $this->get_option_value($options, 'error_too_many_chimichurri', 'Trop de chimichurri ! Vous avez {fries} frites mais {chimichurri} chimichurri. Maximum {max}.'),
+                'max_options_adjusted' => $this->get_option_value($options, 'error_max_options_adjusted', 'Maximum {max} options au total pour {quantity} {product}. Valeur ajustée.'),
+                
+                // Étape 4
+                'buffet_required' => $this->get_option_value($options, 'error_buffet_required', 'Veuillez sélectionner un type de buffet (obligatoire).'),
+                'buffet_sale_min_person' => $this->get_option_value($options, 'error_buffet_sale_min_person', 'Buffet salé : minimum 1 par personne requis. Actuellement {selected} pour {guests} convives.'),
+                'buffet_sale_min_recipes' => $this->get_option_value($options, 'error_buffet_sale_min_recipes', 'Buffet salé : minimum 2 recettes différentes requises.'),
+                'buffet_sucre_min_person' => $this->get_option_value($options, 'error_buffet_sucre_min_person', 'Buffet sucré : minimum 1 par personne requis. Actuellement {selected} pour {guests} convives.'),
+                'buffet_sucre_min_dish' => $this->get_option_value($options, 'error_buffet_sucre_min_dish', 'Buffet sucré : minimum 1 plat requis.'),
+                
+                // Contact
+                'firstname_required' => $this->get_option_value($options, 'error_firstname_required', 'Prénom est obligatoire.'),
+                'lastname_required' => $this->get_option_value($options, 'error_lastname_required', 'Nom est obligatoire.'),
+                'email_required' => $this->get_option_value($options, 'error_email_required', 'Email est obligatoire.'),
+                'phone_required' => $this->get_option_value($options, 'error_phone_required', 'Téléphone est obligatoire.'),
+                'email_invalid' => $this->get_option_value($options, 'error_email_invalid', 'Format d\'email invalide.'),
+                'phone_invalid' => $this->get_option_value($options, 'error_phone_invalid', 'Format de téléphone invalide.'),
+                
+                // Options remorque
+                'kegs_without_tireuse' => $this->get_option_value($options, 'error_kegs_without_tireuse', 'Attention : Vous avez sélectionné des fûts mais pas de tireuse. Les fûts nécessitent une tireuse pour être servis.'),
+                
+                // Succès/info
+                'tireuse_auto_added' => $this->get_option_value($options, 'success_tireuse_auto_added', 'Tireuse automatiquement ajoutée pour vos fûts sélectionnés.'),
+                'games_auto_added' => $this->get_option_value($options, 'success_games_auto_added', 'Installation jeux automatiquement ajoutée pour vos jeux sélectionnés.'),
+                'tireuse_selected' => $this->get_option_value($options, 'success_tireuse_selected', 'Tireuse sélectionnée ! Vous pouvez maintenant choisir vos fûts.'),
+                'tireuse_deselected' => $this->get_option_value($options, 'warning_tireuse_deselected', 'Tireuse désélectionnée - Les fûts ont été automatiquement retirés.'),
+                'games_selected' => $this->get_option_value($options, 'success_games_selected', 'Installation jeux sélectionnée ! Vous pouvez maintenant choisir vos jeux.'),
+                'games_deselected' => $this->get_option_value($options, 'warning_games_deselected', 'Installation jeux désélectionnée - Les jeux ont été automatiquement retirés.'),
             ],
             'messages' => [
                 'loading' => __('Chargement...', 'restaurant-booking'),
@@ -252,6 +299,14 @@ class RestaurantBooking_Shortcode_Form_V3
         </div>
         <?php
         return ob_get_clean();
+    }
+
+    /**
+     * Helper pour récupérer une valeur d'option avec fallback
+     */
+    private function get_option_value($options, $key, $default = '')
+    {
+        return isset($options[$key]) ? $options[$key] : $default;
     }
 
     /**
